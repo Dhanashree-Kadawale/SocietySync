@@ -1,0 +1,219 @@
+<div class="login-container">
+  <!-- Left Side: Hero Image & Branding -->
+  <div class="hero-pane">
+    <div class="hero-image-wrapper">
+      <img src="society_hero.jpg" alt="SocietySync Residential Community" class="hero-bg-img" />
+      <div class="hero-overlay"></div>
+    </div>
+
+    <!-- Top Left Brand Title matching reference image -->
+    <div class="hero-brand">
+      <h1 class="brand-logo">SocietySync</h1>
+    </div>
+
+    <!-- Subtle bottom badge for atmosphere -->
+    <div class="hero-footer-caption">
+      <span class="caption-pill">Smart Community Living</span>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form Card -->
+  <div class="form-pane">
+    <div class="mobile-brand-bar">
+      <span class="mobile-logo">SocietySync</span>
+    </div>
+
+    <div class="card-wrapper">
+      <div class="login-card">
+        <!-- Header -->
+        <header class="card-header">
+          <h2 class="resident-heading">Resident Login</h2>
+          <h3 class="welcome-heading">Welcome Back</h3>
+          <p class="welcome-subtext">Access your society, services, and updates.</p>
+        </header>
+
+        <!-- Feedback Alert -->
+        @if (errorMessage) {
+          <div class="alert alert-error" role="alert">
+            <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        @if (successMessage) {
+          <div class="alert alert-success" role="alert">
+            <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ successMessage }}</span>
+          </div>
+        }
+
+        <!-- Login Form -->
+        <form (ngSubmit)="onSubmit()" class="login-form" novalidate>
+          <!-- Identity Input -->
+          <div class="input-field-group">
+            <input
+              type="text"
+              id="identity"
+              name="identity"
+              [(ngModel)]="identity"
+              placeholder="Email address or registered mobile number"
+              class="form-input"
+              [class.has-error]="errorMessage && !identity"
+              autocomplete="username"
+              required />
+          </div>
+
+          <!-- Password Input -->
+          <div class="input-field-group password-group">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              name="password"
+              [(ngModel)]="password"
+              placeholder="Password"
+              class="form-input password-input"
+              [class.has-error]="errorMessage && !password"
+              autocomplete="current-password"
+              required />
+
+            <button
+              type="button"
+              class="password-visibility-btn"
+              (click)="togglePasswordVisibility()"
+              [title]="showPassword ? 'Hide password' : 'Show password'"
+              aria-label="Toggle password visibility">
+              @if (showPassword) {
+                <!-- Eye Off Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-svg">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              } @else {
+                <!-- Eye Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-svg">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              }
+            </button>
+          </div>
+
+          <!-- Options Row: Remember Me & Forgot Password -->
+          <div class="form-row-options">
+            <label class="remember-checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="rememberMe"
+                name="rememberMe"
+                class="custom-checkbox" />
+              <span>Remember Me</span>
+            </label>
+
+            <a href="#forgot" (click)="openForgotPassword($event)" class="forgot-link">
+              Forgot Password?
+            </a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="sign-in-btn" [disabled]="isLoading">
+            @if (isLoading) {
+              <span class="btn-spinner"></span>
+              <span>Signing in...</span>
+            } @else {
+              <span>Sign In</span>
+            }
+          </button>
+
+          <!-- Register Prompt -->
+          <div class="register-prompt">
+            <span>Don't have an account?</span>
+            <a href="#register" (click)="openRegister($event)" class="register-link">Register</a>
+          </div>
+
+          <!-- Quick Test Credentials helper (expandable / convenient) -->
+          <div class="demo-quickfill">
+            <span class="demo-label">Quick fill demo:</span>
+            <button type="button" class="demo-tag" (click)="fillDemo('resident')">Resident</button>
+            <span class="demo-dot">·</span>
+            <button type="button" class="demo-tag" (click)="fillDemo('admin')">Admin</button>
+          </div>
+
+          <!-- Security note -->
+          <footer class="security-footer">
+            <p class="security-text">
+              Secure access to your community portal. Your data is protected.
+            </p>
+          </footer>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  @if (showForgotPasswordModal) {
+    <div class="modal-backdrop" (click)="closeForgotPassword()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Reset Password</h3>
+          <button type="button" class="close-btn" (click)="closeForgotPassword()">✕</button>
+        </div>
+        <div class="modal-body">
+          @if (!forgotSuccess) {
+            <p>Enter your registered email address or mobile number to receive a password reset link.</p>
+            <div class="input-field-group">
+              <input
+                type="text"
+                [(ngModel)]="forgotIdentity"
+                placeholder="Enter email or mobile"
+                class="form-input" />
+            </div>
+            <button type="button" class="sign-in-btn" (click)="submitForgotPassword()">
+              Send Reset Link
+            </button>
+          } @else {
+            <div class="reset-success-box">
+              <div class="success-icon-circle">✓</div>
+              <h4>Instructions Sent!</h4>
+              <p>We've sent a verification code to <strong>{{ forgotIdentity }}</strong>. Please check your messages.</p>
+              <button type="button" class="sign-in-btn secondary" (click)="closeForgotPassword()">
+                Back to Sign In
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Register Modal -->
+  @if (showRegisterModal) {
+    <div class="modal-backdrop" (click)="closeRegister()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Join SocietySync</h3>
+          <button type="button" class="close-btn" (click)="closeRegister()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>Registration is managed through your housing society administration to ensure resident verification and security.</p>
+          <div class="society-verify-info">
+            <div class="info-row">
+              <span class="info-bullet">✦</span>
+              <span>Contact your society manager or secretary with your flat allotment letter.</span>
+            </div>
+            <div class="info-row">
+              <span class="info-bullet">✦</span>
+              <span>An activation invitation link will be sent to your registered mobile number and email.</span>
+            </div>
+          </div>
+          <button type="button" class="sign-in-btn" (click)="closeRegister()">
+            Got It
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

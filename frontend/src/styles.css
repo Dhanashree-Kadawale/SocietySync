@@ -1,0 +1,39 @@
+
+:root {
+  --primary-color: #1e5345;
+  --primary-dark: #143e34;
+  --primary-hover: #133a30;
+  --primary-light: #edf6f2;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --bg-warm: #f7f7f4;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: var(--font-sans);
+  background-color: var(--bg-warm);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-width: 320px;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
