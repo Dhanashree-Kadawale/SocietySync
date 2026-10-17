@@ -1,0 +1,364 @@
+<div class="settings-page">
+  <!-- Header Title -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Society Settings & Governance</h1>
+      <p class="page-subtitle">Configure legal entity details, billing rules, bank accounts, and managing committee</p>
+    </div>
+    <div class="header-actions">
+      <div class="tab-switcher">
+        <button class="tab-btn" [class.active]="activeTab() === 'profile'" (click)="activeTab.set('profile')">
+          Society Profile
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'billing'" (click)="activeTab.set('billing')">
+          Billing & Rules
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'bank'" (click)="activeTab.set('bank')">
+          Bank & UPI Accounts
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'committee'" (click)="activeTab.set('committee')">
+          Managing Committee
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: SOCIETY PROFILE -->
+  <div class="settings-card" *ngIf="activeTab() === 'profile'">
+    <div class="card-header-bar">
+      <div>
+        <h3>Society Legal Entity & Contact Profile</h3>
+        <p>Official registration credentials registered under Maharashtra Co-operative Societies Act, 1960</p>
+      </div>
+      <button class="btn btn-primary" (click)="saveProfile()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+          <polyline points="17 21 17 13 7 13 7 21" />
+          <polyline points="7 3 7 8 15 8" />
+        </svg>
+        Save Changes
+      </button>
+    </div>
+
+    <div class="card-body-form">
+      <div class="form-row">
+        <div class="form-group two-thirds">
+          <label>Registered Society Name</label>
+          <input type="text" class="form-control" [(ngModel)]="societyProfile.name" />
+        </div>
+        <div class="form-group third">
+          <label>Registration Number</label>
+          <input type="text" class="form-control" [(ngModel)]="societyProfile.regNumber" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group two-thirds">
+          <label>Registered Street Address</label>
+          <input type="text" class="form-control" [(ngModel)]="societyProfile.address" />
+        </div>
+        <div class="form-group third">
+          <label>City & State</label>
+          <input type="text" class="form-control" [value]="societyProfile.city + ', ' + societyProfile.state" readonly />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Total Residential Units</label>
+          <input type="number" class="form-control" [(ngModel)]="societyProfile.totalFlats" />
+        </div>
+        <div class="form-group half">
+          <label>Number of Wings / Towers</label>
+          <input type="number" class="form-control" [(ngModel)]="societyProfile.totalTowers" />
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+      <h4 class="sub-head">Official Communication & Gate Contacts</h4>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Society Office Email Address</label>
+          <input type="email" class="form-control" [(ngModel)]="societyProfile.societyEmail" />
+        </div>
+        <div class="form-group half">
+          <label>Secretary Direct Mobile</label>
+          <input type="text" class="form-control" [(ngModel)]="societyProfile.secretaryPhone" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Security Gate 1 Intercom Extension</label>
+          <input type="text" class="form-control" [(ngModel)]="societyProfile.gateIntercom" />
+        </div>
+        <div class="form-group half">
+          <label>Security Gate 1 Mobile Phone</label>
+          <input type="text" class="form-control" [(ngModel)]="societyProfile.gateMobile" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: BILLING & RULES -->
+  <div class="settings-card" *ngIf="activeTab() === 'billing'">
+    <div class="card-header-bar">
+      <div>
+        <h3>Maintenance Billing Cycles & Penalty Rules</h3>
+        <p>Automate monthly bill generation dates, due deadlines, and overdue surcharge rates</p>
+      </div>
+      <button class="btn btn-primary" (click)="saveBillingRules()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+          <polyline points="17 21 17 13 7 13 7 21" />
+          <polyline points="7 3 7 8 15 8" />
+        </svg>
+        Save Billing Rules
+      </button>
+    </div>
+
+    <div class="card-body-form">
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Standard Monthly Maintenance Charge (₹ per Flat)</label>
+          <input type="number" class="form-control" [(ngModel)]="billingRules.monthlyMaintenance" />
+        </div>
+        <div class="form-group half">
+          <label>Sinking Fund Contribution (%)</label>
+          <input type="number" step="0.05" class="form-control" [(ngModel)]="billingRules.sinkingFundPercent" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Bill Generation Day of Month</label>
+          <select class="form-control" [(ngModel)]="billingRules.billGenDay">
+            <option [value]="1">1st of every month</option>
+            <option [value]="5">5th of every month</option>
+          </select>
+        </div>
+        <div class="form-group half">
+          <label>Payment Due Date Day</label>
+          <select class="form-control" [(ngModel)]="billingRules.dueDay">
+            <option [value]="10">10th of every month</option>
+            <option [value]="15">15th of every month</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Post-Due Grace Period (Days)</label>
+          <input type="number" class="form-control" [(ngModel)]="billingRules.graceDays" />
+        </div>
+        <div class="form-group half">
+          <label>Monthly Late Penalty Surcharge (%)</label>
+          <input type="number" class="form-control" [(ngModel)]="billingRules.latePenaltyPercent" />
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+      <h4 class="sub-head">Automated Notifications & Reminders</h4>
+
+      <div class="checkbox-list">
+        <label class="custom-checkbox">
+          <input type="checkbox" [(ngModel)]="billingRules.sendSmsAlerts" />
+          <span>Send automated WhatsApp / SMS reminders 3 days before payment due date</span>
+        </label>
+        <label class="custom-checkbox">
+          <input type="checkbox" [(ngModel)]="billingRules.sendEmailInvoices" />
+          <span>Email itemized PDF tax invoice automatically upon monthly generation</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: BANK & UPI -->
+  <div class="settings-card" *ngIf="activeTab() === 'bank'">
+    <div class="card-header-bar">
+      <div>
+        <h3>Society Bank Account & UPI Settlement</h3>
+        <p>Designated operational account for resident maintenance collections and vendor payments</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline" (click)="testBankPing()">
+          Verify API Ping
+        </button>
+        <button class="btn btn-primary" (click)="saveBankDetails()">
+          Save Bank Details
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body-form">
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Banking Partner</label>
+          <input type="text" class="form-control" [(ngModel)]="bankDetails.bankName" />
+        </div>
+        <div class="form-group half">
+          <label>Branch Name & City</label>
+          <input type="text" class="form-control" [(ngModel)]="bankDetails.branch" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>Account Holder Name</label>
+          <input type="text" class="form-control" [(ngModel)]="bankDetails.accountName" />
+        </div>
+        <div class="form-group half">
+          <label>Current Account Number</label>
+          <input type="text" class="form-control" [(ngModel)]="bankDetails.accountNumber" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label>RTGS / NEFT IFSC Code</label>
+          <input type="text" class="form-control" [(ngModel)]="bankDetails.ifscCode" />
+        </div>
+        <div class="form-group half">
+          <label>Unified Payments Interface (UPI) VPA</label>
+          <input type="text" class="form-control" [(ngModel)]="bankDetails.upiId" />
+        </div>
+      </div>
+
+      <div class="qr-preview-box">
+        <div class="qr-info">
+          <h4>Dynamic QR Code Payment Integration</h4>
+          <p>Every resident invoice will automatically print a dynamic UPI QR code pre-filled with the exact bill amount and flat number reference.</p>
+          <span class="verified-pill">✓ Bank Account Verified & Live</span>
+        </div>
+        <div class="mock-qr-wrap">
+          <div class="mock-qr">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#1D5245" stroke-width="1.8">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
+          </div>
+          <span class="qr-tag">societysync.greenwood@hdfcbank</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: MANAGING COMMITTEE -->
+  <div class="settings-card" *ngIf="activeTab() === 'committee'">
+    <div class="card-header-bar">
+      <div>
+        <h3>Managing Committee (Executive Board)</h3>
+        <p>Elected committee members responsible for society governance and administration</p>
+      </div>
+      <button class="btn btn-primary" (click)="openAddMemberModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Add Committee Member
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table class="committee-table">
+        <thead>
+          <tr>
+            <th>Member Name</th>
+            <th>Designation</th>
+            <th>Flat Allocation</th>
+            <th>Contact Phone</th>
+            <th>Official Email</th>
+            <th>Term Expiry</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let member of committeeMembers()" class="table-row">
+            <td>
+              <span class="member-name">{{ member.name }}</span>
+            </td>
+            <td>
+              <span class="badge desig-badge" [ngClass]="member.designation.toLowerCase().replace(' ', '-')">
+                {{ member.designation }}
+              </span>
+            </td>
+            <td>
+              <span class="flat-text">{{ member.flatNumber }}</span>
+            </td>
+            <td>
+              <span class="phone-text">{{ member.phone }}</span>
+            </td>
+            <td>
+              <span class="email-text">{{ member.email }}</span>
+            </td>
+            <td>
+              <span class="term-text">{{ member.termEnd }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add Member Modal -->
+  <div class="modal-backdrop" *ngIf="showAddMemberModal()" (click)="closeAddMemberModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+            </svg>
+          </div>
+          <div>
+            <h3>Add Committee Member</h3>
+            <p>Enroll newly elected managing committee officer</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeAddMemberModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Full Name <span class="required">*</span></label>
+          <input type="text" class="form-control" placeholder="e.g. Anand Deshpande" [(ngModel)]="newMember.name" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Designation</label>
+            <select class="form-control" [(ngModel)]="newMember.designation">
+              <option value="Chairman">Chairman</option>
+              <option value="Secretary">Secretary</option>
+              <option value="Treasurer">Treasurer</option>
+              <option value="Committee Member">Committee Member</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label>Flat Number</label>
+            <input type="text" class="form-control" placeholder="e.g. B-201" [(ngModel)]="newMember.flatNumber" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Mobile Number <span class="required">*</span></label>
+            <input type="text" class="form-control" placeholder="+91 98220 00000" [(ngModel)]="newMember.phone" />
+          </div>
+          <div class="form-group half">
+            <label>Official Email</label>
+            <input type="email" class="form-control" placeholder="member@greenwoodheights.org" [(ngModel)]="newMember.email" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeAddMemberModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="submitMember()">Register Member</button>
+      </div>
+    </div>
+  </div>
+</div>

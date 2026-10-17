@@ -1,0 +1,148 @@
+<div class="visitors-page">
+
+  <!-- Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb-trail">
+        <span class="crumb-parent">Green Heights</span>
+        <span class="crumb-separator">/</span>
+        <span class="crumb-current">Gate Security & Visitors</span>
+      </div>
+      <h1 class="page-title">Visitor Passes & Main Gate Control</h1>
+      <p class="page-subtitle">Track real-time perimeter entries, issue digital QR entry passes, verify delivery personnel, and maintain secure society access logs.</p>
+    </div>
+
+    <div class="header-action-group">
+      <button class="btn-primary-action" (click)="openPreApproveModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+        + Pre-Approve Visitor
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Currently Inside</span><span class="kpi-icon icon-green">🟢</span></div>
+      <div class="kpi-body"><span class="kpi-number text-green">{{ insideCount() }}</span><span class="kpi-badge badge-green">On-Premises</span></div>
+      <p class="kpi-footnote">Active guests in complex</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Departed Today</span><span class="kpi-icon">🚪</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ checkedOutCount() }}</span><span class="kpi-badge badge-subtle">Checked Out</span></div>
+      <p class="kpi-footnote">Completed visits logged</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Expected Pre-Approved</span><span class="kpi-icon icon-amber">🎫</span></div>
+      <div class="kpi-body"><span class="kpi-number text-amber">4</span><span class="kpi-badge badge-amber">Pass Active</span></div>
+      <p class="kpi-footnote">Authorized by residents</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Security Gates</span><span class="kpi-icon">🛡️</span></div>
+      <div class="kpi-body"><span class="kpi-number">2</span><span class="kpi-badge badge-active">Manned</span></div>
+      <p class="kpi-footnote">Main Gate 1 & Service Gate 2</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-panel">
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search by visitor name, phone, flat #, or purpose..." [(ngModel)]="searchQuery" />
+      <button *ngIf="searchQuery()" class="btn-clear" (click)="searchQuery.set('')">✕</button>
+    </div>
+
+    <div class="filter-controls-group">
+      <select class="filter-select" [(ngModel)]="selectedStatus">
+        <option value="ALL">All Statuses</option>
+        <option value="In">Currently Inside</option>
+        <option value="Out">Checked Out</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container-card">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Visitor Name</th>
+          <th>Contact Phone</th>
+          <th>Visiting Flat</th>
+          <th>Host Resident</th>
+          <th>Visit Purpose</th>
+          <th>Vehicle #</th>
+          <th>Check-In Time</th>
+          <th>Status</th>
+          <th class="text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of filteredVisitors()" class="clickable-row">
+          <td><span class="font-bold text-charcoal">{{ v.name }}</span></td>
+          <td>{{ v.phone }}</td>
+          <td><span class="badge-type">{{ v.flatNumber }}</span></td>
+          <td>{{ v.hostResident }}</td>
+          <td>{{ v.purpose }}</td>
+          <td><span class="font-mono">{{ v.vehicleNumber || '—' }}</span></td>
+          <td>{{ v.checkIn | date:'shortTime' }} ({{ v.checkIn | date:'mediumDate' }})</td>
+          <td>
+            <span class="status-pill" [class.pill-active]="v.status === 'In'" [class.pill-pending]="v.status === 'Out'">
+              {{ v.status === 'In' ? 'Inside' : 'Departed' }}
+            </span>
+          </td>
+          <td class="text-right action-cell" (click)="$event.stopPropagation()">
+            <button *ngIf="v.status === 'In'" class="table-btn-icon text-danger" (click)="checkOutVisitor(v)" title="Check Out">🚪 Log Exit</button>
+            <span *ngIf="v.status === 'Out'" class="text-muted text-xs">Logged out</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal: Pre-Approve Visitor -->
+  <div class="modal-backdrop" *ngIf="showPreApproveModal()" (click)="closePreApproveModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Pre-Approve Visitor / Issue Gate Pass</h3>
+        <button class="btn-close" (click)="closePreApproveModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Visitor Full Name *</label>
+          <input type="text" placeholder="e.g. Sunil Verma" [(ngModel)]="visitorForm.name" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Mobile Number *</label>
+            <input type="text" placeholder="+91 98220 00000" [(ngModel)]="visitorForm.phone" />
+          </div>
+          <div class="form-field">
+            <label>Purpose of Visit *</label>
+            <select [(ngModel)]="visitorForm.purpose">
+              <option value="Guest">Personal Guest</option>
+              <option value="Delivery">Courier / Delivery</option>
+              <option value="Home Service">Plumbing / AC Service</option>
+              <option value="Cab">Cab / Taxi Pickup</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Destination Flat # *</label>
+            <input type="text" placeholder="e.g. A-204" [(ngModel)]="visitorForm.flatNumber" />
+          </div>
+          <div class="form-field">
+            <label>Vehicle Number</label>
+            <input type="text" placeholder="e.g. MH 12 AB 1234" [(ngModel)]="visitorForm.vehicleNumber" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closePreApproveModal()">Cancel</button>
+        <button class="btn-save" (click)="savePreApproval()" [disabled]="!visitorForm.name || !visitorForm.phone">Issue Gate Pass</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,428 @@
+<div class="expenses-page">
+  <!-- Header Title & Action -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Expenses & Society Expenditures</h1>
+      <p class="page-subtitle">Track operational payouts, vendor vouchers, AMC invoices, and budget utilization</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="searchQuery.set('')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        Reset Filters
+      </button>
+      <button class="btn btn-primary" (click)="openAddModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Record New Voucher
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Strip -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Expenses This Month</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ totalMonthlyExpense() }}</span>
+          <span class="kpi-tag primary">October 2026</span>
+        </div>
+        <span class="kpi-sub">Across 8 verified society heads</span>
+      </div>
+      <div class="kpi-icon-wrap bg-green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+          <polyline points="17 18 23 18 23 12" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Pending Approval</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ pendingApprovalCount() }}</span>
+          <span class="kpi-tag warning">{{ pendingApprovalAmount() }} Total</span>
+        </div>
+        <span class="kpi-sub">Awaiting Secretary verification</span>
+      </div>
+      <div class="kpi-icon-wrap bg-amber">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 14 14" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Approved Vouchers</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ approvedCount() }}</span>
+          <span class="kpi-tag success">Cleared</span>
+        </div>
+        <span class="kpi-sub">Processed through bank accounts</span>
+      </div>
+      <div class="kpi-icon-wrap bg-emerald">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Budget Utilized</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">68.4%</span>
+          <span class="kpi-tag primary">On Track</span>
+        </div>
+        <span class="kpi-sub">₹12.6L remaining in FY reserve</span>
+      </div>
+      <div class="kpi-icon-wrap bg-dark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <line x1="8" y1="21" x2="16" y2="21" />
+          <line x1="12" y1="17" x2="12" y2="21" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Filter Pills -->
+  <div class="category-tabs">
+    <button class="cat-pill" [class.active]="selectedCategory() === 'ALL'" (click)="selectedCategory.set('ALL')">
+      All Heads <span class="pill-badge">{{ expenses().length }}</span>
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Utilities'" (click)="selectedCategory.set('Utilities')">
+      Utilities (MSEB & Diesel)
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Maintenance'" (click)="selectedCategory.set('Maintenance')">
+      Maintenance & AMCs
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Security'" (click)="selectedCategory.set('Security')">
+      Security Agency
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Landscaping'" (click)="selectedCategory.set('Landscaping')">
+      Gardening & Pool
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Administration'" (click)="selectedCategory.set('Administration')">
+      Admin & Audit Fees
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar-card">
+    <div class="search-input-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        class="search-field"
+        placeholder="Search vouchers by description, vendor name, or voucher ID..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+
+    <div class="toolbar-filters">
+      <label class="filter-label">Approval Status:</label>
+      <select class="select-field" [ngModel]="selectedStatus()" (ngModelChange)="selectedStatus.set($event)">
+        <option value="ALL">All Statuses</option>
+        <option value="Approved">Approved</option>
+        <option value="Pending">Pending Review</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Vouchers Ledger Table -->
+  <div class="table-container">
+    <table class="voucher-table">
+      <thead>
+        <tr>
+          <th style="width: 32%;">Voucher Title & Detail</th>
+          <th>Voucher #</th>
+          <th>Category</th>
+          <th>Vendor Name</th>
+          <th>Amount</th>
+          <th>Payment Mode</th>
+          <th>Status</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let voucher of filteredExpenses()" class="table-row" (click)="viewVoucherDetails(voucher)">
+          <td>
+            <div class="vouch-title-cell">
+              <span class="vouch-name">{{ voucher.title }}</span>
+              <span class="vouch-sub">{{ voucher.description }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="vouch-num">{{ voucher.voucherNumber }}</span>
+          </td>
+          <td>
+            <span class="badge cat-badge" [ngClass]="voucher.category.toLowerCase()">
+              {{ voucher.category }}
+            </span>
+          </td>
+          <td>
+            <div class="vendor-cell">
+              <span class="vendor-name">{{ voucher.vendor }}</span>
+              <span class="date-sub">{{ voucher.date }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="amount-val">₹{{ voucher.amount.toLocaleString() }}</span>
+          </td>
+          <td>
+            <span class="mode-tag">{{ voucher.paymentMethod }}</span>
+          </td>
+          <td>
+            <span class="status-pill" [ngClass]="voucher.status.toLowerCase()">
+              {{ voucher.status }}
+            </span>
+          </td>
+          <td style="text-align: right;" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <!-- If pending: quick approve/reject buttons -->
+              <ng-container *ngIf="voucher.status === 'Pending'">
+                <button class="quick-btn approve" title="Approve Voucher" (click)="approveVoucher(voucher, $event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </button>
+                <button class="quick-btn reject" title="Reject Voucher" (click)="rejectVoucher(voucher, $event)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </ng-container>
+
+              <button class="action-btn" title="View Voucher" (click)="viewVoucherDetails(voucher)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+              <button class="action-btn" title="Download Invoice" (click)="downloadReceipt(voucher, $event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Record New Voucher Modal -->
+  <div class="modal-backdrop" *ngIf="showAddVoucherModal()" (click)="closeAddModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+          </div>
+          <div>
+            <h3>Record Society Expense Voucher</h3>
+            <p>Log vendor invoice, maintenance expenditure, or utility bill payout</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeAddModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Expense / Service Title <span class="required">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Elevator Overhaul & Rope Tension Calibration"
+            [(ngModel)]="voucherForm.title"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Expense Category</label>
+            <select class="form-control" [(ngModel)]="voucherForm.category">
+              <option value="Utilities">Utilities (MSEB & Fuel)</option>
+              <option value="Maintenance">Maintenance & AMCs</option>
+              <option value="Security">Security Agency</option>
+              <option value="Housekeeping">Housekeeping & Waste</option>
+              <option value="Landscaping">Landscaping & Gardens</option>
+              <option value="Administration">Administration & Legal</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label>Amount (₹) <span class="required">*</span></label>
+            <input
+              type="number"
+              class="form-control"
+              placeholder="e.g. 25000"
+              [(ngModel)]="voucherForm.amount"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Vendor / Contractor Name <span class="required">*</span></label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="e.g. Otis Elevators India Ltd."
+              [(ngModel)]="voucherForm.vendor"
+            />
+          </div>
+          <div class="form-group half">
+            <label>Payment Method</label>
+            <select class="form-control" [(ngModel)]="voucherForm.paymentMethod">
+              <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
+              <option value="UPI">UPI Payment</option>
+              <option value="Cheque">Account Payee Cheque</option>
+              <option value="Direct Debit">Direct Debit / Auto Pay</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description & Scope of Work</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            placeholder="Detailed description of goods supplied or maintenance services rendered..."
+            [(ngModel)]="voucherForm.description"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Voucher / Invoice Number</label>
+            <input type="text" class="form-control" [(ngModel)]="voucherForm.voucherNumber" />
+          </div>
+          <div class="form-group half">
+            <label>Voucher Date</label>
+            <input type="text" class="form-control" [(ngModel)]="voucherForm.date" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="submitVoucher()">Record Voucher</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voucher Details & Receipt Modal -->
+  <div class="modal-backdrop" *ngIf="showDetailModal() && activeVoucher()" (click)="closeDetailModal()">
+    <div class="modal-box detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon bg-emerald">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+          </div>
+          <div>
+            <h3>{{ activeVoucher()!.title }}</h3>
+            <p>{{ activeVoucher()!.voucherNumber }} · Logged on {{ activeVoucher()!.date }}</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeDetailModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="voucher-preview-canvas">
+          <div class="vouch-header">
+            <div>
+              <h2 class="society-heading">GREENWOOD HEIGHTS CO-OPERATIVE HOUSING SOCIETY</h2>
+              <span class="reg-sub">Reg No: REG/PUN/2018/4592 · Payment Disbursement Voucher</span>
+            </div>
+            <div class="vouch-seal" [ngClass]="activeVoucher()!.status.toLowerCase()">
+              {{ activeVoucher()!.status }}
+            </div>
+          </div>
+
+          <div class="vouch-grid-info">
+            <div class="v-cell">
+              <span class="v-lbl">VOUCHER NUMBER</span>
+              <span class="v-dat">{{ activeVoucher()!.voucherNumber }}</span>
+            </div>
+            <div class="v-cell">
+              <span class="v-lbl">DISBURSEMENT DATE</span>
+              <span class="v-dat">{{ activeVoucher()!.date }}</span>
+            </div>
+            <div class="v-cell">
+              <span class="v-lbl">HEAD OF ACCOUNT</span>
+              <span class="v-dat">{{ activeVoucher()!.category }}</span>
+            </div>
+            <div class="v-cell">
+              <span class="v-lbl">PAYMENT MODE</span>
+              <span class="v-dat">{{ activeVoucher()!.paymentMethod }}</span>
+            </div>
+          </div>
+
+          <div class="payee-box">
+            <span class="v-lbl">PAYABLE TO:</span>
+            <div class="payee-name">{{ activeVoucher()!.vendor }}</div>
+            <p class="payee-desc">{{ activeVoucher()!.description }}</p>
+          </div>
+
+          <div class="amount-strip">
+            <span class="amt-lbl">TOTAL DISBURSED AMOUNT:</span>
+            <span class="amt-num">₹{{ activeVoucher()!.amount.toLocaleString() }}</span>
+          </div>
+
+          <div class="vouch-signatures">
+            <div class="sig">
+              <div class="sig-line"></div>
+              <span>Prepared By</span>
+            </div>
+            <div class="sig">
+              <div class="sig-line"></div>
+              <span>{{ activeVoucher()!.approvedBy }}</span>
+            </div>
+            <div class="sig">
+              <div class="sig-line"></div>
+              <span>Treasurer / Committee</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <ng-container *ngIf="activeVoucher()!.status === 'Pending'">
+          <button class="btn btn-outline" style="color: #DC4545;" (click)="rejectVoucher(activeVoucher()!)">
+            Reject Voucher
+          </button>
+          <button class="btn btn-primary" (click)="approveVoucher(activeVoucher()!)">
+            Approve & Release Payment
+          </button>
+        </ng-container>
+        <button class="btn btn-primary" *ngIf="activeVoucher()!.status !== 'Pending'" (click)="downloadReceipt(activeVoucher()!)">
+          Download PDF Voucher
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
