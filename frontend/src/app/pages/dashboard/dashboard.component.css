@@ -12,7 +12,7 @@ button { cursor: pointer; }
 
 .app-shell {
   min-height: 100vh;
-  background: #f6f8fc;
+  background: #F7F8F6;
 }
 
 .sidebar {
@@ -37,8 +37,8 @@ button { cursor: pointer; }
   color: white;
   font-size: 23px;
   font-weight: 800;
-  background: linear-gradient(140deg, #477af7, #3157d5);
-  box-shadow: 0 5px 13px #3157d533;
+  background: #286B58;
+  box-shadow: 0 5px 13px rgba(40, 107, 88, 0.25);
 }
 .brand h2 { margin: 0; font-size: 18px; letter-spacing: -.6px; }
 .brand span { display: block; margin-top: 4px; color: #9aa5b7; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; }
@@ -52,7 +52,7 @@ button { cursor: pointer; }
   border: 1px solid #edf0f6;
   border-radius: 12px;
 }
-.society-icon { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 10px; background: #e8efff; color: #3768e9; font-size: 23px; }
+.society-icon { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 10px; background: #EBF3F0; color: #286B58; font-size: 23px; }
 .society-card strong { display: block; font-size: 11px; }
 .society-card small { display: block; margin-top: 4px; color: #8c97a9; font-size: 10px; }
 .chevron { margin-left: auto; color: #8d98a9; }

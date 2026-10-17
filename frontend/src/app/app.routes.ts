@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
+import { LandingPageComponent } from './pages/landing/landing-page.component';
 import { LoginComponent } from './pages/login/login.component';
+import { SuperAdminLoginComponent } from './pages/super-admin-login/super-admin-login.component';
+import { SuperAdminDashboardComponent } from './pages/super-admin-dashboard/super-admin-dashboard.component';
+import { RegisterComponent } from './pages/register/register.component';
+import { ResidentDashboardComponent } from './pages/resident-dashboard/resident-dashboard.component';
+import { StaffDashboardComponent } from './pages/staff-dashboard/staff-dashboard.component';
 import { DashboardComponent } from './pages/dashboard/dashboard';
 import { BuildingsComponent } from './pages/buildings/buildings';
 import { BillingComponent } from './pages/billing/billing';
@@ -15,8 +21,21 @@ import { ReportsPageComponent } from './pages/reports/reports';
 import { SettingsPageComponent } from './pages/settings/settings';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent, title: 'Resident Login - SocietySync' },
+  // Landing and Authentication
+  { path: '', component: LandingPageComponent, title: 'SocietySync - Smart Housing Society Management' },
+  { path: 'home', component: LandingPageComponent, title: 'SocietySync - Smart Housing Society Management' },
+  { path: 'login', component: LoginComponent, title: 'Sign In - SocietySync' },
+  { path: 'register', component: RegisterComponent, title: 'Register - SocietySync' },
+  { path: 'super-admin-login', component: SuperAdminLoginComponent, title: 'Super Admin Console - SocietySync' },
+  { path: 'super-admin', component: SuperAdminDashboardComponent, title: 'Super Admin Master Console - SocietySync' },
+  { path: 'super-admin-dashboard', component: SuperAdminDashboardComponent, title: 'Super Admin Master Console - SocietySync' },
+
+  // Role-Specific Dashboards
+  { path: 'resident', component: ResidentDashboardComponent, title: 'Resident Portal - SocietySync' },
+  { path: 'resident-dashboard', component: ResidentDashboardComponent, title: 'Resident Portal - SocietySync' },
+  { path: 'staff-dashboard', component: StaffDashboardComponent, title: 'Maintenance Crew Portal - SocietySync' },
+
+  // Admin / Society Management Portal
   { path: 'dashboard', component: DashboardComponent, title: 'Dashboard - SocietySync' },
   { path: 'buildings', component: BuildingsComponent, title: 'Flat Information - SocietySync' },
   { path: 'billing', component: BillingComponent, title: 'Maintenance Bills - SocietySync' },
@@ -30,5 +49,7 @@ export const routes: Routes = [
   { path: 'expenses', component: ExpensesPageComponent, title: 'Expenses & Dues - SocietySync' },
   { path: 'reports', component: ReportsPageComponent, title: 'Polls & Reports - SocietySync' },
   { path: 'settings', component: SettingsPageComponent, title: 'Society Settings - SocietySync' },
-  { path: '**', redirectTo: 'dashboard' }
+
+  // Catch-all
+  { path: '**', redirectTo: '' }
 ];

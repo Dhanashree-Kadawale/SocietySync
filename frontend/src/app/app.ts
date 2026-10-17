@@ -29,7 +29,21 @@ export class App {
   ) {}
 
   get isAuthPage(): boolean {
-    return this.router.url.includes('/login');
+    const path = this.router.url.split('?')[0].split('#')[0];
+    const standalone = [
+      '',
+      '/',
+      '/home',
+      '/login',
+      '/register',
+      '/super-admin-login',
+      '/super-admin',
+      '/super-admin-dashboard',
+      '/resident',
+      '/resident-dashboard',
+      '/staff-dashboard'
+    ];
+    return standalone.includes(path) || path.includes('/login');
   }
 
   toggleSidebar() {

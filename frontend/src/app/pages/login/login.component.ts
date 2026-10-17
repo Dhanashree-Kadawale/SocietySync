@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { UserRole } from '../../models/user.model';
 
 @Component({
   selector: 'app-login',
@@ -11,40 +12,60 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
-  identity = '';
-  password = '';
+export class LoginComponent implements OnInit {
+  selectedRole: UserRole = 'Resident';
+  identity = 'priya.sharma@greenwood.com';
+  password = 'Resident@2026';
   rememberMe = false;
   showPassword = false;
   isLoading = false;
   errorMessage = '';
   successMessage = '';
 
-  // Demo accounts helper
-  showDemoHelper = false;
+  roles: { role: UserRole; label: string; icon: string; subtitle: string }[] = [
+    { role: 'Resident', label: 'Resident', icon: '🏠', subtitle: 'Access society services, dues & bookings' },
+    { role: 'Secretary Admin', label: 'Secretary Admin', icon: '📋', subtitle: 'Society management & approvals' },
+    { role: 'Maintenance Staff', label: 'Staff', icon: '🔧', subtitle: 'Service tickets & resolution updates' }
+  ];
+
   showForgotPasswordModal = false;
   showRegisterModal = false;
   forgotIdentity = '';
   forgotSuccess = false;
 
   constructor(
-    private authService: AuthService,
-    private router: Router
+    public authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['role']) {
+        const queryRole = (params['role'] as string).toLowerCase();
+        const matched = this.roles.find(
+          r => r.role.toLowerCase() === queryRole || r.label.toLowerCase() === queryRole
+        );
+        if (matched) {
+          this.selectRole(matched.role);
+        }
+      }
+    });
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
-  fillDemo(role: 'resident' | 'admin'): void {
-    if (role === 'resident') {
-      this.identity = 'priya.sharma@greenwood.com';
-      this.password = 'Priya@2026';
-    } else {
-      this.identity = 'dhanashree@societysync.com';
-      this.password = 'Admin@2026';
-    }
+  selectRole(role: UserRole): void {
+    this.selectedRole = role;
     this.errorMessage = '';
+    this.successMessage = '';
+    const demo = this.authService.demoProfiles[role];
+    if (demo) {
+      this.identity = demo.user.email;
+      this.password = demo.defaultPass;
+    }
   }
 
   async onSubmit(): Promise<void> {
@@ -68,14 +89,21 @@ export class LoginComponent {
       await this.authService.login({
         identity: id,
         password: this.password,
+        role: this.selectedRole,
         rememberMe: this.rememberMe
       });
 
-      this.successMessage = 'Sign in successful! Redirecting to your community portal...';
+      this.successMessage = `Sign in successful as ${this.selectedRole}! Redirecting...`;
 
       setTimeout(() => {
-        this.router.navigate(['/dashboard']);
-      }, 700);
+        if (this.selectedRole === 'Resident') {
+          this.router.navigate(['/resident']);
+        } else if (this.selectedRole === 'Maintenance Staff') {
+          this.router.navigate(['/staff-dashboard']);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
+      }, 600);
     } catch {
       this.errorMessage = 'Invalid credentials. Please verify your details.';
       this.isLoading = false;
