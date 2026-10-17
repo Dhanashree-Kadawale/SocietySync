@@ -1,0 +1,103 @@
+<header class="topbar" [class.collapsed]="sidebarCollapsed" (click)="closeAll()">
+  <!-- Left: Toggle + Breadcrumb (matches screenshot: Greenwood Heights / Resident Dashboard) -->
+  <div class="topbar-left">
+    <button class="sidebar-toggle-btn" (click)="$event.stopPropagation(); onToggleSidebar()" title="Toggle sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
+    <nav class="breadcrumb">
+      <span class="breadcrumb-society">Green Heights</span>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">{{ displayedBreadcrumb }}</span>
+    </nav>
+  </div>
+
+  <!-- Center: Search (subtle, clean) -->
+  <div class="topbar-center">
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" placeholder="Search residents, flats, complaints..." [(ngModel)]="searchQuery" (click)="$event.stopPropagation()">
+      <span class="search-shortcut">⌘K</span>
+    </div>
+  </div>
+
+  <!-- Right: Actions matching screenshot (+ Raise Complaint, + Pre-Approve Visitor, Bell, Profile) -->
+  <div class="topbar-right">
+    <!-- Topbar Quick Action Buttons -->
+    <div class="topbar-buttons hide-mobile">
+      <button class="topbar-btn" (click)="navigate('/complaints')">
+        <span class="topbar-btn-plus">+</span> Raise Complaint
+      </button>
+      <button class="topbar-btn" (click)="navigate('/visitors')">
+        <span class="topbar-btn-plus">+</span> Pre-Approve Visitor
+      </button>
+    </div>
+
+    <!-- Notification Bell -->
+    <div class="topbar-action-wrap">
+      <button class="notif-btn" (click)="toggleNotifications($event)" [class.active]="showNotifications" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+        <span class="notif-badge" *ngIf="unreadCount > 0"></span>
+      </button>
+
+      <!-- Notification Dropdown -->
+      <div class="dropdown notif-dropdown" *ngIf="showNotifications" (click)="$event.stopPropagation()">
+        <div class="dropdown-header">
+          <span class="dropdown-title">Notifications</span>
+          <button class="mark-read-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">Mark all read</button>
+        </div>
+        <div class="notif-list">
+          <div class="notif-item" *ngFor="let n of notifications" [class.unread]="n.unread">
+            <div class="notif-dot-indicator" [style.background]="n.color" *ngIf="n.unread"></div>
+            <div class="notif-content">
+              <p class="notif-text">{{ n.text }}</p>
+              <span class="notif-time">{{ n.time }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="dropdown-footer">
+          <button class="view-all-btn" (click)="navigate('/notices')">View all notifications</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Badge matching screenshot: (Circle PS Priya S.) -->
+    <div class="topbar-action-wrap">
+      <button class="profile-pill-btn" (click)="toggleProfileMenu($event)" [class.active]="showProfileMenu">
+        <div class="profile-avatar">RV</div>
+        <span class="profile-name hide-mobile">Rahul V.</span>
+      </button>
+
+      <!-- Profile Dropdown -->
+      <div class="dropdown profile-dropdown" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
+        <div class="profile-dropdown-header">
+          <div class="pd-avatar">RV</div>
+          <div>
+            <p class="pd-name">Rahul Verma</p>
+            <p class="pd-email">secretary&#64;greenwoodheights.org</p>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-menu-list">
+          <button class="dropdown-menu-item" (click)="navigate('/residents')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            My Profile
+          </button>
+          <button class="dropdown-menu-item" (click)="navigate('/settings')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Society Settings
+          </button>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-menu-item logout-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

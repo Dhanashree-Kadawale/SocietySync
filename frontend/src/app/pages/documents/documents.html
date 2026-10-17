@@ -1,0 +1,430 @@
+<div class="documents-page">
+  <!-- Header Title & Action -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Document Access & Vault</h1>
+      <p class="page-subtitle">Official society bylaws, AGM minutes, financial audits, and compliance NOCs</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="searchQuery.set('')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        Reset Filters
+      </button>
+      <button class="btn btn-primary" (click)="openUploadModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
+        </svg>
+        Upload New Document
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Stat Strip -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Total Documents</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ totalDocsCount() }}</span>
+          <span class="kpi-tag success">All Active</span>
+        </div>
+        <span class="kpi-sub">Across 5 society departments</span>
+      </div>
+      <div class="kpi-icon-wrap bg-green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10 9 9 9 8 9" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Legal & Bylaws</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ legalDocsCount() }}</span>
+          <span class="kpi-tag primary">Registered</span>
+        </div>
+        <span class="kpi-sub">MCS Act 1960 Compliant</span>
+      </div>
+      <div class="kpi-icon-wrap bg-sage">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Safety & Compliance</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ safetyDocsCount() }}</span>
+          <span class="kpi-tag warning">NOC Verified</span>
+        </div>
+        <span class="kpi-sub">Fire, Lift, Water Purity</span>
+      </div>
+      <div class="kpi-icon-wrap bg-amber">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v4" />
+          <path d="M12 16h.01" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Financial Audits</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">{{ financialDocsCount() }}</span>
+          <span class="kpi-tag success">FY 2025-26</span>
+        </div>
+        <span class="kpi-sub">Unanimously approved at AGM</span>
+      </div>
+      <div class="kpi-icon-wrap bg-dark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Quick Filter Pills -->
+  <div class="category-tabs">
+    <button class="cat-pill" [class.active]="selectedCategory() === 'ALL'" (click)="selectedCategory.set('ALL')">
+      All Files <span class="pill-badge">{{ documents().length }}</span>
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Legal'" (click)="selectedCategory.set('Legal')">
+      Legal & Bylaws
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'AGM'" (click)="selectedCategory.set('AGM')">
+      AGM & Committee Minutes
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Financial'" (click)="selectedCategory.set('Financial')">
+      Financial Audits & Accounts
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Safety'" (click)="selectedCategory.set('Safety')">
+      Safety & NOCs
+    </button>
+    <button class="cat-pill" [class.active]="selectedCategory() === 'Forms'" (click)="selectedCategory.set('Forms')">
+      Resident Forms & Templates
+    </button>
+  </div>
+
+  <!-- Search & Format Toolbar -->
+  <div class="toolbar-card">
+    <div class="search-input-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        class="search-field"
+        placeholder="Search documents by title, keyword, or author..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+    </div>
+
+    <div class="toolbar-filters">
+      <label class="filter-label">Format:</label>
+      <select class="select-field" [ngModel]="selectedFormat()" (ngModelChange)="selectedFormat.set($event)">
+        <option value="ALL">All Formats</option>
+        <option value="PDF">PDF Documents</option>
+        <option value="DOCX">Word (DOCX)</option>
+        <option value="XLSX">Spreadsheets (XLSX)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Documents Table Card -->
+  <div class="table-container">
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th style="width: 42%;">Document Title & Overview</th>
+          <th>Category</th>
+          <th>Format</th>
+          <th>Size</th>
+          <th>Access Level</th>
+          <th>Uploaded</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let doc of filteredDocuments()" (click)="openPreview(doc)" class="table-row">
+          <td>
+            <div class="doc-title-cell">
+              <div class="file-icon" [ngClass]="doc.format.toLowerCase()">
+                <span>{{ doc.format }}</span>
+              </div>
+              <div class="doc-info">
+                <span class="doc-name">{{ doc.title }}</span>
+                <span class="doc-desc">{{ doc.description }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge cat-badge" [ngClass]="doc.category.toLowerCase()">
+              {{ doc.category }}
+            </span>
+          </td>
+          <td>
+            <span class="format-tag">{{ doc.format }}</span>
+          </td>
+          <td>
+            <span class="size-text">{{ doc.fileSize }}</span>
+          </td>
+          <td>
+            <span class="access-badge" [ngClass]="{'public': doc.accessLevel === 'All Residents', 'committee': doc.accessLevel === 'Committee Only', 'confidential': doc.accessLevel === 'Confidential'}">
+              {{ doc.accessLevel }}
+            </span>
+          </td>
+          <td>
+            <div class="upload-date">
+              <span>{{ doc.uploadedAt }}</span>
+              <span class="author-sub">{{ doc.uploadedBy }}</span>
+            </div>
+          </td>
+          <td style="text-align: right;" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" title="Preview" (click)="openPreview(doc)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+              <button class="action-btn" title="Download" (click)="downloadDocument(doc, $event)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+              <button class="action-btn" title="Copy Link" (click)="shareDocument(doc, $event)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </button>
+              <button class="action-btn danger" title="Delete / Archive" (click)="deleteDocument(doc, $event)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredDocuments().length === 0">
+          <td colspan="7" class="empty-state">
+            <div class="empty-content">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#687572" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              <h4>No matching documents found</h4>
+              <p>Try searching with another keyword or change your category filter.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal-backdrop" *ngIf="showUploadModal()" (click)="closeUploadModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </div>
+          <div>
+            <h3>Upload Official Document</h3>
+            <p>Archive new bylaws, circulars, meeting minutes, or compliance certificates</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeUploadModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Document Title <span class="required">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Minutes of SGM on Solar Panel Implementation"
+            [(ngModel)]="uploadForm.title"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Category</label>
+            <select class="form-control" [(ngModel)]="uploadForm.category">
+              <option value="Legal">Legal & Bylaws</option>
+              <option value="AGM">AGM & Committee Minutes</option>
+              <option value="Financial">Financial Audits & Accounts</option>
+              <option value="Safety">Safety & Compliance NOC</option>
+              <option value="Forms">Resident Forms & NOCs</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label>Document Format</label>
+            <select class="form-control" [(ngModel)]="uploadForm.format">
+              <option value="PDF">PDF (.pdf)</option>
+              <option value="DOCX">Word Document (.docx)</option>
+              <option value="XLSX">Excel Spreadsheet (.xlsx)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Access Permission</label>
+          <select class="form-control" [(ngModel)]="uploadForm.accessLevel">
+            <option value="All Residents">All Residents (Public to Society)</option>
+            <option value="Committee Only">Managing Committee Only</option>
+            <option value="Confidential">Confidential / Secretary & Chairman</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Description & Scope</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            placeholder="Brief summary of document content, validity, and significance..."
+            [(ngModel)]="uploadForm.description"
+          ></textarea>
+        </div>
+
+        <!-- Simulated File Dropzone -->
+        <div class="dropzone">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1D5245" stroke-width="1.8">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <p class="drop-text">Drag and drop file here, or <span class="browse-link">browse from computer</span></p>
+          <span class="drop-hint">Supported formats: PDF, DOCX, XLSX (Max 25 MB)</span>
+          <div class="selected-file" *ngIf="uploadForm.fileName">
+            <span class="file-name">Selected: {{ uploadForm.fileName }}</span>
+            <span class="file-size">({{ uploadForm.fileSize }})</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeUploadModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="submitUpload()">
+          Upload & Archive Document
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Preview Modal -->
+  <div class="modal-backdrop" *ngIf="showPreviewModal() && previewDoc()" (click)="closePreview()">
+    <div class="modal-box preview-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="file-icon" [ngClass]="previewDoc()!.format.toLowerCase()">
+            <span>{{ previewDoc()!.format }}</span>
+          </div>
+          <div>
+            <h3>{{ previewDoc()!.title }}</h3>
+            <p>{{ previewDoc()!.id }} · Uploaded by {{ previewDoc()!.uploadedBy }} on {{ previewDoc()!.uploadedAt }}</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closePreview()">&times;</button>
+      </div>
+
+      <div class="modal-body preview-body">
+        <div class="preview-meta-strip">
+          <div class="meta-item">
+            <span class="m-label">Category:</span>
+            <span class="m-val">{{ previewDoc()!.category }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="m-label">File Size:</span>
+            <span class="m-val">{{ previewDoc()!.fileSize }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="m-label">Access Level:</span>
+            <span class="m-val">{{ previewDoc()!.accessLevel }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="m-label">Total Downloads:</span>
+            <span class="m-val">{{ previewDoc()!.downloadCount }} times</span>
+          </div>
+        </div>
+
+        <div class="preview-doc-canvas">
+          <div class="doc-watermark">Greenwood Heights CHS · Official Repository</div>
+          <div class="mock-doc-page">
+            <div class="mock-doc-header">
+              <div class="mock-logo">SOCIETY SYNC SECURE ARCHIVE</div>
+              <div class="mock-seal">VERIFIED COPY</div>
+            </div>
+            <h2 class="mock-doc-title">{{ previewDoc()!.title }}</h2>
+            <p class="mock-doc-abstract">{{ previewDoc()!.description }}</p>
+            <div class="mock-doc-body">
+              <div class="mock-line full"></div>
+              <div class="mock-line full"></div>
+              <div class="mock-line half"></div>
+              <div class="mock-section-head">Section 1: General Provisions & Resolutions</div>
+              <div class="mock-line full"></div>
+              <div class="mock-line full"></div>
+              <div class="mock-line full"></div>
+              <div class="mock-line half"></div>
+              <div class="mock-section-head">Section 2: Signatures & Attestation</div>
+              <div class="mock-signatures">
+                <div class="sig-box">
+                  <div class="sig-line"></div>
+                  <span>Hon. Secretary</span>
+                </div>
+                <div class="sig-box">
+                  <div class="sig-line"></div>
+                  <span>Hon. Chairman</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="shareDocument(previewDoc()!)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+          Share Link
+        </button>
+        <button class="btn btn-primary" (click)="downloadDocument(previewDoc()!)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Download Document ({{ previewDoc()!.fileSize }})
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

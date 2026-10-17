@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "society-sync-ui": {
+    "society-sync": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -38,8 +38,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1MB",
-                  "maximumError": "2MB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "society-sync-ui:build:production"
+              "buildTarget": "society-sync:build:production"
             },
             "development": {
-              "buildTarget": "society-sync-ui:build:development"
+              "buildTarget": "society-sync:build:development"
             }
           },
           "defaultConfiguration": "development"

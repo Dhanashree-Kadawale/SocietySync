@@ -1,0 +1,135 @@
+.bookings-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.bookings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 4px;
+}
+
+.booking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-soft-grey);
+  background: var(--color-white);
+  transition: all var(--transition-fast);
+}
+
+.booking-item:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(29, 82, 69, 0.2);
+}
+
+.facility-thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.facility-emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.booking-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.booking-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.facility-name {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.badge-sm {
+  font-size: 10px;
+  padding: 2px 8px;
+}
+
+.booking-resident {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.booking-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.booking-date,
+.booking-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.booking-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.booking-amount {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.confirm-btn {
+  padding: 5px 12px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.confirm-btn:hover {
+  background: var(--color-primary-dark);
+  box-shadow: 0 3px 8px rgba(29, 82, 69, 0.25);
+}

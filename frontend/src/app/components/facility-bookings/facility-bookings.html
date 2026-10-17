@@ -1,0 +1,51 @@
+<div class="bookings-card card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Upcoming Facility Bookings</h3>
+      <p class="section-subtitle">Next 7 days</p>
+    </div>
+    <button class="btn btn-ghost btn-sm">View all</button>
+  </div>
+  <div class="card-body bookings-body">
+    <div class="booking-list">
+      <div class="booking-item" *ngFor="let b of bookings">
+        <!-- Facility Thumbnail -->
+        <div class="facility-thumb"
+             [style.background]="(facilityColors[b.facilityName] || '#1D5245') + '20'"
+             [style.color]="facilityColors[b.facilityName] || '#1D5245'">
+          <span class="facility-emoji">{{ facilityEmojis[b.facilityName] || '🏢' }}</span>
+        </div>
+
+        <!-- Booking Details -->
+        <div class="booking-details">
+          <div class="booking-top">
+            <p class="facility-name">{{ b.facilityName }}</p>
+            <span class="badge badge-sm" [class]="getStatusClass(b.status)">{{ b.status }}</span>
+          </div>
+          <p class="booking-resident">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {{ b.residentName }} · {{ b.flatNumber }}
+          </p>
+          <div class="booking-meta">
+            <span class="booking-date">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              {{ formatDate(b.date) }}
+            </span>
+            <span class="booking-time">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {{ b.startTime }} – {{ b.endTime }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirm Button for Pending -->
+        <div class="booking-action">
+          <span class="booking-amount">₹{{ b.amount.toLocaleString() }}</span>
+          <button class="confirm-btn" *ngIf="b.status === 'Pending'" (click)="confirmBooking(b)">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

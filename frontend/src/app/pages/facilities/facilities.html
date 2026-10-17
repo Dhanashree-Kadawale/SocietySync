@@ -1,0 +1,163 @@
+<div class="facilities-page">
+
+  <!-- Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb-trail">
+        <span class="crumb-parent">Green Heights</span>
+        <span class="crumb-separator">/</span>
+        <span class="crumb-current">Facility & Amenity Bookings</span>
+      </div>
+      <h1 class="page-title">Society Amenities & Clubhouse Reservations</h1>
+      <p class="page-subtitle">Manage shared society assets, approve resident event reservations, monitor slot schedules, and track amenity revenue.</p>
+    </div>
+
+    <div class="header-action-group">
+      <button class="btn-primary-action" (click)="openBookModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        + Book Amenity
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Amenities Available</span><span class="kpi-icon">🏛️</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ totalFacilities() }}</span><span class="kpi-badge badge-active">Operational</span></div>
+      <p class="kpi-footnote">Clubhouse, Pool, Gym, Courts</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Total Bookings</span><span class="kpi-icon icon-blue">📅</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ totalBookingsCount() }}</span><span class="kpi-badge badge-subtle">Recorded</span></div>
+      <p class="kpi-footnote">This billing cycle</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Confirmed Events</span><span class="kpi-icon icon-green">✅</span></div>
+      <div class="kpi-body"><span class="kpi-number text-green">{{ confirmedBookingsCount() }}</span><span class="kpi-badge badge-green">Scheduled</span></div>
+      <p class="kpi-footnote">Paid and confirmed slots</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Pending Approvals</span><span class="kpi-icon icon-amber">⏳</span></div>
+      <div class="kpi-body"><span class="kpi-number text-amber">{{ pendingBookingsCount() }}</span><span class="kpi-badge badge-amber">Awaiting Review</span></div>
+      <p class="kpi-footnote">New resident reservation requests</p>
+    </div>
+  </div>
+
+  <!-- Amenities Cards Grid -->
+  <div class="amenities-grid">
+    <div class="amenity-card" *ngFor="let fac of facilities()">
+      <div class="amenity-head">
+        <h3 class="amenity-name">{{ fac.name }}</h3>
+        <span class="status-pill pill-active">{{ fac.status }}</span>
+      </div>
+      <p class="amenity-desc">{{ fac.description }}</p>
+      <div class="amenity-meta">
+        <span>👥 Capacity: <strong>{{ fac.capacity }} Pax</strong></span>
+        <span>💰 Rate: <strong>₹{{ fac.pricePerHour }}/hr</strong></span>
+      </div>
+      <div class="amenity-tags">
+        <span class="tag-amenity" *ngFor="let a of fac.amenities">{{ a }}</span>
+      </div>
+      <button class="btn-book-amenity" (click)="openBookModal(fac.name)">Book Slot</button>
+    </div>
+  </div>
+
+  <!-- Bookings Ledger Table -->
+  <div class="table-container-card">
+    <div class="card-head-row">
+      <h3 class="card-head-title">Upcoming Facility Reservations</h3>
+    </div>
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Amenity</th>
+          <th>Resident</th>
+          <th>Flat Unit</th>
+          <th>Event Date</th>
+          <th>Slot Timings</th>
+          <th>Purpose</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let b of filteredBookings()" class="clickable-row">
+          <td><span class="font-bold text-charcoal">{{ b.id }}</span></td>
+          <td><span class="font-bold text-primary">{{ b.facilityName }}</span></td>
+          <td>{{ b.residentName }}</td>
+          <td><span class="badge-type">{{ b.flatNumber }}</span></td>
+          <td>{{ b.date | date:'mediumDate' }}</td>
+          <td>{{ b.startTime }} - {{ b.endTime }}</td>
+          <td>{{ b.purpose }}</td>
+          <td><strong>₹{{ b.amount }}</strong></td>
+          <td>
+            <span class="status-pill"
+                  [class.pill-paid]="b.status === 'Confirmed'"
+                  [class.pill-pending]="b.status === 'Pending'"
+                  [class.pill-overdue]="b.status === 'Cancelled'">
+              {{ b.status }}
+            </span>
+          </td>
+          <td class="text-right action-cell" (click)="$event.stopPropagation()">
+            <button *ngIf="b.status === 'Pending'" class="table-btn-icon text-green" (click)="confirmBooking(b)" title="Confirm Booking">✅</button>
+            <button *ngIf="b.status !== 'Cancelled'" class="table-btn-icon text-danger" (click)="cancelBooking(b)" title="Cancel Booking">✕</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal: Book Amenity -->
+  <div class="modal-backdrop" *ngIf="showBookModal()" (click)="closeBookModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Reserve Society Facility</h3>
+        <button class="btn-close" (click)="closeBookModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Select Amenity *</label>
+          <select [(ngModel)]="bookingForm.facilityName">
+            <option *ngFor="let fac of facilities()" [value]="fac.name">{{ fac.name }} (₹{{ fac.pricePerHour }}/hr)</option>
+          </select>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Resident Full Name *</label>
+            <input type="text" [(ngModel)]="bookingForm.residentName" />
+          </div>
+          <div class="form-field">
+            <label>Flat Unit *</label>
+            <input type="text" [(ngModel)]="bookingForm.flatNumber" />
+          </div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label>Date *</label>
+            <input type="date" [(ngModel)]="bookingForm.date" />
+          </div>
+          <div class="form-field">
+            <label>Start Time</label>
+            <input type="text" [(ngModel)]="bookingForm.startTime" />
+          </div>
+          <div class="form-field">
+            <label>End Time</label>
+            <input type="text" [(ngModel)]="bookingForm.endTime" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Event Purpose / Occasion</label>
+          <input type="text" placeholder="e.g. Birthday Party, Yoga Workshop" [(ngModel)]="bookingForm.purpose" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeBookModal()">Cancel</button>
+        <button class="btn-save" (click)="saveBooking()">Confirm & Reserve</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,36 @@
+<div class="stat-card card" *ngIf="card">
+  <div class="stat-card-inner">
+    <div class="stat-icon-wrap" [style.background]="card.bgColor">
+      <!-- Building -->
+      <svg *ngIf="card.icon === 'building'" [style.color]="card.color" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h2M8 11h2M8 15h2M14 7h2M14 11h2M14 15h2"/></svg>
+      <!-- Users -->
+      <svg *ngIf="card.icon === 'users'" [style.color]="card.color" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <!-- Alert Circle -->
+      <svg *ngIf="card.icon === 'alert-circle'" [style.color]="card.color" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <!-- Trending Up -->
+      <svg *ngIf="card.icon === 'trending-up'" [style.color]="card.color" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <!-- Credit Card -->
+      <svg *ngIf="card.icon === 'credit-card'" [style.color]="card.color" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <!-- Trending Down -->
+      <svg *ngIf="card.icon === 'trending-down'" [style.color]="card.color" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+    </div>
+
+    <div class="stat-content">
+      <p class="stat-label">{{ card.label }}</p>
+      <p class="stat-value">{{ card.value }}</p>
+
+      <div class="stat-change" [class.positive]="card.change > 0" [class.negative]="card.change < 0">
+        <span class="change-icon">
+          <svg *ngIf="card.change > 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <svg *ngIf="card.change < 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+          <svg *ngIf="card.change === 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </span>
+        <span>{{ card.change > 0 ? '+' : '' }}{{ card.change }}%</span>
+        <span class="change-label">{{ card.changeLabel }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decorative Gradient -->
+  <div class="stat-gradient" [style.background]="'linear-gradient(135deg, ' + card.bgColor + '80, transparent)'"></div>
+</div>

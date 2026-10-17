@@ -99,7 +99,7 @@ export class LoginComponent implements OnInit {
         if (this.selectedRole === 'Resident') {
           this.router.navigate(['/resident']);
         } else if (this.selectedRole === 'Maintenance Staff') {
-          this.router.navigate(['/staff']);
+          this.router.navigate(['/staff-dashboard']);
         } else {
           this.router.navigate(['/dashboard']);
         }
