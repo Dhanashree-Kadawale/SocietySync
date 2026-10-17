@@ -1,0 +1,852 @@
+<div class="super-admin-shell">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="admin-toast" role="status">
+      <span class="toast-check">✓</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Master Sidebar Navigation -->
+  <aside class="admin-sidebar">
+    <!-- Brand Crest -->
+    <div class="sidebar-brand">
+      <div class="brand-crest">S</div>
+      <div>
+        <h2 class="brand-title">SocietySync</h2>
+        <span class="brand-sub">ROOT GOVERNANCE</span>
+      </div>
+    </div>
+
+    <!-- System Health Pill -->
+    <div class="system-health-box">
+      <div class="health-top">
+        <span class="health-pulse"></span>
+        <strong>Core Engine: Active</strong>
+      </div>
+      <small>Uptime: {{ metrics().uptime }} · Multi-Tenant</small>
+    </div>
+
+    <!-- Navigation List (All 8 Features) -->
+    <nav class="sidebar-nav">
+      <span class="nav-category">PLATFORM OVERSIGHT</span>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Dashboard'"
+        (click)="setTab('Dashboard')">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard Overview</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Societies'"
+        (click)="setTab('Societies')">
+        <span class="nav-icon">🏛️</span>
+        <span>Society Management</span>
+        <span class="nav-count">{{ adminService.societies().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Verification'"
+        (click)="setTab('Verification')">
+        <span class="nav-icon">📑</span>
+        <span>Society Verification</span>
+        @if (metrics().pendingVerifications > 0) {
+          <span class="nav-alert-badge">{{ metrics().pendingVerifications }}</span>
+        }
+      </button>
+
+      <span class="nav-category">ACCESS & IDENTITIES</span>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Admins'"
+        (click)="setTab('Admins')">
+        <span class="nav-icon">👤</span>
+        <span>Society Admin Mgmt</span>
+        <span class="nav-count">{{ adminService.societyAdmins().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Users'"
+        (click)="setTab('Users')">
+        <span class="nav-icon">👥</span>
+        <span>User Management</span>
+      </button>
+
+      <span class="nav-category">INTELLIGENCE & SUPPORT</span>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Reports'"
+        (click)="setTab('Reports')">
+        <span class="nav-icon">📈</span>
+        <span>Platform Reports</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Support'"
+        (click)="setTab('Support')">
+        <span class="nav-icon">🎧</span>
+        <span>Support Tickets</span>
+        @if (metrics().urgentTickets > 0) {
+          <span class="nav-urgent-badge">{{ metrics().urgentTickets }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="activeTab() === 'Audit'"
+        (click)="setTab('Audit')">
+        <span class="nav-icon">🔒</span>
+        <span>Security Audit Logs</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Bottom Profile -->
+    <div class="sidebar-footer">
+      <div class="admin-profile-box">
+        <div class="admin-avatar">DK</div>
+        <div class="admin-details">
+          <strong>Dhanashree K.</strong>
+          <small>Platform Super Admin</small>
+        </div>
+      </div>
+      <div class="footer-actions">
+        <a routerLink="/" class="footer-btn home" title="View Public Landing Page">Home</a>
+        <button type="button" class="footer-btn logout" (click)="logout()" title="Logout Root Session">Logout</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="admin-main">
+    <!-- Master Top Header Bar -->
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <span class="breadcrumb-root">SocietySync Platform /</span>
+        <h1 class="topbar-heading">{{ activeTab() }}</h1>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Search bar -->
+        <div class="topbar-search">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Search societies, RERA, users, admins..."
+            class="search-input" />
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Sections based on Active Tab -->
+    <div class="tab-viewport">
+      <!-- ========================================== -->
+      <!-- TAB 1: DASHBOARD OVERVIEW -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Dashboard') {
+        <div class="dashboard-overview">
+          <!-- Metric Cards Grid -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Total Societies</span>
+                <span class="metric-icon">🏛️</span>
+              </div>
+              <h2 class="metric-val">{{ metrics().totalSocieties }}</h2>
+              <div class="metric-meta">
+                <span class="meta-badge sage">+8 This Quarter</span>
+                <span class="meta-sub">Gated Complexes</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Active Communities</span>
+                <span class="metric-icon">🟢</span>
+              </div>
+              <h2 class="metric-val">{{ metrics().activeSocieties }}</h2>
+              <div class="metric-meta">
+                <span class="meta-badge sage">100% Operational</span>
+                <span class="meta-sub">Live Databases</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Pending Verification</span>
+                <span class="metric-icon">📑</span>
+              </div>
+              <h2 class="metric-val">{{ metrics().pendingVerifications }}</h2>
+              <div class="metric-meta">
+                <span class="meta-badge amber">Review Required</span>
+                <span class="meta-sub">RERA Documents</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Total Platform Users</span>
+                <span class="metric-icon">👥</span>
+              </div>
+              <h2 class="metric-val">{{ metrics().totalUsers | number }}</h2>
+              <div class="metric-meta">
+                <span class="meta-badge sage">+1,240 This Month</span>
+                <span class="meta-sub">Residents & Crew</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Banner -->
+          <div class="action-banner-card">
+            <div class="banner-text">
+              <h3>Platform Maintenance Window & Database Health</h3>
+              <p>All 142 multi-tenant society partitions are synchronizing without replication lag. Next scheduled backup in 4 hours.</p>
+            </div>
+            <div class="banner-buttons">
+              <button type="button" class="btn-primary" (click)="setTab('Verification')">Review Verifications</button>
+              <button type="button" class="btn-secondary" (click)="setTab('Audit')">Security Audits</button>
+            </div>
+          </div>
+
+          <!-- Dual Column: Recent Verifications & Urgent Support -->
+          <div class="overview-dual-grid">
+            <!-- Left: Pending Verifications Quick View -->
+            <div class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <h3>Pending Society Onboarding Requests</h3>
+                  <small>Applicant secretaries awaiting RERA compliance confirmation</small>
+                </div>
+                <button type="button" class="link-btn" (click)="setTab('Verification')">View All →</button>
+              </div>
+
+              <div class="items-list">
+                @for (item of adminService.verifications(); track item.id) {
+                  @if (item.status === 'Under Review') {
+                    <div class="list-item">
+                      <div class="item-icon-box">🏛️</div>
+                      <div class="item-info">
+                        <strong>{{ item.societyName }}</strong>
+                        <small>{{ item.city }} · Reg: {{ item.regNumber }}</small>
+                      </div>
+                      <div class="item-actions">
+                        <button type="button" class="btn-table-action sage" (click)="approveVerification(item)">Approve</button>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+            <!-- Right: Urgent Secretary Tickets -->
+            <div class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <h3>Urgent Administrator Inquiries</h3>
+                  <small>Direct priority helpdesk requests from housing society committees</small>
+                </div>
+                <button type="button" class="link-btn" (click)="setTab('Support')">All Tickets →</button>
+              </div>
+
+              <div class="items-list">
+                @for (ticket of adminService.supportTickets(); track ticket.id) {
+                  <div class="list-item">
+                    <div class="item-icon-box" [class.urgent]="ticket.priority === 'Urgent'">🎧</div>
+                    <div class="item-info">
+                      <strong>{{ ticket.subject }}</strong>
+                      <small>{{ ticket.societyName }} · {{ ticket.secretaryName }}</small>
+                    </div>
+                    <span class="status-tag" [class.urgent]="ticket.priority === 'Urgent'" [class.sage]="ticket.status === 'Resolved'">
+                      {{ ticket.status }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 2: SOCIETY MANAGEMENT -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Societies') {
+        <div class="tab-pane-container">
+          <!-- Filter Bar -->
+          <div class="filter-strip">
+            <div class="filter-pills">
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="societyFilter() === 'All'"
+                (click)="societyFilter.set('All')">
+                All Societies ({{ adminService.societies().length }})
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="societyFilter() === 'Active'"
+                (click)="societyFilter.set('Active')">
+                Active
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="societyFilter() === 'Pending Verification'"
+                (click)="societyFilter.set('Pending Verification')">
+                Pending Verification
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="societyFilter() === 'Suspended'"
+                (click)="societyFilter.set('Suspended')">
+                Suspended
+              </button>
+            </div>
+          </div>
+
+          <!-- Societies Table -->
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Society Name & Reg</th>
+                  <th>Location</th>
+                  <th>Units / Towers</th>
+                  <th>Secretary Admin</th>
+                  <th>Subscription</th>
+                  <th>Monthly Dues</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (soc of filteredSocieties(); track soc.id) {
+                  <tr>
+                    <td>
+                      <div class="society-cell">
+                        <strong>{{ soc.name }}</strong>
+                        <small>ID: {{ soc.id }} · {{ soc.regNumber }}</small>
+                      </div>
+                    </td>
+                    <td>{{ soc.location }}</td>
+                    <td><strong>{{ soc.units }}</strong> Flats ({{ soc.towers }} Towers)</td>
+                    <td>
+                      <div class="admin-cell">
+                        <span>{{ soc.adminName }}</span>
+                        <small>{{ soc.adminEmail }}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="plan-tag">{{ soc.subscriptionPlan }}</span>
+                    </td>
+                    <td><strong>{{ soc.monthlyDuesVolume }}</strong></td>
+                    <td>
+                      <span
+                        class="status-pill"
+                        [class.active]="soc.status === 'Active'"
+                        [class.pending]="soc.status === 'Pending Verification'"
+                        [class.suspended]="soc.status === 'Suspended'">
+                        {{ soc.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="actions-group">
+                        <button
+                          type="button"
+                          class="btn-action-text"
+                          [class.warn]="soc.status === 'Active'"
+                          (click)="toggleSocietyStatus(soc)">
+                          {{ soc.status === 'Active' ? 'Suspend' : 'Activate' }}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 3: SOCIETY VERIFICATION -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Verification') {
+        <div class="tab-pane-container">
+          <div class="pane-header-box">
+            <div>
+              <h2>Society Registration Verification Queue</h2>
+              <p>Review legal RERA certificates, society model bylaws, and utility documents submitted by applicant secretaries.</p>
+            </div>
+          </div>
+
+          <div class="verifications-grid">
+            @for (req of adminService.verifications(); track req.id) {
+              <div class="verification-card">
+                <div class="vcard-header">
+                  <div>
+                    <span class="vcard-id">{{ req.id }}</span>
+                    <h3>{{ req.societyName }}</h3>
+                    <small>RERA / Registration No: <strong>{{ req.regNumber }}</strong> · {{ req.city }}</small>
+                  </div>
+                  <span
+                    class="status-pill"
+                    [class.active]="req.status === 'Verified'"
+                    [class.pending]="req.status === 'Under Review'"
+                    [class.suspended]="req.status === 'Requires Clarification'">
+                    {{ req.status }}
+                  </span>
+                </div>
+
+                <div class="vcard-details-row">
+                  <div class="vdetail-item">
+                    <span class="vlabel">Applicant Secretary</span>
+                    <strong>{{ req.secretaryName }}</strong>
+                    <small>{{ req.secretaryEmail }} · {{ req.phone }}</small>
+                  </div>
+
+                  <div class="vdetail-item">
+                    <span class="vlabel">Units & Submission</span>
+                    <strong>{{ req.units }} Residential Units</strong>
+                    <small>Received on {{ req.submissionDate }}</small>
+                  </div>
+                </div>
+
+                <!-- Attached Documents -->
+                <div class="vdocs-box">
+                  <span class="vlabel">Submitted Legal Proofs (3 Documents)</span>
+                  <div class="doc-chips-row">
+                    @for (doc of req.documents; track doc.name) {
+                      <div class="doc-chip">
+                        <span class="doc-icon">📄</span>
+                        <div class="doc-info">
+                          <span class="doc-name">{{ doc.name }}</span>
+                          <small>{{ doc.type }} · {{ doc.size }}</small>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                @if (req.notes) {
+                  <div class="vnotes-box">
+                    <span>📌 Auditor Notes: {{ req.notes }}</span>
+                  </div>
+                }
+
+                <div class="vcard-actions">
+                  @if (req.status !== 'Verified') {
+                    <button type="button" class="btn-primary" (click)="approveVerification(req)">
+                      ✓ Verify & Authorize Society Instance
+                    </button>
+                    <button type="button" class="btn-secondary" (click)="requestClarification(req)">
+                      Request Clarification
+                    </button>
+                  } @else {
+                    <span class="verified-done-text">✓ Fully Authorized & Database Provisioned</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 4: SOCIETY ADMIN MANAGEMENT -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Admins') {
+        <div class="tab-pane-container">
+          <div class="pane-header-box">
+            <div>
+              <h2>Society Administrator Accounts</h2>
+              <p>Authorize initial society secretaries, reset administrative passcodes, and monitor primary governance roles.</p>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Administrator</th>
+                  <th>Society Associated</th>
+                  <th>Designation</th>
+                  <th>Contact Info</th>
+                  <th>Authorized Date</th>
+                  <th>Last Session</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (adm of adminService.societyAdmins(); track adm.id) {
+                  <tr>
+                    <td>
+                      <strong>{{ adm.adminName }}</strong>
+                      <small>ID: {{ adm.id }}</small>
+                    </td>
+                    <td>{{ adm.societyName }}</td>
+                    <td>
+                      <span class="role-badge">{{ adm.designation }}</span>
+                    </td>
+                    <td>
+                      <div>{{ adm.email }}</div>
+                      <small>{{ adm.phone }}</small>
+                    </td>
+                    <td>{{ adm.authorizedDate }}</td>
+                    <td><small>{{ adm.lastLogin }}</small></td>
+                    <td>
+                      <span class="status-pill" [class.active]="adm.status === 'Authorized'" [class.suspended]="adm.status === 'Revoked'">
+                        {{ adm.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="actions-group">
+                        <button type="button" class="btn-action-text" (click)="toggleAdminAuth(adm)">
+                          {{ adm.status === 'Authorized' ? 'Revoke' : 'Authorize' }}
+                        </button>
+                        <button type="button" class="btn-action-text muted" (click)="resetAdminPassword(adm)">
+                          Reset Pass
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 5: PLATFORM USER MANAGEMENT -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Users') {
+        <div class="tab-pane-container">
+          <div class="filter-strip">
+            <div class="filter-pills">
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="userFilter() === 'All'"
+                (click)="userFilter.set('All')">
+                All Roles
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="userFilter() === 'Resident'"
+                (click)="userFilter.set('Resident')">
+                Residents
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="userFilter() === 'Secretary Admin'"
+                (click)="userFilter.set('Secretary Admin')">
+                Secretary Admins
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="userFilter() === 'Maintenance Staff'"
+                (click)="userFilter.set('Maintenance Staff')">
+                Maintenance Crew
+              </button>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User Profile</th>
+                  <th>Society</th>
+                  <th>Platform Role</th>
+                  <th>Allotment / Specialization</th>
+                  <th>Registered</th>
+                  <th>Security Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of filteredUsers(); track u.id) {
+                  <tr>
+                    <td>
+                      <strong>{{ u.name }}</strong>
+                      <small>{{ u.email }} · {{ u.phone }}</small>
+                    </td>
+                    <td>{{ u.societyName }}</td>
+                    <td>
+                      <span class="role-badge">{{ u.role }}</span>
+                    </td>
+                    <td>
+                      {{ u.flat ? 'Flat ' + u.flat : u.trade }}
+                    </td>
+                    <td><small>{{ u.registeredDate }}</small></td>
+                    <td>
+                      <span class="status-pill" [class.active]="u.status === 'Active'" [class.suspended]="u.status === 'Locked 2FA'">
+                        {{ u.status }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="actions-group">
+                        @if (u.status === 'Locked 2FA') {
+                          <button type="button" class="btn-action-text sage" (click)="unlock2FA(u)">Unlock 2FA</button>
+                        }
+                        <button type="button" class="btn-action-text" (click)="toggleUserStatus(u)">
+                          {{ u.status === 'Active' ? 'Suspend' : 'Activate' }}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 6: PLATFORM REPORTS -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Reports') {
+        <div class="tab-pane-container">
+          <div class="pane-header-box">
+            <div>
+              <h2>Platform Analytics & Usage Reports</h2>
+              <p>Aggregated metrics across 142 connected housing societies, billing volume, and gate security records.</p>
+            </div>
+            <div class="header-actions">
+              <button type="button" class="btn-primary" (click)="exportReport('Monthly Platform Usage')">
+                📥 Export Platform CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="reports-grid">
+            <div class="report-card">
+              <h3>Maintenance Dues Processed</h3>
+              <h1 class="report-stat">₹4.82 Cr</h1>
+              <p>Cumulative maintenance collections processed through bank gateways this fiscal quarter.</p>
+              <div class="report-bar-box">
+                <div class="bar-fill" style="width: 78%;"></div>
+              </div>
+              <small>78% of estimated society dues collected on-time via SocietySync UPI.</small>
+            </div>
+
+            <div class="report-card">
+              <h3>Gate Passes & Visitor Volume</h3>
+              <h1 class="report-stat">428,000+</h1>
+              <p>Digital visitor, cab, and delivery passcodes authenticated at security checkpoints.</p>
+              <div class="report-bar-box">
+                <div class="bar-fill sage" style="width: 94%;"></div>
+              </div>
+              <small>Zero unauthorized gate breaches reported across active societies.</small>
+            </div>
+
+            <div class="report-card">
+              <h3>Repair Ticket SLA Resolution</h3>
+              <h1 class="report-stat">98.2%</h1>
+              <p>Maintenance complaints resolved with verified before/after photographic proof.</p>
+              <div class="report-bar-box">
+                <div class="bar-fill sage" style="width: 98%;"></div>
+              </div>
+              <small>Average turnaround time: 3.4 hours per plumbing/electrical ticket.</small>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 7: SUPPORT MANAGEMENT -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Support') {
+        <div class="tab-pane-container">
+          <div class="filter-strip">
+            <div class="filter-pills">
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="supportFilter() === 'All'"
+                (click)="supportFilter.set('All')">
+                All Tickets
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="supportFilter() === 'Open'"
+                (click)="supportFilter.set('Open')">
+                Open Tickets
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="supportFilter() === 'In Progress'"
+                (click)="supportFilter.set('In Progress')">
+                In Progress
+              </button>
+              <button
+                type="button"
+                class="filter-pill"
+                [class.active]="supportFilter() === 'Resolved'"
+                (click)="supportFilter.set('Resolved')">
+                Resolved
+              </button>
+            </div>
+          </div>
+
+          <div class="tickets-list">
+            @for (ticket of filteredTickets(); track ticket.id) {
+              <div class="ticket-card" (click)="viewTicket(ticket)">
+                <div class="ticket-top">
+                  <div class="ticket-id-row">
+                    <span class="ticket-id">{{ ticket.id }}</span>
+                    <span class="category-tag">{{ ticket.category }}</span>
+                    <span
+                      class="priority-tag"
+                      [class.urgent]="ticket.priority === 'Urgent'"
+                      [class.medium]="ticket.priority === 'Medium'">
+                      {{ ticket.priority }}
+                    </span>
+                  </div>
+                  <span
+                    class="status-pill"
+                    [class.active]="ticket.status === 'Resolved'"
+                    [class.pending]="ticket.status === 'In Progress'"
+                    [class.suspended]="ticket.status === 'Open'">
+                    {{ ticket.status }}
+                  </span>
+                </div>
+
+                <h3 class="ticket-subject">{{ ticket.subject }}</h3>
+
+                <div class="ticket-meta">
+                  <span>🏛️ {{ ticket.societyName }}</span>
+                  <span>👤 {{ ticket.secretaryName }}</span>
+                  <span>🕒 {{ ticket.createdAt }}</span>
+                </div>
+
+                <div class="ticket-preview">
+                  <p>{{ ticket.messages[ticket.messages.length - 1].text }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 8: AUDIT LOGS -->
+      <!-- ========================================== -->
+      @if (activeTab() === 'Audit') {
+        <div class="tab-pane-container">
+          <div class="pane-header-box">
+            <div>
+              <h2>Platform Security & Administrative Audit Logs</h2>
+              <p>Cryptographically hashed records of all super administrative authorizations, status changes, and root actions.</p>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor</th>
+                  <th>IP Address</th>
+                  <th>Action Performed</th>
+                  <th>Target Resource</th>
+                  <th>Severity</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (log of adminService.auditLogs(); track log.id) {
+                  <tr>
+                    <td><small>{{ log.timestamp }}</small></td>
+                    <td>
+                      <strong>{{ log.actor }}</strong>
+                      <small>{{ log.actorRole }}</small>
+                    </td>
+                    <td><code>{{ log.ipAddress }}</code></td>
+                    <td><strong>{{ log.action }}</strong></td>
+                    <td><span class="target-tag">{{ log.target }}</span></td>
+                    <td>
+                      <span
+                        class="status-pill"
+                        [class.active]="log.severity === 'Info'"
+                        [class.pending]="log.severity === 'Warning'"
+                        [class.suspended]="log.severity === 'Critical'">
+                        {{ log.severity }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- MODAL: SUPPORT TICKET CONVERSATION -->
+  @if (showTicketModal() && activeTicket()) {
+    <div class="modal-backdrop" (click)="closeTicketModal()">
+      <div class="modal-card wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="ticket-id">{{ activeTicket()!.id }} · {{ activeTicket()!.priority }} Priority</span>
+            <h3>{{ activeTicket()!.subject }}</h3>
+            <small>{{ activeTicket()!.societyName }} · Reported by {{ activeTicket()!.secretaryName }}</small>
+          </div>
+          <button type="button" class="close-btn" (click)="closeTicketModal()">✕</button>
+        </div>
+
+        <div class="messages-thread">
+          @for (msg of activeTicket()!.messages; track msg.time) {
+            <div class="thread-msg" [class.staff-reply]="msg.isStaff">
+              <div class="msg-sender">
+                <strong>{{ msg.sender }}</strong>
+                <small>{{ msg.time }}</small>
+              </div>
+              <p>{{ msg.text }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="reply-box">
+          <textarea
+            [(ngModel)]="ticketReplyText"
+            placeholder="Type your response to the society administrator..."
+            rows="3"
+            class="modal-input"></textarea>
+
+          <div class="reply-actions">
+            <button type="button" class="btn-secondary" (click)="markTicketResolved()">
+              ✓ Mark Ticket Resolved
+            </button>
+            <button type="button" class="btn-primary" (click)="sendTicketReply()">
+              Send Response →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

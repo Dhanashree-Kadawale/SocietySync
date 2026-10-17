@@ -1,0 +1,1013 @@
+<div class="staff-portal-shell">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="portal-toast" role="status">
+      <span class="toast-icon">✓</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Sidebar -->
+  <aside class="staff-sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="brand-crest staff-crest">🔧</div>
+      <div>
+        <h2 class="brand-name">SocietySync</h2>
+        <span class="brand-tag">MAINTENANCE CREW</span>
+      </div>
+    </div>
+
+    <!-- Staff Badge -->
+    <div class="staff-badge">
+      <div class="staff-avatar-badge">RS</div>
+      <div class="staff-meta">
+        <strong>{{ maintenanceService.staffProfile().name }}</strong>
+        <small>{{ maintenanceService.staffProfile().role }}</small>
+      </div>
+      <span class="staff-on-duty">On Duty</span>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="staff-nav">
+      <p class="nav-section-title">WORK ORDERS</p>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'dashboard'"
+        (click)="setTab('dashboard')">
+        <span class="nav-icon">▦</span>
+        <span class="nav-text">Dashboard</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'assigned'"
+        (click)="setTab('assigned')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text">Assigned Tasks</span>
+        @if (filteredAssignedTasks().length > 0) {
+          <span class="nav-badge alert-badge">{{ filteredAssignedTasks().length }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'delays'"
+        (click)="setTab('delays')">
+        <span class="nav-icon">⏳</span>
+        <span class="nav-text">Delayed Tasks</span>
+        @if (delayedTasks().length > 0) {
+          <span class="nav-badge warning-badge">{{ delayedTasks().length }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'history'"
+        (click)="setTab('history')">
+        <span class="nav-icon">📜</span>
+        <span class="nav-text">Work History</span>
+        <span class="nav-badge done-badge">{{ completedHistoryTasks().length }}</span>
+      </button>
+
+      <p class="nav-section-title">INVENTORY & PARTS</p>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'materials'"
+        (click)="setTab('materials')">
+        <span class="nav-icon">📦</span>
+        <span class="nav-text">Material Requests</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="shift-info-card">
+        <div class="shift-header">
+          <span class="shift-dot"></span>
+          <strong>{{ maintenanceService.staffProfile().shift }}</strong>
+        </div>
+        <p class="shift-dept">{{ maintenanceService.staffProfile().department }}</p>
+      </div>
+
+      <div class="staff-footer-actions">
+        <button type="button" class="sign-out-full-btn" (click)="logout()">
+          <span>⇥</span> Sign Out
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="staff-main">
+    <!-- Topbar -->
+    <header class="staff-topbar">
+      <div class="topbar-left">
+        <span class="society-title">Greenwood Heights</span>
+        <span class="breadcrumb-separator">/</span>
+        <strong class="topbar-current-tab">
+          @if (activeTab() === 'dashboard') { Operations Dashboard }
+          @else if (activeTab() === 'assigned') { Assigned Complaints & Work Orders }
+          @else if (activeTab() === 'delays') { Delayed Tasks & Blockers }
+          @else if (activeTab() === 'history') { Completed Work History }
+          @else { Tools & Spare Parts Requisitions }
+        </strong>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Request Material Button -->
+        <button type="button" class="topbar-action-btn" (click)="openMaterialModal()">
+          <span>＋</span> Request Materials
+        </button>
+
+        <!-- Notifications Bell -->
+        <button
+          type="button"
+          class="icon-bell-btn"
+          (click)="toggleNotifications()"
+          aria-label="Staff Notifications">
+          🔔
+          @if (maintenanceService.unreadNotificationsCount() > 0) {
+            <span class="notification-badge-count">
+              {{ maintenanceService.unreadNotificationsCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Profile Chip -->
+        <div class="topbar-staff-chip">
+          <div class="staff-avatar-sm">RS</div>
+          <span class="staff-name-sm">Ramesh Shinde (Lead)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Body -->
+    <div class="staff-page-body">
+
+      <!-- ================= 1. DASHBOARD OVERVIEW ================= -->
+      @if (activeTab() === 'dashboard') {
+        <!-- Welcome Banner -->
+        <section class="staff-welcome-card">
+          <div class="welcome-text-col">
+            <span class="duty-tag">ON-DUTY SHIFT · LEAD MAINTENANCE</span>
+            <h1>Good day, Ramesh Shinde 🔧</h1>
+            <p>You have <strong>{{ filteredAssignedTasks().length }} active tasks</strong> today. Review urgent tickets, record work notes, and manage repairs.</p>
+          </div>
+          <div class="welcome-actions-col">
+            <button type="button" class="banner-btn primary" (click)="setTab('assigned')">
+              View Active Tasks ({{ filteredAssignedTasks().length }})
+            </button>
+            <button type="button" class="banner-btn secondary" (click)="openMaterialModal()">
+              Request Spare Parts
+            </button>
+          </div>
+        </section>
+
+        <!-- 4 KPI Metrics -->
+        <section class="kpi-grid">
+          <article class="kpi-card highlight-urgent" (click)="priorityFilter.set('Urgent'); setTab('assigned')">
+            <div class="kpi-header">
+              <span class="kpi-label">Urgent Repairs</span>
+              <span class="kpi-icon-pill">🚨</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>{{ maintenanceService.urgentCount() }}</h2>
+              <span class="status-tag urgent">Immediate Action</span>
+            </div>
+            <p class="kpi-subtext">Basement water seepage & lift leveling</p>
+          </article>
+
+          <article class="kpi-card" (click)="setTab('assigned')">
+            <div class="kpi-header">
+              <span class="kpi-label">In Progress</span>
+              <span class="kpi-icon-pill">⏳</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>{{ maintenanceService.inProgressCount() }}</h2>
+              <span class="status-tag in-progress">Active Repairs</span>
+            </div>
+            <p class="kpi-subtext">Plumbing pressure check in Flat A-204</p>
+          </article>
+
+          <article class="kpi-card" (click)="setTab('delays')">
+            <div class="kpi-header">
+              <span class="kpi-label">Delayed / Blocked</span>
+              <span class="kpi-icon-pill">⚠️</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>{{ maintenanceService.delayedCount() }}</h2>
+              <span class="status-tag delayed">Awaiting Window</span>
+            </div>
+            <p class="kpi-subtext">Night shutdown required for valve repair</p>
+          </article>
+
+          <article class="kpi-card" (click)="setTab('history')">
+            <div class="kpi-header">
+              <span class="kpi-label">Resolved This Month</span>
+              <span class="kpi-icon-pill">✅</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>{{ maintenanceService.resolvedCount() }}</h2>
+              <span class="status-tag resolved">100% Satisfaction</span>
+            </div>
+            <p class="kpi-subtext">Average resolution time: 3.2 hours</p>
+          </article>
+        </section>
+
+        <!-- Split Grid: Urgent Tickets & Quick Material Tracker -->
+        <section class="dashboard-split-grid">
+          <!-- Left: Priority Work Orders -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h3>⚡ High Priority Assigned Complaints</h3>
+                <p>Urgent resident complaints requiring quick on-site intervention</p>
+              </div>
+              <button type="button" class="link-btn" (click)="setTab('assigned')">View all →</button>
+            </div>
+
+            <div class="tasks-feed">
+              @for (task of filteredAssignedTasks().slice(0, 3); track task.id) {
+                <div class="task-feed-card" (click)="openTaskDetails(task)">
+                  <div class="task-top-bar">
+                    <div class="task-chips">
+                      <span class="ticket-badge">{{ task.id }}</span>
+                      <span class="category-badge">{{ task.category }}</span>
+                      <span class="priority-badge" [class.urgent]="task.priority === 'Urgent'" [class.high]="task.priority === 'High'">
+                        {{ task.priority }}
+                      </span>
+                    </div>
+                    <span class="task-due-date">Due: {{ task.dueDate }}</span>
+                  </div>
+
+                  <h4>{{ task.title }}</h4>
+                  <p class="task-flat-target">
+                    <strong>📍 {{ task.flat }} ({{ task.wing }})</strong> · Resident: {{ task.residentName }} ({{ task.residentPhone }})
+                  </p>
+
+                  <div class="task-card-footer">
+                    <div class="task-status-chip" [class.in-progress]="task.status === 'In Progress'" [class.assigned]="task.status === 'Assigned'">
+                      Status: <strong>{{ task.status }}</strong>
+                    </div>
+
+                    <div class="task-action-btns">
+                      @if (task.status === 'Assigned') {
+                        <button type="button" class="btn-micro accept" (click)="acceptTaskDirectly(task, $event)">
+                          Accept
+                        </button>
+                      } @else if (task.status === 'Accepted') {
+                        <button type="button" class="btn-micro start" (click)="startWorkDirectly(task, $event)">
+                          Start Work
+                        </button>
+                      }
+                      <button type="button" class="btn-micro update">
+                        Update Work →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Right: Material Requests Summary & Quick Tools -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h3>📦 Material & Tool Requisitions</h3>
+                <p>Status of requested spare parts from society inventory</p>
+              </div>
+              <button type="button" class="link-btn" (click)="setTab('materials')">Manage →</button>
+            </div>
+
+            <div class="materials-mini-list">
+              @for (req of maintenanceService.materialRequests(); track req.id) {
+                <div class="material-mini-item">
+                  <div class="material-mini-content">
+                    <strong>{{ req.itemName }}</strong>
+                    <small>Qty: {{ req.quantity }} · Category: {{ req.category }}</small>
+                  </div>
+                  <span class="req-status-tag" [class.approved]="req.status === 'Approved'" [class.issued]="req.status === 'Issued'" [class.pending]="req.status === 'Pending'">
+                    {{ req.status }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <h4 class="mini-section-heading">⚡ Quick Actions</h4>
+            <div class="quick-shortcuts-grid">
+              <button type="button" class="shortcut-tile" (click)="setTab('assigned')">
+                <span>📋</span>
+                <small>All Tasks</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="openMaterialModal()">
+                <span>🧰</span>
+                <small>Request Part</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="setTab('delays')">
+                <span>⏳</span>
+                <small>Report Delay</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="setTab('history')">
+                <span>📜</span>
+                <small>Work History</small>
+              </button>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 2. ASSIGNED COMPLAINTS ================= -->
+      @if (activeTab() === 'assigned') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Assigned Maintenance Complaints</h2>
+              <p>Review work orders assigned by Society Admin, accept tasks, update progress, and log work notes.</p>
+            </div>
+            <div class="filter-controls-row">
+              <!-- Search -->
+              <input
+                type="text"
+                placeholder="Search flat, title, ID..."
+                [ngModel]="searchQuery()"
+                (ngModelChange)="searchQuery.set($event)"
+                class="search-input-control" />
+
+              <!-- Category filter -->
+              <select
+                [ngModel]="categoryFilter()"
+                (ngModelChange)="categoryFilter.set($event)"
+                class="select-filter-control">
+                <option value="All">All Categories</option>
+                <option value="Plumbing">Plumbing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Lift">Elevator / Lift</option>
+                <option value="Carpentry">Carpentry</option>
+              </select>
+
+              <!-- Priority filter -->
+              <select
+                [ngModel]="priorityFilter()"
+                (ngModelChange)="priorityFilter.set($event)"
+                class="select-filter-control">
+                <option value="All">All Priorities</option>
+                <option value="Urgent">Urgent</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tasks List -->
+          <div class="assigned-tasks-list">
+            @for (task of filteredAssignedTasks(); track task.id) {
+              <div class="task-full-card" [class.urgent-border]="task.priority === 'Urgent'">
+                <div class="task-full-header">
+                  <div>
+                    <div class="task-tags-row">
+                      <span class="ticket-badge">{{ task.id }}</span>
+                      <span class="ref-badge">Ref: {{ task.complaintId }}</span>
+                      <span class="category-badge">{{ task.category }}</span>
+                      <span class="priority-badge" [class.urgent]="task.priority === 'Urgent'" [class.high]="task.priority === 'High'" [class.medium]="task.priority === 'Medium'">
+                        {{ task.priority }} Priority
+                      </span>
+                    </div>
+                    <h3>{{ task.title }}</h3>
+                    <p class="task-full-desc">{{ task.description }}</p>
+                  </div>
+                  <div class="task-meta-col">
+                    <span class="date-meta">Assigned: <strong>{{ task.assignedDate }}</strong></span>
+                    <span class="date-meta due">Target Due: <strong>{{ task.dueDate }}</strong></span>
+                    <span class="status-pill-large" [class.in-progress]="task.status === 'In Progress'" [class.accepted]="task.status === 'Accepted'" [class.assigned]="task.status === 'Assigned'" [class.delayed]="task.status === 'Delayed'">
+                      {{ task.status }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Resident and Location Box -->
+                <div class="task-location-box">
+                  <div class="loc-item">
+                    <span>Target Location:</span>
+                    <strong>📍 {{ task.flat }} · {{ task.wing }}</strong>
+                  </div>
+                  <div class="loc-item">
+                    <span>Resident:</span>
+                    <strong>{{ task.residentName }}</strong>
+                  </div>
+                  <div class="loc-item">
+                    <span>Resident Contact:</span>
+                    <strong>📞 {{ task.residentPhone }}</strong>
+                  </div>
+                </div>
+
+                <!-- Existing Work Notes & Materials if any -->
+                @if (task.workNotes) {
+                  <div class="work-notes-box">
+                    <span class="notes-icon">📝</span>
+                    <div>
+                      <strong>Work Progress & Technician Notes:</strong>
+                      <p>{{ task.workNotes }}</p>
+                    </div>
+                  </div>
+                }
+
+                @if (task.materialsUsed && task.materialsUsed.length > 0) {
+                  <div class="materials-used-tags">
+                    <span>Materials Used:</span>
+                    @for (m of task.materialsUsed; track m) {
+                      <span class="material-chip">{{ m }}</span>
+                    }
+                  </div>
+                }
+
+                <!-- Repair Photos Gallery -->
+                @if (task.photos && task.photos.length > 0) {
+                  <div class="photos-preview-strip">
+                    <span>Attached Photos ({{ task.photos.length }}):</span>
+                    <div class="photos-thumb-row">
+                      @for (p of task.photos; track p.id) {
+                        <div class="photo-thumb-item">
+                          <img [src]="p.url" [alt]="p.caption" class="thumb-img" />
+                          <small class="photo-tag">{{ p.type }}</small>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <!-- Delay notice banner if delayed -->
+                @if (task.status === 'Delayed') {
+                  <div class="task-delay-banner">
+                    <span>⚠️ Delay Note:</span>
+                    <p>{{ task.delayReason }} (Revised target: <strong>{{ task.revisedDueDate }}</strong>)</p>
+                  </div>
+                }
+
+                <!-- Action Bar -->
+                <div class="task-full-actions">
+                  <div class="left-actions">
+                    <button type="button" class="action-btn-sm" (click)="openPhotoModal(task, $event)">
+                      📷 Upload Photo
+                    </button>
+                    <button type="button" class="action-btn-sm" (click)="openMaterialModal(task)">
+                      🧰 Request Part
+                    </button>
+                    <button type="button" class="action-btn-sm warning" (click)="openDelayModal(task, $event)">
+                      ⏳ Report Delay
+                    </button>
+                    <button type="button" class="action-btn-sm danger" (click)="openIssueModal(task, $event)">
+                      🚫 Report Issue
+                    </button>
+                  </div>
+
+                  <div class="right-actions">
+                    @if (task.status === 'Assigned') {
+                      <button type="button" class="primary-task-btn accept" (click)="acceptTaskDirectly(task)">
+                        ✓ Accept Task
+                      </button>
+                    } @else if (task.status === 'Accepted') {
+                      <button type="button" class="primary-task-btn in-progress" (click)="startWorkDirectly(task)">
+                        ▶ Start Work
+                      </button>
+                    }
+                    <button type="button" class="primary-task-btn update" (click)="openTaskDetails(task)">
+                      Update Status & Notes →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-tasks-state">
+                <span>🎉</span>
+                <h3>No pending tasks matching your filters!</h3>
+                <p>All assigned maintenance complaints have been attended to or resolved.</p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 3. DELAYED TASKS ================= -->
+      @if (activeTab() === 'delays') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Delayed Tasks & Blocker Explanations</h2>
+              <p>Transparent tracking of tasks postponed due to spare parts, resident schedules, or municipal shutdowns.</p>
+            </div>
+          </div>
+
+          <div class="delayed-tasks-grid">
+            @for (task of delayedTasks(); track task.id) {
+              <div class="delayed-card">
+                <div class="delayed-header">
+                  <div>
+                    <span class="ticket-badge">{{ task.id }}</span>
+                    <h3>{{ task.title }}</h3>
+                  </div>
+                  <span class="status-tag delayed">Delayed</span>
+                </div>
+
+                <div class="delayed-body">
+                  <div class="delay-detail-row">
+                    <span>Location:</span>
+                    <strong>{{ task.flat }} ({{ task.wing }})</strong>
+                  </div>
+                  <div class="delay-detail-row">
+                    <span>Original Due Date:</span>
+                    <span class="strikethrough">{{ task.dueDate }}</span>
+                  </div>
+                  <div class="delay-detail-row">
+                    <span>Revised Due Date:</span>
+                    <strong class="highlight-date">{{ task.revisedDueDate }}</strong>
+                  </div>
+                  <div class="delay-reason-box">
+                    <strong>Reported Blocker Reason:</strong>
+                    <p>{{ task.delayReason }}</p>
+                  </div>
+                </div>
+
+                <div class="delayed-card-footer">
+                  <button type="button" class="primary-action-btn" (click)="openTaskDetails(task)">
+                    Resume Work & Update Status
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-tasks-state">
+                <span>⏱️</span>
+                <h3>No delayed tasks!</h3>
+                <p>All maintenance repairs are on schedule.</p>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 4. WORK HISTORY ================= -->
+      @if (activeTab() === 'history') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Completed Work History</h2>
+              <p>Archived record of previously resolved complaints, materials used, and resident ratings.</p>
+            </div>
+            <div class="history-metric-pill">
+              Total Resolved: <strong>{{ completedHistoryTasks().length }} Tasks</strong>
+            </div>
+          </div>
+
+          <div class="table-responsive panel-box">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>TASK ID</th>
+                  <th>COMPLAINT & LOCATION</th>
+                  <th>CATEGORY</th>
+                  <th>COMPLETED ON</th>
+                  <th>HOURS SPENT</th>
+                  <th>MATERIALS USED</th>
+                  <th>RESIDENT RATING</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (task of completedHistoryTasks(); track task.id) {
+                  <tr>
+                    <td><strong>{{ task.id }}</strong></td>
+                    <td>
+                      <strong>{{ task.title }}</strong>
+                      <small class="block-text">📍 {{ task.flat }} · {{ task.wing }}</small>
+                    </td>
+                    <td><span class="category-badge">{{ task.category }}</span></td>
+                    <td>{{ task.completedDate }}</td>
+                    <td>{{ task.timeSpentHours || 2 }} hrs</td>
+                    <td>
+                      @if (task.materialsUsed && task.materialsUsed.length > 0) {
+                        <small>{{ task.materialsUsed.join(', ') }}</small>
+                      } @else {
+                        <small class="muted-text">Standard Tools</small>
+                      }
+                    </td>
+                    <td>
+                      <div class="star-rating-display">
+                        @for (star of [1,2,3,4,5]; track star) {
+                          <span class="star-gold">★</span>
+                        }
+                      </div>
+                    </td>
+                    <td><span class="status-tag resolved">Resolved</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 5. MATERIAL REQUESTS ================= -->
+      @if (activeTab() === 'materials') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Tools & Spare Parts Requisitions</h2>
+              <p>Request tools, plumbing fittings, electrical breakers, and raw materials from society store.</p>
+            </div>
+            <button type="button" class="primary-action-btn" (click)="openMaterialModal()">
+              ＋ New Material Request
+            </button>
+          </div>
+
+          <div class="materials-full-grid">
+            @for (req of maintenanceService.materialRequests(); track req.id) {
+              <div class="material-req-card">
+                <div class="req-top-row">
+                  <div>
+                    <span class="req-id">{{ req.id }}</span>
+                    <span class="category-badge">{{ req.category }}</span>
+                    <span class="priority-badge" [class.urgent]="req.urgency === 'Emergency'" [class.high]="req.urgency === 'High'">
+                      {{ req.urgency }} Urgency
+                    </span>
+                  </div>
+                  <span class="req-status-tag" [class.approved]="req.status === 'Approved'" [class.issued]="req.status === 'Issued'" [class.pending]="req.status === 'Pending'">
+                    {{ req.status }}
+                  </span>
+                </div>
+
+                <h3>{{ req.itemName }}</h3>
+                <div class="req-qty-box">
+                  <span>Requested Quantity:</span>
+                  <strong>{{ req.quantity }}</strong>
+                </div>
+
+                <div class="req-reason">
+                  <span>Justification:</span>
+                  <p>{{ req.reason }}</p>
+                </div>
+
+                @if (req.adminRemarks) {
+                  <div class="admin-remarks-box">
+                    <span>Admin Remarks:</span>
+                    <p>{{ req.adminRemarks }}</p>
+                  </div>
+                }
+
+                <div class="req-footer">
+                  <small>Requested: {{ req.requestDate }}</small>
+                  @if (req.taskId) {
+                    <small>Linked Task: <strong>{{ req.taskId }}</strong></small>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+    </div>
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. TASK DETAILS, WORK STATUS & NOTES MODAL -->
+  @if (showTaskDetailModal() && selectedTask()) {
+    <div class="modal-backdrop" (click)="closeTaskDetails()">
+      <div class="modal-card wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="ticket-badge">{{ selectedTask()?.id }}</span>
+            <h3>{{ selectedTask()?.title }}</h3>
+          </div>
+          <button type="button" class="close-btn" (click)="closeTaskDetails()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Summary info -->
+          <div class="task-modal-info-strip">
+            <div>
+              <span>Location:</span>
+              <strong>{{ selectedTask()?.flat }} ({{ selectedTask()?.wing }})</strong>
+            </div>
+            <div>
+              <span>Resident:</span>
+              <strong>{{ selectedTask()?.residentName }} ({{ selectedTask()?.residentPhone }})</strong>
+            </div>
+            <div>
+              <span>Priority:</span>
+              <strong>{{ selectedTask()?.priority }}</strong>
+            </div>
+          </div>
+
+          <!-- Status Update -->
+          <div class="form-field mb-16">
+            <label>Update Work Status *</label>
+            <div class="status-selector-row">
+              <button
+                type="button"
+                class="status-choice-btn"
+                [class.active]="taskStatusUpdate === 'Accepted'"
+                (click)="taskStatusUpdate = 'Accepted'">
+                Accepted
+              </button>
+              <button
+                type="button"
+                class="status-choice-btn"
+                [class.active]="taskStatusUpdate === 'In Progress'"
+                (click)="taskStatusUpdate = 'In Progress'">
+                In Progress
+              </button>
+              <button
+                type="button"
+                class="status-choice-btn"
+                [class.active]="taskStatusUpdate === 'Delayed'"
+                (click)="taskStatusUpdate = 'Delayed'">
+                Delayed
+              </button>
+              <button
+                type="button"
+                class="status-choice-btn resolved"
+                [class.active]="taskStatusUpdate === 'Resolved'"
+                (click)="taskStatusUpdate = 'Resolved'">
+                ✓ Mark Resolved
+              </button>
+            </div>
+          </div>
+
+          <!-- Work Notes -->
+          <div class="form-field mb-16">
+            <label>Repairs Performed & Work Notes</label>
+            <textarea
+              [(ngModel)]="workNotesText"
+              rows="4"
+              class="form-control"
+              placeholder="Detail actions taken, inspection observations, root cause..."></textarea>
+          </div>
+
+          <!-- Materials Used -->
+          <div class="form-field mb-16">
+            <label>Materials / Spare Parts Used (Comma-separated)</label>
+            <input
+              type="text"
+              [(ngModel)]="materialsInput"
+              class="form-control"
+              placeholder="e.g. 1/2 inch CPVC valve, Teflon roll, M-seal epoxy" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-action-btn" (click)="closeTaskDetails()">Cancel</button>
+          <button type="button" class="primary-action-btn" (click)="saveTaskWork()">Save Work Updates</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 2. PHOTO UPLOAD MODAL -->
+  @if (showPhotoUploadModal() && selectedTask()) {
+    <div class="modal-backdrop" (click)="closePhotoModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Upload Repair Inspection Photo</h3>
+          <button type="button" class="close-btn" (click)="closePhotoModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-field mb-16">
+            <label>Photo Stage *</label>
+            <div class="segmented-control">
+              <button
+                type="button"
+                [class.active]="photoType === 'before'"
+                (click)="photoType = 'before'">
+                Before Repair
+              </button>
+              <button
+                type="button"
+                [class.active]="photoType === 'after'"
+                (click)="photoType = 'after'">
+                After Repair
+              </button>
+            </div>
+          </div>
+
+          <div class="photo-preview-placeholder">
+            <img [src]="photoPreviewUrl" alt="Inspection Preview" class="modal-preview-img" />
+            <div class="preview-overlay-tag">
+              <span>{{ photoType.toUpperCase() }} PHOTO PREVIEW</span>
+            </div>
+          </div>
+
+          <div class="form-field mb-16">
+            <label>Caption / Notes</label>
+            <input
+              type="text"
+              [(ngModel)]="photoCaption"
+              class="form-control"
+              placeholder="e.g. Cleared rusted aerator screen and checked valve" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-action-btn" (click)="closePhotoModal()">Cancel</button>
+          <button type="button" class="primary-action-btn" (click)="submitRepairPhoto()">Attach Photo</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 3. REPORT DELAY MODAL -->
+  @if (showDelayModal() && selectedTask()) {
+    <div class="modal-backdrop" (click)="closeDelayModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Report Task Delay</h3>
+          <button type="button" class="close-btn" (click)="closeDelayModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-desc">Notify Society Admin and the resident with reason and revised target date.</p>
+
+          <div class="form-field mb-16">
+            <label>Reason for Delay *</label>
+            <select [(ngModel)]="delayReason" class="form-control">
+              <option value="Spare parts out of stock, waiting for delivery">Spare parts out of stock / awaiting delivery</option>
+              <option value="Resident unavailable / flat locked during inspection">Resident unavailable / flat locked</option>
+              <option value="Requires main water/power municipal shutdown">Requires municipal water/power shutdown</option>
+              <option value="OEM specialist technician required on site">OEM specialist technician required</option>
+              <option value="Heavy rains / structural drying required">Weather / structural drying required</option>
+            </select>
+          </div>
+
+          <div class="form-field mb-16">
+            <label>Revised Target Completion Date *</label>
+            <input type="date" [(ngModel)]="revisedDueDate" class="form-control" required />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-action-btn" (click)="closeDelayModal()">Cancel</button>
+          <button type="button" class="primary-action-btn" (click)="submitDelayReport()">Submit Delay Notice</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 4. REPORT ASSIGNMENT ISSUE MODAL -->
+  @if (showIssueModal() && selectedTask()) {
+    <div class="modal-backdrop" (click)="closeIssueModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Report Task Assignment Issue</h3>
+          <button type="button" class="close-btn" (click)="closeIssueModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-desc">If this task was assigned by error or requires a different technician team, inform admin.</p>
+
+          <div class="form-field mb-16">
+            <label>Issue Reason *</label>
+            <select [(ngModel)]="issueReason" class="form-control">
+              <option value="Wrong department: Requires certified electrician">Wrong department: Requires certified electrician</option>
+              <option value="Wrong department: External civil contractor required">Wrong department: External civil contractor</option>
+              <option value="Safety hazard: Scaffolding and safety harness required">Safety hazard: Scaffolding required</option>
+              <option value="Schedule clash with emergency substation work">Schedule clash with emergency substation work</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-action-btn" (click)="closeIssueModal()">Cancel</button>
+          <button type="button" class="primary-action-btn" (click)="submitAssignmentIssue()">Notify Admin</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 5. REQUEST MATERIAL MODAL -->
+  @if (showMaterialModal()) {
+    <div class="modal-backdrop" (click)="closeMaterialModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Request Tool or Spare Parts</h3>
+          <button type="button" class="close-btn" (click)="closeMaterialModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <form (ngSubmit)="submitMaterialRequest()">
+            <div class="form-field mb-16">
+              <label>Tool / Material Item Name *</label>
+              <input
+                type="text"
+                [(ngModel)]="newMaterial.itemName"
+                name="itemName"
+                class="form-control"
+                placeholder="e.g. 1/2 Inch CPVC Ball Valve"
+                required />
+            </div>
+
+            <div class="form-row-2 mb-16">
+              <div class="form-field">
+                <label>Category *</label>
+                <select [(ngModel)]="newMaterial.category" name="category" class="form-control">
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Tools">Tools & Equipment</option>
+                  <option value="Hardware">Hardware & Screws</option>
+                  <option value="Chemicals/Paint">Chemicals & Sealants</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Quantity *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="newMaterial.quantity"
+                  name="quantity"
+                  class="form-control"
+                  placeholder="e.g. 2 Units / 1 Box"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-field mb-16">
+              <label>Urgency Level</label>
+              <select [(ngModel)]="newMaterial.urgency" name="urgency" class="form-control">
+                <option value="Low">Low</option>
+                <option value="Normal">Normal</option>
+                <option value="High">High</option>
+                <option value="Emergency">Emergency</option>
+              </select>
+            </div>
+
+            <div class="form-field mb-16">
+              <label>Reason / Linked Complaint</label>
+              <input
+                type="text"
+                [(ngModel)]="newMaterial.reason"
+                name="reason"
+                class="form-control"
+                placeholder="Purpose or linked task..." />
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="secondary-action-btn" (click)="closeMaterialModal()">Cancel</button>
+              <button type="submit" class="primary-action-btn">Submit Requisition</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 6. STAFF NOTIFICATIONS DRAWER -->
+  @if (showNotificationsDrawer()) {
+    <div class="notifications-drawer-backdrop" (click)="toggleNotifications()">
+      <div class="notifications-drawer" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div>
+            <h3>Crew Notifications</h3>
+            <small>{{ maintenanceService.unreadNotificationsCount() }} unread work alerts</small>
+          </div>
+          <div class="drawer-header-actions">
+            <button type="button" class="text-link-btn" (click)="markAllRead()">Mark All Read</button>
+            <button type="button" class="close-btn" (click)="toggleNotifications()">✕</button>
+          </div>
+        </div>
+
+        <div class="drawer-body">
+          @for (item of maintenanceService.notifications(); track item.id) {
+            <div
+              class="notif-item"
+              [class.unread]="!item.isRead"
+              (click)="maintenanceService.markNotificationRead(item.id)">
+              <div class="notif-icon">
+                @if (item.type === 'Assignment') { 📋 }
+                @else if (item.type === 'Material') { 📦 }
+                @else if (item.type === 'Reminder') { ⚠️ }
+                @else { 📢 }
+              </div>
+              <div class="notif-content">
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.message }}</p>
+                <small>{{ item.timestamp }}</small>
+              </div>
+              @if (!item.isRead) {
+                <span class="unread-dot"></span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
