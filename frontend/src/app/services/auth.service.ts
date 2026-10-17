@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { User, LoginRequest } from '../models/user.model';
+import { User, LoginRequest, UserRole } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +12,62 @@ export class AuthService {
 
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUserSignal());
+
+  // Demo user fixtures for 4 roles
+  readonly demoProfiles: Record<UserRole, { user: User; defaultPass: string }> = {
+    'Resident': {
+      user: {
+        id: 'USR-RES-101',
+        name: 'Priya Sharma',
+        email: 'priya.sharma@greenwood.com',
+        phone: '+91 98765 12340',
+        flat: 'A-204',
+        role: 'Resident',
+        societyName: 'Greenwood Heights',
+        token: 'mock-jwt-resident-101'
+      },
+      defaultPass: 'Resident@2026'
+    },
+    'Secretary Admin': {
+      user: {
+        id: 'USR-SEC-202',
+        name: 'Rajesh Mehta',
+        email: 'secretary@greenwood.com',
+        phone: '+91 98765 88990',
+        flat: 'B-401',
+        role: 'Secretary Admin',
+        societyName: 'Greenwood Heights',
+        token: 'mock-jwt-secretary-202'
+      },
+      defaultPass: 'Secretary@2026'
+    },
+    'Super Admin': {
+      user: {
+        id: 'USR-SUP-001',
+        name: 'Dhanashree Kadawale',
+        email: 'superadmin@societysync.com',
+        phone: '+91 98765 43210',
+        flat: 'HQ-Central',
+        role: 'Super Admin',
+        societyName: 'SocietySync Global HQ',
+        token: 'mock-jwt-superadmin-001'
+      },
+      defaultPass: 'SuperAdmin@2026'
+    },
+    'Maintenance Staff': {
+      user: {
+        id: 'USR-STAFF-303',
+        name: 'Ramesh Shinde',
+        email: 'maintenance.lead@greenwood.com',
+        phone: '+91 98765 77112',
+        flat: 'Operations Unit',
+        role: 'Maintenance Staff',
+        societyName: 'Greenwood Heights',
+        token: 'mock-jwt-staff-303'
+      },
+      defaultPass: 'Staff@2026'
+    }
+  };
 
   constructor(private router: Router) {}
 
@@ -27,29 +83,15 @@ export class AuthService {
   login(credentials: LoginRequest): Promise<boolean> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // Mock user based on input or default resident profile
-        const isDhanashree = credentials.identity.toLowerCase().includes('dhana') || credentials.identity.toLowerCase().includes('admin');
-        const user: User = isDhanashree
-          ? {
-              id: 'USR-ADMIN-01',
-              name: 'Dhanashree Kadawale',
-              email: credentials.identity.includes('@') ? credentials.identity : 'dhanashree@societysync.com',
-              phone: credentials.identity.includes('@') ? '+91 98765 43210' : credentials.identity,
-              flat: 'A-302',
-              role: 'Society Admin',
-              societyName: 'Greenwood Heights',
-              token: 'mock-jwt-token-admin'
-            }
-          : {
-              id: 'USR-RES-01',
-              name: 'Priya Sharma',
-              email: credentials.identity.includes('@') ? credentials.identity : 'priya.sharma@greenwood.com',
-              phone: credentials.identity.includes('@') ? '+91 98765 12340' : credentials.identity,
-              flat: 'A-204',
-              role: 'Resident',
-              societyName: 'Greenwood Heights',
-              token: 'mock-jwt-token-resident'
-            };
+        const role = credentials.role || 'Resident';
+        const template = this.demoProfiles[role].user;
+
+        const user: User = {
+          ...template,
+          email: credentials.identity.includes('@') ? credentials.identity : template.email,
+          phone: !credentials.identity.includes('@') ? credentials.identity : template.phone,
+          role: role
+        };
 
         this.currentUserSignal.set(user);
 
@@ -60,7 +102,7 @@ export class AuthService {
         }
 
         resolve(true);
-      }, 600);
+      }, 500);
     });
   }
 
