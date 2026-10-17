@@ -1,4 +1,8 @@
-<div class="app-layout" [class.sidebar-collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen">
+<ng-container *ngIf="isAuthPage">
+  <router-outlet></router-outlet>
+</ng-container>
+
+<div *ngIf="!isAuthPage" class="app-layout" [class.sidebar-collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen">
   <!-- Mobile Backdrop Overlay -->
   <div class="mobile-backdrop" *ngIf="isMobileSidebarOpen" (click)="closeMobileSidebar()"></div>
 

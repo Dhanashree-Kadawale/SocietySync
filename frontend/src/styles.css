@@ -147,6 +147,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Compatibility tokens for login component */
+:root {
+  --primary-color: #1D5245;
+  --primary-dark: #17453A;
+  --primary-hover: #133a30;
+  --primary-light: #edf6f2;
+  --bg-warm: #F9FAF9;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -509,4 +522,12 @@ img {
 
 @media (min-width: 769px) {
   .show-mobile-only { display: none !important; }
+}
+
+body {
+  min-width: 320px;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }

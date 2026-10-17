@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router } from '@angular/router';
 import { Sidebar } from './components/sidebar/sidebar';
 import { Topbar } from './components/topbar/topbar';
 import { ToastComponent } from './components/toast/toast';
@@ -23,7 +23,14 @@ export class App {
   isSidebarCollapsed = false;
   isMobileSidebarOpen = false;
 
-  constructor(public mockData: MockDataService) {}
+  constructor(
+    public mockData: MockDataService,
+    private router: Router
+  ) {}
+
+  get isAuthPage(): boolean {
+    return this.router.url.includes('/login');
+  }
 
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
