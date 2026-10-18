@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -22,6 +22,27 @@ export class Topbar implements OnInit {
   showNotifications = false;
   showProfileMenu = false;
   showCreateMenu = false;
+
+  readonly adminUser = computed(() => this.authService.currentUser());
+  readonly adminName = computed(() => this.adminUser()?.name || 'Secretary Admin');
+  readonly adminEmail = computed(() => this.adminUser()?.email || 'secretary@greenwood.com');
+  readonly adminSociety = computed(() => this.adminUser()?.societyName || 'Greenwood Heights');
+  readonly adminInitials = computed(() => {
+    const name = this.adminName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  });
+  readonly adminShortName = computed(() => {
+    const name = this.adminName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0]} ${parts[1][0]}.`;
+    }
+    return name;
+  });
 
   notifications = [
     { id: 1, icon: 'alert', text: 'New complaint filed by Ananya Sharma (A-201)', time: '5m ago', unread: true, color: '#DC4545' },

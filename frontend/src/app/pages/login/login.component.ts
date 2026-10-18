@@ -96,16 +96,25 @@ export class LoginComponent implements OnInit {
       this.successMessage = `Sign in successful as ${this.selectedRole}! Redirecting...`;
 
       setTimeout(() => {
+        let targetRoute = '/dashboard';
         if (this.selectedRole === 'Resident') {
-          this.router.navigate(['/resident']);
+          targetRoute = '/resident';
         } else if (this.selectedRole === 'Maintenance Staff') {
-          this.router.navigate(['/staff-dashboard']);
-        } else {
-          this.router.navigate(['/dashboard']);
+          targetRoute = '/staff-dashboard';
         }
-      }, 600);
-    } catch {
-      this.errorMessage = 'Invalid credentials. Please verify your details.';
+
+        this.router.navigate([targetRoute]).then((navigated) => {
+          if (!navigated) {
+            console.warn(`Direct navigation to ${targetRoute} did not complete. Falling back.`);
+            window.location.href = targetRoute;
+          }
+        }).catch((err) => {
+          console.error('Navigation error:', err);
+          window.location.href = targetRoute;
+        });
+      }, 500);
+    } catch (err: any) {
+      this.errorMessage = err?.message || 'Invalid credentials. Please verify your details.';
       this.isLoading = false;
     }
   }

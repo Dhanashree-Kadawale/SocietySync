@@ -29,11 +29,11 @@
         </svg>
       </div>
       <div class="society-text">
-        <span class="society-title">A-204</span>
-        <span class="society-sub">Tower A · Greenwood</span>
+        <span class="society-title">{{ adminFlat() }}</span>
+        <span class="society-sub">{{ adminSociety() }}</span>
       </div>
     </div>
-    <span class="society-role-badge">Secretary</span>
+    <span class="society-role-badge">{{ adminRoleBadge() }}</span>
   </div>
 
   <div class="society-card-collapsed" *ngIf="collapsed" title="SocietySync · Secretary Portal">
@@ -185,10 +185,10 @@
   <!-- Bottom Profile -->
   <div class="sidebar-footer" *ngIf="!collapsed">
     <div class="admin-profile" (click)="onProfileClick()" style="cursor: pointer;" title="View Society Settings">
-      <div class="admin-avatar">RV</div>
+      <div class="admin-avatar">{{ adminInitials() }}</div>
       <div class="admin-info">
-        <p class="admin-name">Rahul Verma</p>
-        <p class="admin-role">Secretary · Green Heights</p>
+        <p class="admin-name">{{ adminName() }}</p>
+        <p class="admin-role">{{ adminRole() }}</p>
       </div>
       <button class="admin-action-btn" (click)="$event.stopPropagation(); onSignOut()" title="Sign Out">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -200,7 +200,7 @@
     </div>
   </div>
 
-  <div class="sidebar-footer-collapsed" *ngIf="collapsed" (click)="onProfileClick()" style="cursor: pointer;" title="Rahul Verma (Secretary) - Settings">
-    <div class="admin-avatar-sm">RV</div>
+  <div class="sidebar-footer-collapsed" *ngIf="collapsed" (click)="onProfileClick()" style="cursor: pointer;" [title]="adminName() + ' - Settings'">
+    <div class="admin-avatar-sm">{{ adminInitials() }}</div>
   </div>
 </nav>

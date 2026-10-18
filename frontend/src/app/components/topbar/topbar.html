@@ -10,7 +10,7 @@
     </button>
 
     <nav class="breadcrumb">
-      <span class="breadcrumb-society">Green Heights</span>
+      <span class="breadcrumb-society">{{ adminSociety() }}</span>
       <span class="breadcrumb-sep">/</span>
       <span class="breadcrumb-current">{{ displayedBreadcrumb }}</span>
     </nav>
@@ -68,17 +68,17 @@
     <!-- Profile Badge matching screenshot: (Circle PS Priya S.) -->
     <div class="topbar-action-wrap">
       <button class="profile-pill-btn" (click)="toggleProfileMenu($event)" [class.active]="showProfileMenu">
-        <div class="profile-avatar">RV</div>
-        <span class="profile-name hide-mobile">Rahul V.</span>
+        <div class="profile-avatar">{{ adminInitials() }}</div>
+        <span class="profile-name hide-mobile">{{ adminShortName() }}</span>
       </button>
 
       <!-- Profile Dropdown -->
       <div class="dropdown profile-dropdown" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
         <div class="profile-dropdown-header">
-          <div class="pd-avatar">RV</div>
+          <div class="pd-avatar">{{ adminInitials() }}</div>
           <div>
-            <p class="pd-name">Rahul Verma</p>
-            <p class="pd-email">secretary&#64;greenwoodheights.org</p>
+            <p class="pd-name">{{ adminName() }}</p>
+            <p class="pd-email">{{ adminEmail() }}</p>
           </div>
         </div>
         <div class="dropdown-divider"></div>

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -22,6 +22,26 @@ export class Sidebar implements OnInit {
   mainServices: NavItem[] = [];
   communityItems: NavItem[] = [];
   activeRoute = 'dashboard';
+
+  readonly adminUser = computed(() => this.authService.currentUser());
+  readonly adminName = computed(() => this.adminUser()?.name || 'Secretary Admin');
+  readonly adminRole = computed(() => {
+    const role = this.adminUser()?.role || 'Secretary';
+    const soc = this.adminUser()?.societyName || 'Greenwood Heights';
+    return `${role} · ${soc}`;
+  });
+  readonly adminFlat = computed(() => this.adminUser()?.flat || 'B-401');
+  readonly adminSociety = computed(() => this.adminUser()?.societyName || 'Greenwood Heights');
+  readonly adminRoleBadge = computed(() => this.adminUser()?.role || 'Secretary');
+
+  readonly adminInitials = computed(() => {
+    const name = this.adminName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  });
 
   constructor(
     private mockData: MockDataService,

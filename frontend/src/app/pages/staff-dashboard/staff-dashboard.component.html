@@ -20,10 +20,10 @@
 
     <!-- Staff Badge -->
     <div class="staff-badge">
-      <div class="staff-avatar-badge">RS</div>
+      <div class="staff-avatar-badge">{{ staffInitials() }}</div>
       <div class="staff-meta">
-        <strong>{{ maintenanceService.staffProfile().name }}</strong>
-        <small>{{ maintenanceService.staffProfile().role }}</small>
+        <strong>{{ staffName() }}</strong>
+        <small>{{ staffRole() }}</small>
       </div>
       <span class="staff-on-duty">On Duty</span>
     </div>
@@ -110,7 +110,7 @@
     <!-- Topbar -->
     <header class="staff-topbar">
       <div class="topbar-left">
-        <span class="society-title">Greenwood Heights</span>
+        <span class="society-title">{{ staffSociety() }}</span>
         <span class="breadcrumb-separator">/</span>
         <strong class="topbar-current-tab">
           @if (activeTab() === 'dashboard') { Operations Dashboard }
@@ -143,8 +143,8 @@
 
         <!-- Profile Chip -->
         <div class="topbar-staff-chip">
-          <div class="staff-avatar-sm">RS</div>
-          <span class="staff-name-sm">Ramesh Shinde (Lead)</span>
+          <div class="staff-avatar-sm">{{ staffInitials() }}</div>
+          <span class="staff-name-sm">{{ staffName() }}</span>
         </div>
       </div>
     </header>
@@ -157,8 +157,8 @@
         <!-- Welcome Banner -->
         <section class="staff-welcome-card">
           <div class="welcome-text-col">
-            <span class="duty-tag">ON-DUTY SHIFT · LEAD MAINTENANCE</span>
-            <h1>Good day, Ramesh Shinde 🔧</h1>
+            <span class="duty-tag">ON-DUTY SHIFT · {{ staffRole().toUpperCase() }}</span>
+            <h1>Good day, {{ staffName() }} 🔧</h1>
             <p>You have <strong>{{ filteredAssignedTasks().length }} active tasks</strong> today. Review urgent tickets, record work notes, and manage repairs.</p>
           </div>
           <div class="welcome-actions-col">

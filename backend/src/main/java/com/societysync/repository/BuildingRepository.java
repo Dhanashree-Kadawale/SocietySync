@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface BuildingRepository extends JpaRepository<Building, Long> {
     List<Building> findBySocietyId(Long societyId);
+    java.util.Optional<Building> findBySocietyIdAndName(Long societyId, String name);
 }

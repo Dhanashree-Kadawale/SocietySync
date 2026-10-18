@@ -62,9 +62,39 @@ export class ResidentDashboardComponent {
   // Form states:
   // 1. Payment Form
   paymentMethod = signal<'UPI' | 'Credit Card' | 'Debit Card' | 'Net Banking'>('UPI');
-  upiId = signal<string>('priya@okhdfcbank');
+  upiId = signal<string>('resident@okhdfcbank');
   isPaying = signal<boolean>(false);
   paymentSuccess = signal<boolean>(false);
+
+  // Dynamic Logged-in User Profile
+  readonly residentUser = computed(() => this.authService.currentUser());
+  readonly residentName = computed(() => this.residentUser()?.name || 'Resident');
+  readonly residentEmail = computed(() => this.residentUser()?.email || 'resident@greenwood.com');
+  readonly residentPhone = computed(() => this.residentUser()?.phone || '+91 98765 12340');
+  readonly residentFlat = computed(() => this.residentUser()?.flat || this.residentService.flatInfo().flatNumber);
+  readonly residentTower = computed(() => {
+    const flat = this.residentFlat();
+    if (flat.includes('Tower B') || flat.startsWith('B-')) return 'Tower B';
+    if (flat.includes('Tower C') || flat.startsWith('C-')) return 'Tower C';
+    return 'Tower A';
+  });
+  readonly residentSociety = computed(() => this.residentUser()?.societyName || 'Greenwood Heights');
+  readonly residentInitials = computed(() => {
+    const name = this.residentName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  });
+  readonly residentShortName = computed(() => {
+    const name = this.residentName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0]} ${parts[1][0]}.`;
+    }
+    return name;
+  });
 
   // 2. Complaint Form
   newComplaint = {

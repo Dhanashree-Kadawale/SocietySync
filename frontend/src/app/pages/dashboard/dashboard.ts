@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import { StatCard } from '../../models/models';
 import { MaintenanceChartComponent } from '../../components/maintenance-chart/maintenance-chart';
 import { ComplaintChartComponent } from '../../components/complaint-chart/complaint-chart';
@@ -29,6 +30,22 @@ export class DashboardComponent implements OnInit {
   statCards: StatCard[] = [];
   showCreateMenu = false;
   greeting = 'Welcome back';
+
+  readonly secretaryUser = computed(() => this.authService.currentUser());
+  readonly secretaryName = computed(() => this.secretaryUser()?.name || 'Rajesh Mehta');
+  readonly societyName = computed(() => this.secretaryUser()?.societyName || 'Greenwood Heights');
+  readonly userRole = computed(() => this.secretaryUser()?.role || 'Secretary Admin');
+  readonly secretaryFlat = computed(() => this.secretaryUser()?.flat || 'B-401');
+
+  readonly todayDateString = computed(() => {
+    const now = new Date();
+    return now.toLocaleDateString('en-IN', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).toUpperCase();
+  });
 
   createOptions = [
     { label: 'New Notice', icon: '📢', action: 'notice' },
@@ -62,17 +79,29 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  societyDetails = [
-    { label: 'Flat & Tower:', value: 'A-204 (Tower A · Palm Grove)', badge: 'Owner Verified (3 Occupants)' },
-    { label: 'Society & Towers:', value: 'Green Heights (Towers A, B, C, D)', badge: null },
-    { label: 'Carpet Area:', value: '1,450 sq.ft (3 BHK Luxury Unit)', badge: null },
-    { label: 'Dedicated Parking:', value: 'B1-Slot-42 (Covered Basement)', badge: null },
-    { label: 'Primary Vehicle:', value: 'MH 12 AB 4589 (Honda City)', badge: null },
-    { label: 'Security & Staff:', value: 'Gate 1 (Intercom 4001) · 12 On Duty', badge: null },
-  ];
+  get activeSocietyDetails() {
+    const user = this.secretaryUser();
+    const flat = user?.flat || 'B-401';
+    const soc = user?.societyName || 'Greenwood Heights';
+    const role = user?.role || 'Secretary Admin';
+    return [
+      { label: 'Flat & Office:', value: `${flat} · Managing Office`, badge: `${role} Verified` },
+      { label: 'Society & Towers:', value: `${soc} (Towers A, B, C, D)`, badge: null },
+      { label: 'Carpet Area:', value: '1,450 sq.ft (3 BHK Luxury Unit)', badge: null },
+      { label: 'Dedicated Parking:', value: 'B1-Slot-42 (Covered Basement)', badge: null },
+      { label: 'Primary Vehicle:', value: 'MH 12 AB 4589 (Honda City)', badge: null },
+      { label: 'Security & Staff:', value: 'Gate 1 (Intercom 4001) · 12 On Duty', badge: null },
+    ];
+  }
+
+  // Fallback for any legacy template bindings
+  get societyDetails() {
+    return this.activeSocietyDetails;
+  }
 
   constructor(
     public mockData: MockDataService,
+    public authService: AuthService,
     private router: Router
   ) {}
 

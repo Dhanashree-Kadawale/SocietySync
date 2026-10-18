@@ -24,8 +24,8 @@
     <div class="resident-flat-badge" (click)="setTab('flat')">
       <div class="flat-icon">⌂</div>
       <div class="flat-meta">
-        <strong>{{ residentService.flatInfo().flatNumber }}</strong>
-        <small>Tower A · Greenwood</small>
+        <strong>{{ residentFlat() }}</strong>
+        <small>{{ residentTower() }} · {{ residentSociety() }}</small>
       </div>
       <span class="flat-verified-tag">Owner</span>
     </div>
@@ -153,10 +153,10 @@
       </div>
 
       <div class="resident-user-chip">
-        <div class="user-avatar">PS</div>
+        <div class="user-avatar">{{ residentInitials() }}</div>
         <div class="user-details">
-          <strong>Priya Sharma</strong>
-          <small>Flat A-204 · Resident</small>
+          <strong>{{ residentName() }}</strong>
+          <small>{{ residentFlat() }} · Resident</small>
         </div>
         <button type="button" class="sign-out-btn" (click)="logout()" title="Sign Out">
           ⇥
@@ -170,7 +170,7 @@
     <!-- Topbar -->
     <header class="portal-topbar">
       <div class="topbar-left">
-        <span class="society-title">Greenwood Heights</span>
+        <span class="society-title">{{ residentSociety() }}</span>
         <span class="breadcrumb-separator">/</span>
         <strong class="topbar-current-tab">
           @if (activeTab() === 'overview') { Resident Dashboard }
@@ -219,8 +219,8 @@
 
         <!-- Profile Chip -->
         <div class="topbar-user" (click)="setTab('profile')">
-          <div class="user-avatar-sm">PS</div>
-          <span class="user-name-sm">Priya S.</span>
+          <div class="user-avatar-sm">{{ residentInitials() }}</div>
+          <span class="user-name-sm">{{ residentShortName() }}</span>
         </div>
       </div>
     </header>
@@ -233,8 +233,8 @@
         <!-- Welcome Banner -->
         <section class="overview-welcome-card">
           <div class="welcome-text-col">
-            <span class="date-tag">Saturday, 17 October 2026 · Flat A-204</span>
-            <h1>Welcome home, Priya Sharma! 🌿</h1>
+            <span class="date-tag">Saturday, 17 October 2026 · Flat {{ residentFlat() }}</span>
+            <h1>Welcome home, {{ residentName() }}! 🌿</h1>
             <p>Access your society services, clear dues, register complaints, and book amenities with ease.</p>
           </div>
           <div class="welcome-actions-col">
@@ -1136,13 +1136,13 @@
           <div class="profile-layout-grid">
             <!-- Left: Identity Card -->
             <div class="profile-avatar-card">
-              <div class="profile-avatar-large">PS</div>
-              <h3>Priya Sharma</h3>
+              <div class="profile-avatar-large">{{ residentInitials() }}</div>
+              <h3>{{ residentName() }}</h3>
               <p class="profile-role-badge">Flat Owner & Resident</p>
               <div class="profile-quick-stats">
-                <div><span>Flat</span><strong>A-204</strong></div>
-                <div><span>Tower</span><strong>Tower A</strong></div>
-                <div><span>Member</span><strong>Since 2022</strong></div>
+                <div><span>Flat</span><strong>{{ residentFlat() }}</strong></div>
+                <div><span>Tower</span><strong>{{ residentTower() }}</strong></div>
+                <div><span>Member</span><strong>Since 2026</strong></div>
               </div>
               <button type="button" class="secondary-action-btn w-100 mt-15" (click)="showToast('Verification badge confirmed by society secretary.')">
                 ✓ Verified Resident
@@ -1156,23 +1156,23 @@
                 <div class="form-row-2">
                   <div class="form-field">
                     <label>Full Legal Name</label>
-                    <input type="text" value="Priya Sharma" disabled class="input-disabled" />
+                    <input type="text" [value]="residentName()" disabled class="input-disabled" />
                     <small class="field-hint">Name changes require society secretary approval</small>
                   </div>
                   <div class="form-field">
                     <label>Registered Flat Number</label>
-                    <input type="text" [value]="residentService.flatInfo().flatNumber" disabled class="input-disabled" />
+                    <input type="text" [value]="residentFlat()" disabled class="input-disabled" />
                   </div>
                 </div>
 
                 <div class="form-row-2">
                   <div class="form-field">
                     <label>Registered Email Address</label>
-                    <input type="email" value="priya.sharma@greenwood.com" disabled class="input-disabled" />
+                    <input type="email" [value]="residentEmail()" disabled class="input-disabled" />
                   </div>
                   <div class="form-field">
                     <label>Registered Mobile Number</label>
-                    <input type="tel" value="+91 98765 12340" disabled class="input-disabled" />
+                    <input type="tel" [value]="residentPhone()" disabled class="input-disabled" />
                   </div>
                 </div>
 
@@ -1703,7 +1703,7 @@
           <div class="receipt-table-info">
             <div class="r-row"><span>Receipt No:</span><strong>{{ selectedReceipt()?.receiptNumber }}</strong></div>
             <div class="r-row"><span>Date:</span><strong>{{ selectedReceipt()?.paymentDate }}</strong></div>
-            <div class="r-row"><span>Resident:</span><strong>Priya Sharma (Flat A-204)</strong></div>
+            <div class="r-row"><span>Resident:</span><strong>{{ residentName() }} ({{ residentFlat() }})</strong></div>
             <div class="r-row"><span>Bill Period:</span><strong>{{ selectedReceipt()?.billMonth }}</strong></div>
             <div class="r-row"><span>Transaction ID:</span><code>{{ selectedReceipt()?.transactionId }}</code></div>
             <div class="r-row"><span>Payment Mode:</span><strong>{{ selectedReceipt()?.paymentMethod }}</strong></div>

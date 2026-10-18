@@ -3,11 +3,11 @@
   <!-- 1. Welcome Banner (Dark Evergreen with leaf emoji and white/outline buttons) -->
   <div class="welcome-banner">
     <div class="banner-top-meta">
-      <span>SATURDAY, 17 OCTOBER 2026 · GREEN HEIGHTS SECRETARY PORTAL</span>
+      <span>{{ todayDateString() }} · {{ societyName().toUpperCase() }} SECRETARY PORTAL</span>
     </div>
     <div class="banner-main-row">
       <div class="banner-text">
-        <h1 class="banner-title">Welcome home, Rahul Verma! 🌿</h1>
+        <h1 class="banner-title">{{ greeting }}, {{ secretaryName() }}! 🌿</h1>
         <p class="banner-sub">
           Access your society services, clear dues, register complaints, and book amenities with ease.
         </p>
