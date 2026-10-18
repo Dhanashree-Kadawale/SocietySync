@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
 import { FacilityBooking } from '../../models/models';
 
@@ -29,7 +30,14 @@ export class FacilityBookingsComponent implements OnInit {
     'Badminton Court': '#DC4545',
   };
 
-  constructor(private mockData: MockDataService) {}
+  constructor(
+    private mockData: MockDataService,
+    private router: Router
+  ) {}
+
+  navigateTo(route: string) {
+    this.router.navigate([route]);
+  }
 
   ngOnInit() {
     this.bookings = this.mockData.getFacilityBookings();

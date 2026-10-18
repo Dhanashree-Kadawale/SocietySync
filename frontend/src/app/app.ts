@@ -54,6 +54,14 @@ export class App {
     this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
   }
 
+  handleTopbarSidebarToggle() {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
+    } else {
+      this.isSidebarCollapsed = !this.isSidebarCollapsed;
+    }
+  }
+
   closeMobileSidebar() {
     this.isMobileSidebarOpen = false;
   }

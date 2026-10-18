@@ -63,6 +63,25 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .welcome-banner {
+    padding: 16px 18px;
+  }
+  .banner-actions {
+    width: 100%;
+    gap: 8px;
+  }
+  .banner-btn-white,
+  .create-wrap,
+  .banner-btn-outline {
+    flex: 1;
+    min-width: 130px;
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 .banner-btn-white {
@@ -168,13 +187,13 @@
   gap: 16px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1260px) {
   .stat-cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 620px) {
   .stat-cards-grid {
     grid-template-columns: 1fr;
   }
@@ -217,12 +236,13 @@
 .ov-middle {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 8px 12px;
+  flex-wrap: wrap;
   margin-bottom: 3px;
 }
 
 .ov-value {
-  font-size: 26px;
+  font-size: clamp(22px, 2vw, 26px);
   font-weight: 800;
   color: var(--color-charcoal);
   line-height: 1.1;
@@ -293,7 +313,7 @@
   gap: 18px;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1140px) {
   .two-col-section {
     grid-template-columns: 1fr;
   }
@@ -455,18 +475,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: var(--color-background);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
   border: 1px solid #EEF2F0;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px 12px;
+  transition: background var(--transition-fast);
+}
+
+.detail-row:hover {
+  background: #F4F7F6;
 }
 
 .detail-label {
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .detail-value {
@@ -474,13 +500,20 @@
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
+  text-align: right;
+  margin-left: auto;
 }
 
 .detail-tag-green {
   font-size: 10.5px;
   font-weight: 700;
-  color: var(--color-primary);
+  color: #17453A;
+  background: #E8F5E9;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* ── 4. Charts Row ─────────────────────────────── */
@@ -490,7 +523,7 @@
   gap: 18px;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1140px) {
   .charts-row {
     grid-template-columns: 1.8fr 1fr;
   }

@@ -6,10 +6,13 @@
       <div class="hero-overlay"></div>
     </div>
 
-    <!-- Top Left Brand Title matching reference image -->
-    <div class="hero-brand">
+    <!-- Top Left Brand Title with Logo -->
+    <a routerLink="/" class="hero-brand" title="Back to Home">
+      <div class="brand-crest-box">
+        <img src="logo.png" alt="SocietySync Logo" class="brand-logo-img" />
+      </div>
       <h1 class="brand-logo">SocietySync</h1>
-    </div>
+    </a>
 
     <!-- Subtle bottom badge -->
     <div class="hero-footer-caption">
@@ -19,9 +22,12 @@
 
   <!-- Right Side: Login Form Card -->
   <div class="form-pane">
-    <div class="mobile-brand-bar">
+    <a routerLink="/" class="mobile-brand-bar" title="Back to Home">
+      <div class="brand-crest-box">
+        <img src="logo.png" alt="SocietySync Logo" class="brand-logo-img" />
+      </div>
       <span class="mobile-logo">SocietySync</span>
-    </div>
+    </a>
 
     <div class="card-wrapper">
       <!-- 4 Role Selector Tabs -->
@@ -151,12 +157,23 @@
           </button>
 
           <!-- Register Prompt -->
-          @if (selectedRole === 'Resident') {
-            <div class="register-prompt">
+          <div class="register-prompt">
+            @if (selectedRole === 'Secretary Admin') {
+              <span>Managing a new housing society?</span>
+              <a [routerLink]="['/register']" [queryParams]="{ role: 'secretary' }" class="register-link">Register Society</a>
+            } @else if (selectedRole === 'Resident') {
               <span>Don't have an account?</span>
-              <a href="#register" (click)="openRegister($event)" class="register-link">Register</a>
-            </div>
-          }
+              <a [routerLink]="['/register']" [queryParams]="{ role: 'resident' }" class="register-link">Register</a>
+            } @else {
+              <span>New maintenance staff?</span>
+              <a [routerLink]="['/register']" [queryParams]="{ role: 'staff' }" class="register-link">Join Crew</a>
+            }
+          </div>
+
+          <div class="superadmin-portal-link">
+            <span>Platform administration?</span>
+            <a routerLink="/super-admin-login" class="superadmin-link">Super Admin Console →</a>
+          </div>
 
 
 

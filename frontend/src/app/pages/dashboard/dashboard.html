@@ -13,7 +13,7 @@
         </p>
       </div>
       <div class="banner-actions">
-        <button class="banner-btn-white" (click)="mockData.showToast({type:'info', title:'Billing', message:'Opening Maintenance Billing panel...'})">
+        <button class="banner-btn-white" (click)="navigateTo('/billing')">
           View Maintenance Bills
         </button>
         <div class="create-wrap">
@@ -36,7 +36,7 @@
   <!-- 2. Four Stat Cards Row (Exact Match to Screenshot) -->
   <div class="stat-cards-grid">
     <!-- Card 1: Maintenance Dues -->
-    <div class="overview-card">
+    <div class="overview-card" (click)="navigateTo('/billing')" style="cursor: pointer;">
       <div class="ov-header">
         <span class="ov-label">Maintenance Dues</span>
         <span class="ov-icon">💳</span>
@@ -46,11 +46,11 @@
         <span class="ov-badge badge-green">All Paid</span>
       </div>
       <p class="ov-sub">October 2026 bill generated</p>
-      <a class="ov-link" (click)="mockData.showToast({type:'info', title:'Billing History', message:'Opening billing history...'})">View History →</a>
+      <a class="ov-link" (click)="$event.stopPropagation(); navigateTo('/billing')">View History →</a>
     </div>
 
     <!-- Card 2: Active Complaints -->
-    <div class="overview-card">
+    <div class="overview-card" (click)="navigateTo('/complaints')" style="cursor: pointer;">
       <div class="ov-header">
         <span class="ov-label">Active Complaints</span>
         <span class="ov-icon">🛠️</span>
@@ -60,11 +60,11 @@
         <span class="ov-badge badge-blue">In Progress</span>
       </div>
       <p class="ov-sub">Plumber assigned for master shower</p>
-      <a class="ov-link" (click)="mockData.showToast({type:'info', title:'Complaints Tracker', message:'Tracking all active complaints...'})">Track Complaints →</a>
+      <a class="ov-link" (click)="$event.stopPropagation(); navigateTo('/complaints')">Track Complaints →</a>
     </div>
 
     <!-- Card 3: Upcoming Bookings -->
-    <div class="overview-card">
+    <div class="overview-card" (click)="navigateTo('/facilities')" style="cursor: pointer;">
       <div class="ov-header">
         <span class="ov-label">Upcoming Bookings</span>
         <span class="ov-icon">📅</span>
@@ -74,11 +74,11 @@
         <span class="ov-badge badge-purple">Confirmed</span>
       </div>
       <p class="ov-sub">Clubhouse on 24 Oct (5 PM - 9 PM)</p>
-      <a class="ov-link" (click)="mockData.showToast({type:'info', title:'Bookings', message:'Opening amenity booking manager...'})">Manage Bookings →</a>
+      <a class="ov-link" (click)="$event.stopPropagation(); navigateTo('/facilities')">Manage Bookings →</a>
     </div>
 
     <!-- Card 4: Visitor Passes -->
-    <div class="overview-card">
+    <div class="overview-card" (click)="navigateTo('/visitors')" style="cursor: pointer;">
       <div class="ov-header">
         <span class="ov-label">Visitor Passes</span>
         <span class="ov-icon">👥</span>
@@ -88,7 +88,7 @@
         <span class="ov-badge badge-grey">PASS-8941</span>
       </div>
       <p class="ov-sub">Sunil Verma · Guest (18 Oct)</p>
-      <a class="ov-link" (click)="mockData.showToast({type:'info', title:'Gate Control', message:'Accessing gate pass terminal...'})">Gate Management →</a>
+      <a class="ov-link" (click)="$event.stopPropagation(); navigateTo('/visitors')">Gate Management →</a>
     </div>
   </div>
 
@@ -101,11 +101,11 @@
           <h3 class="card-head-title"><span class="title-emoji">📢</span> Recent Society Notices</h3>
           <p class="card-head-sub">Important announcements from your managing committee</p>
         </div>
-        <button class="card-head-link" (click)="mockData.showToast({type:'info', title:'Notices', message:'Viewing all society notices...'})">View all →</button>
+        <button class="card-head-link" (click)="navigateTo('/notices')">View all →</button>
       </div>
 
       <div class="notices-list">
-        <div class="notice-item" *ngFor="let n of notices">
+        <div class="notice-item" *ngFor="let n of notices" (click)="navigateTo('/notices')" style="cursor: pointer;" title="View in Notice Board">
           <div class="notice-date-box">
             <span class="notice-day">{{ n.day }}</span>
             <span class="notice-month">{{ n.month }}</span>
@@ -128,7 +128,7 @@
           <h3 class="card-head-title"><span class="title-emoji">🏠</span> My Residence Details</h3>
           <p class="card-head-sub">Registered flat and parking allocation</p>
         </div>
-        <button class="card-head-link" (click)="mockData.showToast({type:'info', title:'Residence', message:'Viewing full apartment specifications...'})">Full details →</button>
+        <button class="card-head-link" (click)="navigateTo('/buildings')">Full details →</button>
       </div>
 
       <div class="details-table">

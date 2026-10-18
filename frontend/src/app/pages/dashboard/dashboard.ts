@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
 import { StatCard } from '../../models/models';
 import { MaintenanceChartComponent } from '../../components/maintenance-chart/maintenance-chart';
@@ -70,7 +71,10 @@ export class DashboardComponent implements OnInit {
     { label: 'Security & Staff:', value: 'Gate 1 (Intercom 4001) · 12 On Duty', badge: null },
   ];
 
-  constructor(public mockData: MockDataService) {}
+  constructor(
+    public mockData: MockDataService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.statCards = this.mockData.getStatCards();
@@ -85,13 +89,28 @@ export class DashboardComponent implements OnInit {
     this.showCreateMenu = !this.showCreateMenu;
   }
 
+  navigateTo(route: string) {
+    this.closeMenu();
+    this.router.navigate([route]);
+  }
+
   handleCreate(action: string, label: string) {
     this.showCreateMenu = false;
+    const routeMap: Record<string, string> = {
+      notice: '/notices',
+      complaint: '/complaints',
+      bill: '/billing',
+      expense: '/expenses',
+      booking: '/facilities',
+      resident: '/residents',
+    };
+    const target = routeMap[action] || '/dashboard';
     this.mockData.showToast({
       type: 'info',
       title: label,
-      message: `${label} form will open here in the full implementation`,
+      message: `Opening ${label}...`,
     });
+    this.router.navigate([target]);
   }
 
   closeMenu() {
