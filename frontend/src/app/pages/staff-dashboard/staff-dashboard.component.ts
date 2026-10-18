@@ -90,6 +90,31 @@ export class StaffDashboardComponent {
     return this.maintenanceService.tasks().filter(t => t.status === 'Delayed');
   });
 
+  readonly staffUser = computed(() => this.authService.currentUser());
+  readonly staffName = computed(() => this.staffUser()?.name || this.maintenanceService.staffProfile().name || 'Ramesh Shinde');
+  readonly staffRole = computed(() => this.staffUser()?.role || this.maintenanceService.staffProfile().role || 'Lead Maintenance Engineer');
+  readonly staffSociety = computed(() => this.staffUser()?.societyName || this.maintenanceService.staffProfile().societyName || 'Greenwood Heights');
+  readonly staffPhone = computed(() => this.staffUser()?.phone || this.maintenanceService.staffProfile().phone || '+91 98765 77112');
+  readonly staffEmail = computed(() => this.staffUser()?.email || 'maintenance.lead@greenwood.com');
+
+  readonly staffInitials = computed(() => {
+    const name = this.staffName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  });
+
+  readonly staffShortName = computed(() => {
+    const name = this.staffName();
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0]} ${parts[1][0]}.`;
+    }
+    return name;
+  });
+
   constructor(
     public maintenanceService: MaintenanceService,
     public authService: AuthService,

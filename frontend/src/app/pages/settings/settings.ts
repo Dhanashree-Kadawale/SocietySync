@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface CommitteeMember {
   id: string;
@@ -22,6 +23,7 @@ export interface CommitteeMember {
 })
 export class SettingsPageComponent implements OnInit {
   public mockData = inject(MockDataService);
+  public authService = inject(AuthService);
 
   public activeTab = signal<'profile' | 'billing' | 'bank' | 'committee'>('profile');
 
@@ -125,7 +127,33 @@ export class SettingsPageComponent implements OnInit {
     termEnd: 'September 2028'
   };
 
-  ngOnInit() {}
+  ngOnInit() {
+    const user = this.authService.currentUser();
+    if (user) {
+      if (user.societyName) {
+        this.societyProfile.name = user.societyName;
+      }
+      if (user.role === 'Secretary Admin' || user.role === 'Super Admin') {
+        if (user.email) this.societyProfile.societyEmail = user.email;
+        if (user.phone) this.societyProfile.secretaryPhone = user.phone;
+
+        // Dynamically update Secretary committee member (CM-02)
+        const updated = this.committeeMembers().map(m => {
+          if (m.id === 'CM-02' || m.designation === 'Secretary') {
+            return {
+              ...m,
+              name: user.name || m.name,
+              email: user.email || m.email,
+              phone: user.phone || m.phone,
+              flatNumber: user.flat ? `${user.flat} (Managing Office)` : m.flatNumber
+            };
+          }
+          return m;
+        });
+        this.committeeMembers.set(updated);
+      }
+    }
+  }
 
   saveProfile() {
     this.mockData.showToast({

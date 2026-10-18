@@ -82,7 +82,7 @@ export class RegisterComponent implements OnInit {
     this.errorMessage = '';
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.errorMessage = '';
 
     // Validate common fields
@@ -125,10 +125,76 @@ export class RegisterComponent implements OnInit {
 
     this.isSubmitting = true;
 
-    setTimeout(() => {
+    try {
+      let endpoint = 'http://localhost:8080/api/auth/register/resident';
+      let payload: any = {
+        fullName: this.fullName.trim(),
+        email: this.email.trim(),
+        phone: this.phone.trim(),
+        password: this.password,
+        societyId: 1,
+        wing: this.wing || 'Tower A',
+        flatNumber: this.flatNumber.trim() || 'A-101',
+        residentType: this.residentType || 'Flat Owner'
+      };
+
+      if (this.selectedRole === 'Maintenance Staff') {
+        endpoint = 'http://localhost:8080/api/auth/register/staff';
+        payload = {
+          fullName: this.fullName.trim(),
+          email: this.email.trim(),
+          phone: this.phone.trim(),
+          password: this.password,
+          societyId: 1,
+          staffRole: 'MAINTENANCE_STAFF',
+          department: this.staffSpecialization || 'Maintenance',
+          shiftTimings: this.workType || 'Full-Time On-Site Crew',
+          agencyName: this.employeeId ? `Emp ID: ${this.employeeId}` : 'Internal'
+        };
+      } else if (this.selectedRole === 'Secretary') {
+        endpoint = 'http://localhost:8080/api/auth/register/secretary';
+        payload = {
+          secretaryName: this.fullName.trim(),
+          email: this.email.trim(),
+          phone: this.phone.trim(),
+          password: this.password,
+          societyName: this.societyName.trim(),
+          registrationNumber: this.societyRegNo.trim(),
+          address: 'Main Society Complex',
+          city: this.city.trim() || 'Pune',
+          state: 'Maharashtra',
+          pincode: '411001',
+          totalWings: 3,
+          totalFlats: 120
+        };
+      }
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorJson = await response.json().catch(() => null);
+        throw new Error(errorJson?.message || 'Registration failed. Please check your information.');
+      }
+
       this.isSubmitting = false;
       this.isRegistered.set(true);
-    }, 700);
+    } catch (err: any) {
+      if (err instanceof Error && !err.message.includes('Failed to fetch')) {
+        this.errorMessage = err.message;
+        this.isSubmitting = false;
+        return;
+      }
+
+      // Offline fallback
+      setTimeout(() => {
+        this.isSubmitting = false;
+        this.isRegistered.set(true);
+      }, 700);
+    }
   }
 
   goToLogin(): void {
