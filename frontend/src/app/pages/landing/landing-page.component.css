@@ -89,9 +89,10 @@
 
 /* Common Section Wrapper */
 .section-wrapper {
-  max-width: 1240px;
+  max-width: 1540px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 clamp(20px, 3.5vw, 48px);
   position: relative;
   z-index: 1;
 }
@@ -109,10 +110,11 @@
 }
 
 .nav-container {
-  max-width: 1240px;
+  max-width: 1540px;
+  width: 100%;
   margin: 0 auto;
-  height: 72px;
-  padding: 0 24px;
+  height: clamp(68px, 5.5vw, 76px);
+  padding: 0 clamp(20px, 3.5vw, 48px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -342,15 +344,19 @@
 
 /* 2. HERO SECTION */
 .hero-section {
-  padding: 72px 0 92px;
+  min-height: calc(100vh - 76px);
+  display: flex;
+  align-items: center;
+  padding: clamp(28px, 4vh, 60px) 0;
   position: relative;
   z-index: 1;
 }
 
 .hero-layout {
+  width: 100%;
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  gap: 48px;
+  gap: clamp(36px, 3.8vw, 64px);
   align-items: center;
 }
 
@@ -383,7 +389,7 @@
 
 .hero-heading {
   margin: 0 0 18px;
-  font-size: 52px;
+  font-size: clamp(38px, 3.3vw, 56px);
   line-height: 1.15;
   font-weight: 800;
   color: #253C35;
@@ -392,16 +398,16 @@
 
 .hero-description {
   margin: 0 0 32px;
-  font-size: 17px;
+  font-size: clamp(15.5px, 1.1vw, 18px);
   line-height: 1.6;
   color: #526A62;
-  max-width: 580px;
+  max-width: 640px;
 }
 
 .hero-cta-group {
   display: flex;
   gap: 16px;
-  margin-bottom: 48px;
+  margin-bottom: clamp(24px, 3.5vh, 40px);
 }
 
 .cta-btn {
@@ -472,8 +478,8 @@
 .hero-stats-strip {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  padding-top: 32px;
+  gap: clamp(14px, 1.8vw, 24px);
+  padding-top: clamp(18px, 2.5vh, 28px);
   border-top: 1px solid #E5E9E7;
   width: 100%;
 }
@@ -484,7 +490,7 @@
 }
 
 .stat-number {
-  font-size: 26px;
+  font-size: clamp(24px, 1.8vw, 30px);
   font-weight: 800;
   color: #253C35;
   line-height: 1.1;
@@ -717,7 +723,7 @@
 
 /* 3. FEATURES SECTION */
 .features-section {
-  padding: 92px 0;
+  padding: clamp(64px, 7vh, 104px) 0;
   background: #F7F8F6;
   position: relative;
   z-index: 1;
@@ -726,7 +732,7 @@
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
+  gap: clamp(20px, 2vw, 32px);
 }
 
 .feature-card {
@@ -784,14 +790,14 @@
 
 .feature-title {
   margin: 0 0 10px;
-  font-size: 20px;
+  font-size: clamp(18px, 1.25vw, 21px);
   font-weight: 700;
   color: #253C35;
 }
 
 .feature-desc {
   margin: 0 0 24px;
-  font-size: 14px;
+  font-size: clamp(13.5px, 0.95vw, 15px);
   line-height: 1.55;
   color: #526A62;
 }
@@ -835,7 +841,7 @@
 .amenities-dual-showcase {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  gap: clamp(24px, 2.5vw, 40px);
 }
 
 .amenity-card {
@@ -856,7 +862,7 @@
 
 .amenity-img-box {
   position: relative;
-  height: 240px;
+  height: clamp(220px, 18vw, 300px);
   overflow: hidden;
 }
 
@@ -965,7 +971,7 @@
 .about-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 56px;
+  gap: clamp(36px, 3.5vw, 64px);
   align-items: center;
 }
 
@@ -1040,7 +1046,7 @@
 .contact-layout {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
-  gap: 36px;
+  gap: clamp(28px, 3vw, 48px);
 }
 
 .contact-form-box {
@@ -1249,7 +1255,7 @@ textarea.contact-input {
 .footer-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr 1.1fr;
-  gap: 48px;
+  gap: clamp(32px, 3vw, 56px);
   margin-bottom: 56px;
 }
 

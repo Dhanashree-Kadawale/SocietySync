@@ -117,7 +117,7 @@
 
 .card-wrapper {
   width: 100%;
-  max-width: 460px;
+  max-width: clamp(420px, 32vw, 490px);
 }
 
 /* 3 Role Selector Tabs */
@@ -179,9 +179,16 @@
   border: 1px solid #E5E9E7;
 }
 
-.card-header {
+.login-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
   text-align: center;
   margin-bottom: 24px;
+  border-bottom: none !important;
+  padding: 0 !important;
+  width: 100%;
 }
 
 .resident-heading {
@@ -189,23 +196,29 @@
   color: #253C35;
   font-size: 24px;
   font-weight: 700;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
   letter-spacing: -0.01em;
+  display: block;
+  width: 100%;
 }
 
 .welcome-heading {
   font-family: inherit;
-  color: #526A62;
-  font-size: 18px;
+  color: #286B58;
+  font-size: 14.5px;
   font-weight: 600;
   margin: 0 0 6px 0;
+  display: block;
+  width: 100%;
 }
 
 .welcome-subtext {
   color: #7E938C;
-  font-size: 13.5px;
+  font-size: 13px;
   margin: 0;
   line-height: 1.45;
+  display: block;
+  width: 100%;
 }
 
 /* Alert Boxes */
@@ -603,7 +616,7 @@
     height: 180px;
   }
 
-  .card-header {
+  .login-header {
     margin-bottom: 20px;
   }
 

@@ -465,9 +465,10 @@ input, select, textarea {
 
 /* Page Body */
 .portal-page-body {
-  padding: 32px;
-  max-width: 1280px;
+  padding: clamp(20px, 2.5vw, 36px);
+  max-width: 1720px;
   width: 100%;
+  margin: 0 auto;
 }
 
 /* Welcome Card */

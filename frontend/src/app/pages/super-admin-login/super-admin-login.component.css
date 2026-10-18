@@ -53,10 +53,10 @@
 
 /* Topbar */
 .super-admin-topbar {
-  max-width: 1200px;
+  max-width: 1540px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 24px 0;
+  padding: 24px clamp(20px, 3.5vw, 48px) 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
