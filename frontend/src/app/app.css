@@ -13,6 +13,8 @@
   background-color: var(--color-background);
   color: var(--text-primary);
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Main Wrapper ───────────────────────────────────── */
@@ -25,10 +27,12 @@
   transition: margin-left var(--transition-slow);
   background-color: var(--color-background);
   min-width: 0;
+  width: calc(100% - var(--sidebar-width));
 }
 
 .app-layout.sidebar-collapsed .main-wrapper {
   margin-left: var(--sidebar-collapsed-width);
+  width: calc(100% - var(--sidebar-collapsed-width));
 }
 
 /* ── Page Content ───────────────────────────────────── */
@@ -38,6 +42,8 @@
   max-width: 1720px;
   width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 /* ── Mobile Overlay ─────────────────────────────────── */
@@ -45,13 +51,20 @@
   display: none;
 }
 
+@media (max-width: 1024px) {
+  .page-content {
+    padding: calc(var(--topbar-height) + 14px) 18px 28px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-wrapper {
     margin-left: 0 !important;
+    width: 100% !important;
   }
 
   .page-content {
-    padding: calc(var(--topbar-height) + 16px) 16px 32px;
+    padding: calc(var(--topbar-height) + 12px) 14px 24px;
   }
 
   .mobile-backdrop {

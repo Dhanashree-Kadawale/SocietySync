@@ -58,6 +58,31 @@
   position: relative;
   z-index: 10;
   padding: 48px 56px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+.brand-crest-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid rgba(229, 233, 231, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  box-shadow: 0 4px 15px rgba(37, 60, 53, 0.12);
+  flex-shrink: 0;
+}
+
+.brand-crest-box .brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-logo {
@@ -106,6 +131,9 @@
 .mobile-brand-bar {
   display: none;
   margin-bottom: 24px;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
 }
 
 .mobile-logo {
@@ -432,6 +460,26 @@
 
 .register-link:hover {
   color: #1f5445;
+}
+
+.superadmin-portal-link {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: #7E938C;
+}
+
+.superadmin-link {
+  color: #17453A;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 6px;
+  transition: color 0.15s ease;
+}
+
+.superadmin-link:hover {
+  text-decoration: underline;
+  color: #286B58;
 }
 
 /* Security Footnote */

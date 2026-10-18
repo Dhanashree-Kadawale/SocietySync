@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
 import { Complaint } from '../../models/models';
 
@@ -23,7 +24,14 @@ export class ComplaintsTableComponent implements OnInit {
   statusOptions = ['all', 'Open', 'In Progress', 'Resolved', 'Closed'];
   priorityOptions = ['all', 'High', 'Medium', 'Low'];
 
-  constructor(private mockData: MockDataService) {}
+  constructor(
+    public mockData: MockDataService,
+    private router: Router
+  ) {}
+
+  navigateTo(route: string) {
+    this.router.navigate([route]);
+  }
 
   ngOnInit() {
     this.allComplaints = this.mockData.getComplaints();

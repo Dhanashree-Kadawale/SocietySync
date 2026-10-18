@@ -380,3 +380,28 @@
   margin-left: auto;
   color: var(--text-muted);
 }
+
+/* ── Responsive Table ────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  min-width: 780px;
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .search-filter {
+    min-width: 100%;
+  }
+  .filter-chips {
+    width: 100%;
+  }
+}

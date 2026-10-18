@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-topbar',
@@ -34,6 +35,7 @@ export class Topbar implements OnInit {
 
   constructor(
     public mockData: MockDataService,
+    public authService: AuthService,
     private router: Router
   ) {}
 
@@ -85,5 +87,27 @@ export class Topbar implements OnInit {
   markAllRead() {
     this.notifications.forEach(n => n.unread = false);
     this.unreadCount = 0;
+  }
+
+  onSignOut() {
+    this.closeAll();
+    this.mockData.showToast({
+      type: 'info',
+      title: 'Signed Out',
+      message: 'You have been signed out successfully.',
+    });
+    this.authService.logout();
+  }
+
+  onSearch() {
+    const q = this.searchQuery.trim();
+    if (!q) return;
+    this.closeAll();
+    this.mockData.showToast({
+      type: 'info',
+      title: 'Search',
+      message: `Searching records for "${q}"...`,
+    });
+    this.router.navigate(['/complaints']);
   }
 }

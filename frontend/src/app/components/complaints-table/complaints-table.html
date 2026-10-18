@@ -4,7 +4,7 @@
       <h3 class="card-title">Recent Complaints</h3>
       <p class="section-subtitle">{{ filtered.length }} of {{ allComplaints.length }} complaints</p>
     </div>
-    <button class="btn btn-primary btn-sm" (click)="mockData.showToast({type:'info',title:'Coming Soon',message:'New complaint form will open here'})">
+    <button class="btn btn-primary btn-sm" (click)="navigateTo('/complaints')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       New Complaint
     </button>
@@ -95,7 +95,7 @@
           <td>
             <div class="action-buttons">
               <button class="action-btn view-btn" title="View Details"
-                      (click)="mockData.showToast({type:'info',title:'View Complaint',message:'Detail view for ' + c.id})">
+                      (click)="navigateTo('/complaints')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
               <button class="action-btn resolve-btn" title="Mark Resolved"
@@ -120,7 +120,7 @@
 
   <!-- View All -->
   <div class="table-footer">
-    <button class="view-all-link" (click)="mockData.showToast({type:'info',title:'Navigation',message:'Navigating to Complaints page'})">
+    <button class="view-all-link" (click)="navigateTo('/complaints')">
       View all complaints →
     </button>
   </div>

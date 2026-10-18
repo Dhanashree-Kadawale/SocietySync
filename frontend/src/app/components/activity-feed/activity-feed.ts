@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
 import { Activity } from '../../models/models';
 
@@ -13,7 +14,14 @@ import { Activity } from '../../models/models';
 export class ActivityFeedComponent implements OnInit {
   activities: Activity[] = [];
 
-  constructor(private mockData: MockDataService) {}
+  constructor(
+    private mockData: MockDataService,
+    private router: Router
+  ) {}
+
+  navigateTo(route: string) {
+    this.router.navigate([route]);
+  }
 
   ngOnInit() {
     this.activities = this.mockData.getActivities();

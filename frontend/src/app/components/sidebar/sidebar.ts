@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import { NavItem } from '../../models/models';
 
 @Component({
@@ -24,6 +25,7 @@ export class Sidebar implements OnInit {
 
   constructor(
     private mockData: MockDataService,
+    private authService: AuthService,
     private router: Router
   ) { }
 
@@ -69,6 +71,19 @@ export class Sidebar implements OnInit {
 
   toggle() {
     this.toggleCollapse.emit();
+  }
+
+  onSignOut() {
+    this.mockData.showToast({
+      type: 'info',
+      title: 'Signed Out',
+      message: 'You have been signed out successfully.',
+    });
+    this.authService.logout();
+  }
+
+  onProfileClick() {
+    this.router.navigate(['/settings']);
   }
 
   getNavIcon(icon: string): string {
