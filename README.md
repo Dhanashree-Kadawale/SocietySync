@@ -44,6 +44,9 @@ SocietySync/
 │   │   └── environments/             # Environment configurations
 │   └── .gitignore
 │
+├── database/                         # Database schema, conventions & Flyway docs
+│   └── README.md                     # Setup guide, ER design & conventions
+│
 ├── docs/                             # Project documentation
 ├── .gitignore                        # Root-level git ignores
 └── README.md                         # This file
@@ -60,7 +63,11 @@ SocietySync/
 
 ## 🚀 Getting Started
 
-> Detailed setup instructions will be added as features are implemented.
+Quick setup instructions for team members:
+
+- **Database Setup & Schema**: See [database/README.md](file:///c:/Users/Dell/OneDrive/Documents/Project/SocietySync/database/README.md) for local MySQL configuration and Flyway migration details.
+- **Backend Setup & Run**: See [backend/README.md](file:///c:/Users/Dell/OneDrive/Documents/Project/SocietySync/backend/README.md) for running the Spring Boot API with `./mvnw spring-boot:run` or `mvnw.cmd spring-boot:run`.
+- **Frontend Setup & Run**: Run `npm install` and `npm start` inside `frontend/`.
 
 ### Prerequisites
 

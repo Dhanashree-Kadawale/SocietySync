@@ -38,8 +38,8 @@
 /* ── Page Content ───────────────────────────────────── */
 .page-content {
   flex: 1;
-  padding: calc(var(--topbar-height) + 16px) 24px 36px;
-  max-width: 1600px;
+  padding: calc(var(--topbar-height) + 16px) clamp(16px, 2.5vw, 40px) 40px;
+  max-width: 1720px;
   width: 100%;
   margin: 0 auto;
   box-sizing: border-box;
