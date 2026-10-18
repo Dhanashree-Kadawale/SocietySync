@@ -1,0 +1,613 @@
+<div class="landing-page-root">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="landing-toast" role="status">
+      <span class="toast-check">✓</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Residential Hero Background with Soft Ambient Backdrop -->
+  <div class="scenic-backdrop-container" aria-hidden="true">
+    <img src="society_hero.jpg" alt="SocietySync Residential Background" class="scenic-bg-photo" />
+    <div class="scenic-green-overlay"></div>
+  </div>
+
+  <!-- 1. STICKY NAVBAR -->
+  <header class="landing-navbar">
+    <div class="nav-container">
+      <!-- Brand Logo -->
+      <a routerLink="/" class="nav-brand">
+        <div class="brand-crest">
+          <img src="logo.png" alt="SocietySync" class="brand-logo-img" />
+        </div>
+        <span class="brand-title">SocietySync</span>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="desktop-nav-links">
+        <a href="#home" (click)="scrollToSection('home', $event)" class="nav-link active">Home</a>
+        <a href="#features" (click)="scrollToSection('features', $event)" class="nav-link">Features</a>
+        <a href="#amenities" (click)="scrollToSection('amenities', $event)" class="nav-link">Amenities</a>
+        <a href="#about" (click)="scrollToSection('about', $event)" class="nav-link">About Us</a>
+        <a href="#contact" (click)="scrollToSection('contact', $event)" class="nav-link">Contact Us</a>
+      </nav>
+
+      <!-- Desktop Auth Actions -->
+      <div class="nav-actions">
+        <a routerLink="/super-admin-login" class="nav-btn-superadmin">
+          <span class="superadmin-shield">🛡️</span>
+          <span>Super Admin</span>
+        </a>
+        <a routerLink="/login" class="nav-btn-signin">Sign In</a>
+        <a routerLink="/register" class="nav-btn-getstarted">Get Started</a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button
+        type="button"
+        class="mobile-menu-toggle"
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="mobileMenuOpen()"
+        aria-label="Toggle navigation menu">
+        <span class="hamburger-bar" [class.open]="mobileMenuOpen()"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    @if (mobileMenuOpen()) {
+      <div class="mobile-nav-drawer" (click)="closeMobileMenu()">
+        <div class="drawer-content" (click)="$event.stopPropagation()">
+          <div class="drawer-links">
+            <a href="#home" (click)="scrollToSection('home', $event)">Home</a>
+            <a href="#features" (click)="scrollToSection('features', $event)">Features</a>
+            <a href="#amenities" (click)="scrollToSection('amenities', $event)">Amenities</a>
+            <a href="#about" (click)="scrollToSection('about', $event)">About Us</a>
+            <a href="#contact" (click)="scrollToSection('contact', $event)">Contact Us</a>
+          </div>
+          <div class="drawer-actions">
+            <a routerLink="/super-admin-login" class="nav-btn-superadmin w-100" (click)="closeMobileMenu()">
+              🛡️ Super Admin
+            </a>
+            <a routerLink="/login" class="nav-btn-signin w-100" (click)="closeMobileMenu()">Sign In</a>
+            <a routerLink="/register" class="nav-btn-getstarted w-100" (click)="closeMobileMenu()">Get Started</a>
+          </div>
+        </div>
+      </div>
+    }
+  </header>
+
+  <!-- 2. HERO SECTION -->
+  <section id="home" class="hero-section">
+    <div class="section-wrapper hero-layout">
+      <!-- Hero Left Column: Text & CTAs -->
+      <div class="hero-content">
+        <!-- Trust Badge -->
+        <div class="trust-badge">
+          <span class="trust-star">✦</span>
+          <span>One Platform. A Better Community.</span>
+          <span class="trust-star">✦</span>
+        </div>
+
+        <!-- Main Heading -->
+        <h1 class="hero-heading">
+          A Smarter Way to Manage Your Society.
+        </h1>
+
+        <!-- Description -->
+        <p class="hero-description">
+          SocietySync simplifies residential society management with seamless online maintenance payments, real-time complaint tracking, pre-approved visitor gate management, facility bookings, and transparent community communication.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="hero-cta-group">
+          <a routerLink="/register" class="cta-btn primary">
+            <span>Get Started</span>
+            <span class="arrow-icon">→</span>
+          </a>
+        </div>
+
+        <!-- Quick Trust Metrics Strip -->
+        <div class="hero-stats-strip">
+          @for (stat of stats; track stat.label) {
+            <div class="stat-item">
+              <strong class="stat-number">
+                @if (stat.label.includes('Satisfaction')) {
+                  4.9 <span class="stat-amber-star">★</span>
+                } @else {
+                  {{ stat.value }}
+                }
+              </strong>
+              <span class="stat-title">{{ stat.label }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Hero Right Column: Floating Clean Dashboard Preview Card -->
+      <div class="hero-preview-col">
+        <div class="hero-card-glow"></div>
+        <div class="preview-glass-card">
+          <!-- Card Header -->
+          <div class="preview-card-header">
+            <div class="preview-resident-info">
+              <div class="preview-avatar">PS</div>
+              <div>
+                <strong>Greenwood Heights</strong>
+                <small>Flat A-204 · Resident Portal</small>
+              </div>
+            </div>
+            <span class="live-status-pill">
+              <span class="pulse-dot"></span> Live Portal
+            </span>
+          </div>
+
+          <!-- Quick Preview Items -->
+          <div class="preview-mini-grid">
+            <!-- Maintenance Dues Widget -->
+            <div class="preview-widget">
+              <div class="widget-top">
+                <span class="widget-label">Maintenance Dues</span>
+                <span class="widget-icon">💳</span>
+              </div>
+              <h3 class="widget-val">₹5,200</h3>
+              <div class="widget-meta">
+                <span class="badge-amber-warning">Due 25 Oct</span>
+                <span class="action-hint">UPI Pay Active</span>
+              </div>
+            </div>
+
+            <!-- Gate Pass Widget -->
+            <div class="preview-widget">
+              <div class="widget-top">
+                <span class="widget-label">Visitor Gate Pass</span>
+                <span class="widget-icon">🎟️</span>
+              </div>
+              <h3 class="widget-val code">PASS-8941</h3>
+              <div class="widget-meta">
+                <span class="badge-sage-success">Pre-Approved</span>
+                <span class="action-hint">Guest Entry</span>
+              </div>
+            </div>
+
+            <!-- Active Complaint Widget -->
+            <div class="preview-widget">
+              <div class="widget-top">
+                <span class="widget-label">Service Request</span>
+                <span class="widget-icon">🛠️</span>
+              </div>
+              <h3 class="widget-val small">Plumbing Check</h3>
+              <div class="widget-meta">
+                <span class="badge-amber-warning">In Progress</span>
+                <span class="action-hint">Staff Assigned</span>
+              </div>
+            </div>
+
+            <!-- Facility Booking Widget -->
+            <div class="preview-widget">
+              <div class="widget-top">
+                <span class="widget-label">Clubhouse Hall</span>
+                <span class="widget-icon">🎉</span>
+              </div>
+              <h3 class="widget-val small">24 Oct, 5 PM</h3>
+              <div class="widget-meta">
+                <span class="badge-sage-success">Confirmed</span>
+                <span class="action-hint">25 Guests</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Community Trust Bar -->
+          <div class="preview-footer-trust">
+            <span class="shield-icon">🛡️</span>
+            <span>Bank-grade 256-bit SSL encrypted society database</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. FEATURES OVERVIEW SECTION -->
+  <section id="features" class="features-section">
+    <div class="section-wrapper">
+      <div class="section-title-box">
+        <span class="section-eyebrow">DESIGNED FOR BETTER COMMUNITIES</span>
+        <h2 class="section-heading">Everything Your Society Needs, In One App</h2>
+        <p class="section-subtext">
+          Replace paperwork, spreadsheets, and chaotic messaging groups with purpose-built features crafted for housing societies, gated apartments, and residential layouts.
+        </p>
+      </div>
+
+      <!-- Feature Cards 3x2 Grid -->
+      <div class="features-grid">
+        @for (item of features; track item.title) {
+          <article class="feature-card">
+            <div class="feature-card-top">
+              <div class="feature-icon-box">
+                @if (item.icon === 'payment') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="f-svg">
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                  </svg>
+                } @else if (item.icon === 'complaint') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="f-svg">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                  </svg>
+                } @else if (item.icon === 'visitor') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="f-svg">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                } @else if (item.icon === 'facility') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="f-svg">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                } @else if (item.icon === 'notice') {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="f-svg">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="f-svg">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                }
+              </div>
+              <span class="feature-tag">{{ item.tag }}</span>
+            </div>
+
+            <h3 class="feature-title">{{ item.title }}</h3>
+            <p class="feature-desc">{{ item.description }}</p>
+
+            <div class="feature-card-footer">
+              <a routerLink="/login" class="feature-link">
+                <span>{{ item.linkText }}</span>
+                <span class="link-arrow">→</span>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. COMMUNITY AMENITIES & FACILITIES SHOWCASE -->
+  <section id="amenities" class="amenities-section">
+    <div class="section-wrapper">
+      <div class="section-title-box">
+        <span class="section-eyebrow">COMMUNITY LIFE & SPACES</span>
+        <h2 class="section-heading">Connected Residential Facilities</h2>
+        <p class="section-subtext">
+          Manage bookings, maintenance schedules, and access permissions for your housing society's premium shared spaces.
+        </p>
+      </div>
+
+      <div class="amenities-dual-showcase">
+        <!-- Amenity Card 1: Clubhouse -->
+        <div class="amenity-card">
+          <div class="amenity-img-box">
+            <img src="society_clubhouse.jpg" alt="Society Clubhouse and Lounge" class="amenity-photo" />
+            <div class="amenity-badge-overlay">
+              <span class="amenity-pill">Clubhouse & Community Lounge</span>
+            </div>
+          </div>
+          <div class="amenity-content">
+            <div class="amenity-header-row">
+              <h3>Banquet Hall & Recreation Center</h3>
+              <span class="amenity-status-tag active">Online Booking Active</span>
+            </div>
+            <p class="amenity-summary">
+              Automated booking slots for birthday celebrations, committee AGMs, and family festivities with refundable deposits and digital caretaker verification.
+            </p>
+            <div class="amenity-specs">
+              <div class="spec-item">
+                <span class="spec-icon">🏊</span>
+                <span>Swimming Pool Access</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-icon">🎉</span>
+                <span>150-Guest Banquet Capacity</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-icon">🎱</span>
+                <span>Indoor Sports & Billiards</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amenity Card 2: Landscaped Gardens -->
+        <div class="amenity-card">
+          <div class="amenity-img-box">
+            <img src="society_garden.jpg" alt="Landscaped Society Garden Walkways" class="amenity-photo" />
+            <div class="amenity-badge-overlay">
+              <span class="amenity-pill">Landscaped Greenery</span>
+            </div>
+          </div>
+          <div class="amenity-content">
+            <div class="amenity-header-row">
+              <h3>Eco-Gardens & Walking Tracks</h3>
+              <span class="amenity-status-tag maintenance">Daily Crew Maintained</span>
+            </div>
+            <p class="amenity-summary">
+              Lush manicured lawns, paved stone jogging tracks, outdoor architectural lighting, and children's play areas maintained with logged inspections.
+            </p>
+            <div class="amenity-specs">
+              <div class="spec-item">
+                <span class="spec-icon">🌿</span>
+                <span>Eco-Certified Landscape</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-icon">🏃</span>
+                <span>800m Paved Jogging Track</span>
+              </div>
+              <div class="spec-item">
+                <span class="spec-icon">💡</span>
+                <span>Automated Solar LED Lighting</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. ABOUT US SECTION -->
+  <section id="about" class="about-section">
+    <div class="section-wrapper">
+      <div class="about-layout">
+        <!-- About Left Column -->
+        <div class="about-text-col">
+          <span class="section-eyebrow">OUR MISSION & VISION</span>
+          <h2 class="section-heading">Built to Empower Society Committees & Residents</h2>
+          <p class="about-paragraph">
+            SocietySync was founded to replace fragmented communications, manual paper receipts, and gate logbooks with a cohesive digital environment. We believe that housing societies thrive when financial transactions are completely transparent, maintenance tickets are resolved without delays, and residents feel secure and heard.
+          </p>
+          <p class="about-paragraph">
+            Whether managing a 50-flat boutique residential complex or a multi-tower gated township with 1,000+ units, SocietySync provides the scalable digital backbone that committees rely on every single day.
+          </p>
+
+          <div class="about-cta-row">
+            <a routerLink="/register" class="cta-btn primary">
+              <span>Join As A Society</span>
+              <span class="arrow-icon">→</span>
+            </a>
+            <a routerLink="/login" class="cta-btn secondary">
+              <span>Resident Access</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- About Right Column: 4 Pillars Cards -->
+        <div class="about-pillars-grid">
+          <div class="pillar-card">
+            <div class="pillar-icon">🛡️</div>
+            <h4>Financial Integrity</h4>
+            <p>100% automated billing, sinking fund ledger allocations, and real-time audit balance tracking.</p>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-icon">⚡</div>
+            <h4>Rapid Repair Turnaround</h4>
+            <p>Direct ticket dispatch to verified on-site maintenance crew with photographic proof of resolution.</p>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-icon">🔒</div>
+            <h4>Gate Security & Passes</h4>
+            <p>Instant digital passcodes for delivery personnel, cabs, and visitors with zero unwanted gate delays.</p>
+          </div>
+
+          <div class="pillar-card">
+            <div class="pillar-icon">🤝</div>
+            <h4>Harmonious Living</h4>
+            <p>Democratic community polls, digital AGM document archives, and direct feedback to management.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CONTACT US SECTION -->
+  <section id="contact" class="contact-section">
+    <div class="section-wrapper">
+      <div class="section-title-box">
+        <span class="section-eyebrow">WE ARE HERE TO HELP</span>
+        <h2 class="section-heading">Get in Touch with Our Team</h2>
+        <p class="section-subtext">
+          Interested in onboarding your housing society or need technical support? Send us a message and our community coordinators will respond within 24 hours.
+        </p>
+      </div>
+
+      <div class="contact-layout">
+        <!-- Contact Form Box -->
+        <div class="contact-form-box">
+          @if (!contactSubmitted()) {
+            <form (ngSubmit)="submitContactForm()" class="contact-form" novalidate>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="contact-name">Full Name *</label>
+                  <input
+                    type="text"
+                    id="contact-name"
+                    [(ngModel)]="contactForm.name"
+                    name="name"
+                    placeholder="e.g. Priya Sharma"
+                    class="contact-input"
+                    required />
+                </div>
+
+                <div class="form-group">
+                  <label for="contact-email">Email Address *</label>
+                  <input
+                    type="email"
+                    id="contact-email"
+                    [(ngModel)]="contactForm.email"
+                    name="email"
+                    placeholder="e.g. priya@example.com"
+                    class="contact-input"
+                    required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="contact-subject">Subject</label>
+                <input
+                  type="text"
+                  id="contact-subject"
+                  [(ngModel)]="contactForm.subject"
+                  name="subject"
+                  placeholder="e.g. Onboarding Greenwood Heights Society"
+                  class="contact-input" />
+              </div>
+
+              <div class="form-group">
+                <label for="contact-message">Message *</label>
+                <textarea
+                  id="contact-message"
+                  [(ngModel)]="contactForm.message"
+                  name="message"
+                  rows="4"
+                  placeholder="Tell us about your housing society requirements, total flats, or query..."
+                  class="contact-input"
+                  required></textarea>
+              </div>
+
+              <button type="submit" class="submit-contact-btn">
+                <span>Send Message</span>
+                <span class="btn-arrow">→</span>
+              </button>
+            </form>
+          } @else {
+            <div class="contact-success-state">
+              <div class="success-icon-badge">✓</div>
+              <h3>Message Sent Successfully!</h3>
+              <p>Thank you for reaching out. A SocietySync community specialist will contact you shortly.</p>
+            </div>
+          }
+        </div>
+
+        <!-- Contact Info Box -->
+        <div class="contact-info-card">
+          <h3>SocietySync Headquarters</h3>
+          <p class="contact-card-sub">Central customer support and onboarding office.</p>
+
+          <div class="info-items-list">
+            <div class="info-item">
+              <span class="info-icon">📍</span>
+              <div>
+                <strong>Head Office:</strong>
+                <p>Greenwood Heights Complex, Central Block, Floor 4, Technology Park, Pune - 411045</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <span class="info-icon">📞</span>
+              <div>
+                <strong>Phone & Intercom:</strong>
+                <p>Office: +91 (020) 2718-4000 · Toll-Free: 1800-200-8899</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <span class="info-icon">✉️</span>
+              <div>
+                <strong>Email Support:</strong>
+                <p>support@societysync.com · hello@societysync.com</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <span class="info-icon">🕒</span>
+              <div>
+                <strong>Working Hours:</strong>
+                <p>Monday to Saturday: 8:00 AM – 8:00 PM IST (Emergency Gate Line: 24/7)</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-card-badge">
+            <span class="badge-dot"></span>
+            <span>All systems operational & gate servers online</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. FOOTER -->
+  <footer class="landing-footer">
+    <div class="section-wrapper">
+      <div class="footer-grid">
+        <!-- Brand Info -->
+        <div class="footer-brand-col">
+          <div class="footer-logo">
+            <div class="brand-crest">
+              <img src="logo.png" alt="SocietySync" class="brand-logo-img" />
+            </div>
+            <span class="brand-title">SocietySync</span>
+          </div>
+          <p class="footer-tagline">
+            A smarter, safer, and completely unified digital management platform for modern residential housing societies.
+          </p>
+          <div class="footer-trust-pill">
+            <span>🛡️ ISO 27001 Certified Security</span>
+          </div>
+        </div>
+
+        <!-- Quick Links: Portals -->
+        <div class="footer-links-col">
+          <h4>Portal Access</h4>
+          <ul>
+            <li><a routerLink="/login">Resident Login</a></li>
+            <li><a routerLink="/login">Secretary Admin Login</a></li>
+            <li><a routerLink="/staff-dashboard">Maintenance Crew Portal</a></li>
+            <li><a routerLink="/super-admin-login">Super Admin Login</a></li>
+            <li><a routerLink="/register">Register New Society</a></li>
+          </ul>
+        </div>
+
+        <!-- Quick Links: Services -->
+        <div class="footer-links-col">
+          <h4>Services & Features</h4>
+          <ul>
+            <li><a href="#features" (click)="scrollToSection('features', $event)">Maintenance Payments</a></li>
+            <li><a href="#features" (click)="scrollToSection('features', $event)">Complaint Tracking</a></li>
+            <li><a href="#features" (click)="scrollToSection('features', $event)">Visitor Gate Passes</a></li>
+            <li><a href="#amenities" (click)="scrollToSection('amenities', $event)">Clubhouse Bookings</a></li>
+            <li><a href="#amenities" (click)="scrollToSection('amenities', $event)">Landscaped Greenery</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Info Placeholder -->
+        <div class="footer-links-col">
+          <h4>Emergency & Help</h4>
+          <ul>
+            <li><span>Gate 1 Intercom: 4001</span></li>
+            <li><span>Emergency Helpline: +91 98220 99111</span></li>
+            <li><span>Email: support@societysync.com</span></li>
+            <li><a href="#contact" (click)="scrollToSection('contact', $event)">Contact Committee</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Copyright Bar -->
+      <div class="footer-bottom-bar">
+        <span>© 2026 SocietySync. All rights reserved. Built for better communities.</span>
+        <div class="footer-legal-links">
+          <span>Privacy Policy</span>
+          <span class="sep">·</span>
+          <span>Terms of Service</span>
+          <span class="sep">·</span>
+          <span>Security Standards</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

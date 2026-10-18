@@ -1,0 +1,37 @@
+<div class="pending-card card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Pending Actions</h3>
+      <p class="section-subtitle">Items requiring your attention</p>
+    </div>
+    <div class="pending-total">
+      <span class="total-count">{{ pendingActions.length }}</span>
+      <span class="total-label">pending</span>
+    </div>
+  </div>
+  <div class="card-body pending-body">
+    <div class="action-list">
+      <div class="action-item" *ngFor="let a of pendingActions"
+           [style.border-left-color]="getPriorityColor(a.priority)">
+        <div class="action-icon-wrap" [style.background]="getPriorityBg(a.priority)" [style.color]="getPriorityColor(a.priority)">
+          <!-- user-check -->
+          <svg *ngIf="a.icon === 'user-check'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+          <!-- alert-circle -->
+          <svg *ngIf="a.icon === 'alert-circle'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <!-- credit-card -->
+          <svg *ngIf="a.icon === 'credit-card'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <!-- calendar -->
+          <svg *ngIf="a.icon === 'calendar'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="action-info">
+          <div class="action-top">
+            <p class="action-title">{{ a.title }}</p>
+            <span class="action-count" [style.background]="getPriorityBg(a.priority)" [style.color]="getPriorityColor(a.priority)">{{ a.count }}</span>
+          </div>
+          <p class="action-desc">{{ a.description }}</p>
+        </div>
+        <button class="action-cta" (click)="handleAction(a)">{{ a.actionLabel }}</button>
+      </div>
+    </div>
+  </div>
+</div>

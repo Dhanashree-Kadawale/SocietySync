@@ -1,0 +1,257 @@
+<div class="complaints-page">
+
+  <!-- Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb-trail">
+        <span class="crumb-parent">Green Heights</span>
+        <span class="crumb-separator">/</span>
+        <span class="crumb-current">Complaint Management</span>
+      </div>
+      <h1 class="page-title">Resident Grievance & Service Requests</h1>
+      <p class="page-subtitle">Track incoming society complaints, allocate staff, monitor turnaround times, and manage resolution lifecycles.</p>
+    </div>
+
+    <div class="header-action-group">
+      <button class="btn-primary-action" (click)="openCreateModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        + Raise Complaint
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Total Tickets</span><span class="kpi-icon">📋</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ totalCount() }}</span><span class="kpi-badge badge-active">Logged</span></div>
+      <p class="kpi-footnote">All recorded grievances</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Open Tickets</span><span class="kpi-icon icon-red">⚠️</span></div>
+      <div class="kpi-body"><span class="kpi-number text-red">{{ openCount() }}</span><span class="kpi-badge badge-red">Needs Action</span></div>
+      <p class="kpi-footnote">Unassigned or newly filed</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">In Progress</span><span class="kpi-icon icon-amber">🛠️</span></div>
+      <div class="kpi-body"><span class="kpi-number text-amber">{{ inProgressCount() }}</span><span class="kpi-badge badge-amber">Under Repair</span></div>
+      <p class="kpi-footnote">Assigned to technician</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Resolved</span><span class="kpi-icon icon-green">✅</span></div>
+      <div class="kpi-body"><span class="kpi-number text-green">{{ resolvedCount() }}</span><span class="kpi-badge badge-green">Closed</span></div>
+      <p class="kpi-footnote">Signed off by residents</p>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="filters-panel">
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search by Ticket ID, resident, or flat #..." [(ngModel)]="searchQuery" />
+      <button *ngIf="searchQuery()" class="btn-clear" (click)="searchQuery.set('')">✕</button>
+    </div>
+
+    <div class="filter-controls-group">
+      <select class="filter-select" [(ngModel)]="selectedStatus">
+        <option value="ALL">All Statuses</option>
+        <option value="Open">Open</option>
+        <option value="In Progress">In Progress</option>
+        <option value="Resolved">Resolved</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedPriority">
+        <option value="ALL">All Priorities</option>
+        <option value="High">High Priority</option>
+        <option value="Medium">Medium Priority</option>
+        <option value="Low">Low Priority</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedCategory">
+        <option value="ALL">All Categories</option>
+        <option value="Plumbing">Plumbing</option>
+        <option value="Electrical">Electrical</option>
+        <option value="Housekeeping">Housekeeping</option>
+        <option value="Security">Security</option>
+        <option value="Parking">Parking</option>
+        <option value="Noise">Noise</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Complaints Table -->
+  <div class="table-container-card">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Ticket #</th>
+          <th>Flat Unit</th>
+          <th>Resident</th>
+          <th>Issue Title</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Assigned Staff</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filteredComplaints()" (click)="viewDetails(c)" class="clickable-row">
+          <td><span class="font-bold text-charcoal">{{ c.id }}</span></td>
+          <td><span class="badge-type">{{ c.flatNumber }} ({{ c.building }})</span></td>
+          <td><span class="font-semibold">{{ c.residentName }}</span></td>
+          <td>
+            <div class="issue-title-cell">
+              <span class="issue-title">{{ c.title }}</span>
+              <span class="issue-date">{{ c.createdAt | date:'short' }}</span>
+            </div>
+          </td>
+          <td><span class="category-pill">{{ c.category }}</span></td>
+          <td>
+            <span class="priority-pill"
+                  [class.prio-high]="c.priority === 'High'"
+                  [class.prio-medium]="c.priority === 'Medium'"
+                  [class.prio-low]="c.priority === 'Low'">
+              {{ c.priority }}
+            </span>
+          </td>
+          <td>
+            <span class="status-pill"
+                  [class.pill-open]="c.status === 'Open'"
+                  [class.pill-progress]="c.status === 'In Progress'"
+                  [class.pill-resolved]="c.status === 'Resolved'">
+              {{ c.status }}
+            </span>
+          </td>
+          <td>
+            <span class="assigned-text" *ngIf="c.assignedStaff">👷 {{ c.assignedStaff }}</span>
+            <span class="unassigned-text" *ngIf="!c.assignedStaff">Unassigned</span>
+          </td>
+          <td class="text-right action-cell" (click)="$event.stopPropagation()">
+            <button class="table-btn-icon" (click)="openAssignModal(c)" title="Assign Technician">👷</button>
+            <button *ngIf="c.status !== 'Resolved'" class="table-btn-icon text-green" (click)="updateStatus(c, 'Resolved')" title="Mark Resolved">✅</button>
+            <button class="table-btn-icon" (click)="viewDetails(c)" title="View Details">👁️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal: Create Complaint -->
+  <div class="modal-backdrop" *ngIf="showCreateModal()" (click)="closeCreateModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Log New Resident Complaint</h3>
+        <button class="btn-close" (click)="closeCreateModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Issue Title *</label>
+          <input type="text" placeholder="e.g. Water Leakage in Kitchen Ceiling" [(ngModel)]="complaintForm.title" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Flat Number *</label>
+            <input type="text" placeholder="e.g. A-201" [(ngModel)]="complaintForm.flatNumber" />
+          </div>
+          <div class="form-field">
+            <label>Resident Full Name *</label>
+            <input type="text" placeholder="e.g. Ananya Sharma" [(ngModel)]="complaintForm.residentName" />
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Category *</label>
+            <select [(ngModel)]="complaintForm.category">
+              <option value="Plumbing">Plumbing</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Housekeeping">Housekeeping</option>
+              <option value="Security">Security</option>
+              <option value="Noise">Noise</option>
+              <option value="Parking">Parking</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Priority *</label>
+            <select [(ngModel)]="complaintForm.priority">
+              <option value="High">High (Immediate)</option>
+              <option value="Medium">Medium (Within 24h)</option>
+              <option value="Low">Low (General)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Detailed Description</label>
+          <textarea rows="3" placeholder="Describe the grievance in detail..." [(ngModel)]="complaintForm.description"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeCreateModal()">Cancel</button>
+        <button class="btn-save" (click)="saveComplaint()" [disabled]="!complaintForm.title">Register Complaint</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Assign Staff -->
+  <div class="modal-backdrop" *ngIf="showAssignModal()" (click)="closeAssignModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()" *ngIf="selectedComplaint() as c">
+      <div class="modal-header">
+        <h3 class="modal-title">Assign Technician — Ticket #{{ c.id }}</h3>
+        <button class="btn-close" (click)="closeAssignModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-subtitle"><strong>{{ c.title }}</strong> · {{ c.flatNumber }} ({{ c.category }})</p>
+        <div class="form-field">
+          <label>Assign On-Duty Staff *</label>
+          <select [(ngModel)]="assignForm.assignedStaff">
+            <option *ngFor="let s of staffList()" [value]="s.name">{{ s.name }} ({{ s.role }} · {{ s.department }})</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Instructions / Priority Note</label>
+          <input type="text" placeholder="e.g. Inspect pipeline pressure before 2 PM" [(ngModel)]="assignForm.note" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAssignModal()">Cancel</button>
+        <button class="btn-save" (click)="confirmAssign()">Assign & Notify Staff</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: View Complaint Details -->
+  <div class="modal-backdrop" *ngIf="showDetailModal()" (click)="closeDetailModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()" *ngIf="selectedComplaint() as c">
+      <div class="modal-header">
+        <h3 class="modal-title">Ticket Details: #{{ c.id }}</h3>
+        <button class="btn-close" (click)="closeDetailModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="ticket-status-row">
+          <span class="status-pill"
+                [class.pill-open]="c.status === 'Open'"
+                [class.pill-progress]="c.status === 'In Progress'"
+                [class.pill-resolved]="c.status === 'Resolved'">
+            {{ c.status }}
+          </span>
+          <span class="priority-pill" [class.prio-high]="c.priority === 'High'">{{ c.priority }} Priority</span>
+        </div>
+        <h2 class="ticket-detail-title">{{ c.title }}</h2>
+        <p class="ticket-detail-desc">{{ c.description }}</p>
+
+        <div class="ticket-meta-box">
+          <div class="meta-row"><span class="meta-label">Flat & Wing:</span><strong>{{ c.flatNumber }} ({{ c.building }})</strong></div>
+          <div class="meta-row"><span class="meta-label">Reported By:</span><strong>{{ c.residentName }}</strong></div>
+          <div class="meta-row"><span class="meta-label">Category:</span><strong>{{ c.category }}</strong></div>
+          <div class="meta-row"><span class="meta-label">Assigned Staff:</span><strong>{{ c.assignedStaff || 'None' }}</strong></div>
+          <div class="meta-row"><span class="meta-label">Created At:</span><span>{{ c.createdAt | date:'medium' }}</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeDetailModal()">Close</button>
+        <button *ngIf="c.status !== 'Resolved'" class="btn-save" (click)="updateStatus(c, 'Resolved'); closeDetailModal()">Mark Resolved</button>
+      </div>
+    </div>
+  </div>
+
+</div>

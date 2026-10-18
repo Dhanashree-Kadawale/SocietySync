@@ -1,0 +1,33 @@
+<ng-container *ngIf="isAuthPage">
+  <router-outlet></router-outlet>
+</ng-container>
+
+<div *ngIf="!isAuthPage" class="app-layout" [class.sidebar-collapsed]="isSidebarCollapsed" [class.mobile-open]="isMobileSidebarOpen">
+  <!-- Mobile Backdrop Overlay -->
+  <div class="mobile-backdrop" *ngIf="isMobileSidebarOpen" (click)="closeMobileSidebar()"></div>
+
+  <!-- Sidebar Navigation -->
+  <app-sidebar
+    [collapsed]="isSidebarCollapsed"
+    [mobileOpen]="isMobileSidebarOpen"
+    (toggleCollapse)="toggleSidebar()"
+    (navSelect)="onSelectNav($event)">
+  </app-sidebar>
+
+  <!-- Main Application Wrapper -->
+  <div class="main-wrapper">
+    <!-- Topbar Header -->
+    <app-topbar
+      [sidebarCollapsed]="isSidebarCollapsed"
+      (toggleSidebar)="handleTopbarSidebarToggle()">
+    </app-topbar>
+
+    <!-- Page Content Area -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <!-- Centralized Toast Notifications -->
+  <app-toast></app-toast>
+</div>

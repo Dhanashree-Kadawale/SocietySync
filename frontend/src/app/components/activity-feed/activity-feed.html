@@ -1,0 +1,37 @@
+<div class="activity-card card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Recent Activity</h3>
+      <p class="section-subtitle">Latest society events</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" (click)="navigateTo('/notices')">View all</button>
+  </div>
+  <div class="card-body activity-body">
+    <div class="timeline">
+      <div class="timeline-item" *ngFor="let a of activities; let last = last">
+        <div class="timeline-left">
+          <div class="timeline-icon" [style.background]="a.color + '20'" [style.color]="a.color">
+            <!-- complaint -->
+            <svg *ngIf="a.icon === 'alert-circle'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <!-- payment / resolved -->
+            <svg *ngIf="a.icon === 'check-circle'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            <!-- visitor -->
+            <svg *ngIf="a.icon === 'user-check'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+            <!-- booking -->
+            <svg *ngIf="a.icon === 'calendar'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <!-- notice -->
+            <svg *ngIf="a.icon === 'bell'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <!-- resident -->
+            <svg *ngIf="a.icon === 'user-plus'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          </div>
+          <div class="timeline-line" *ngIf="!last"></div>
+        </div>
+        <div class="timeline-content">
+          <p class="activity-title">{{ a.title }}</p>
+          <p class="activity-desc">{{ a.description }}</p>
+          <span class="activity-time">{{ formatTime(a.timestamp) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

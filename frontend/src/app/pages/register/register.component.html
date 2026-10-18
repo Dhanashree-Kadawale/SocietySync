@@ -1,0 +1,409 @@
+<div class="register-root">
+  <!-- Full-Page Blurred Background -->
+  <div class="scenic-backdrop-container" aria-hidden="true">
+    <img src="society_hero.jpg" alt="SocietySync Residential Background" class="scenic-bg-photo" />
+    <div class="scenic-green-overlay"></div>
+  </div>
+
+  <!-- Header Bar -->
+  <header class="register-topbar">
+    <a routerLink="/" class="brand-link">
+      <div class="brand-crest">
+        <img src="logo.png" alt="SocietySync" class="brand-logo-img" />
+      </div>
+      <span class="brand-title">SocietySync</span>
+    </a>
+    <div class="topbar-actions">
+      <a routerLink="/login" class="back-login-link">Already registered? <strong>Sign In →</strong></a>
+    </div>
+  </header>
+
+  <!-- Register Container -->
+  <main class="register-content-container">
+    <div class="register-card">
+      <!-- Role Selector Tabs -->
+      <div class="role-selector-bar">
+        @for (item of roles; track item.role) {
+          <button
+            type="button"
+            class="role-tab-btn"
+            [class.active]="selectedRole === item.role"
+            (click)="selectRole(item.role)">
+            <span class="role-tab-icon">{{ item.icon }}</span>
+            <span class="role-tab-label">{{ item.label }}</span>
+          </button>
+        }
+      </div>
+
+      @if (!isRegistered()) {
+        <!-- Header with Dynamic Role Context -->
+        <div class="register-header">
+          @if (selectedRole === 'Secretary') {
+            <span class="badge-role">SOCIETY ONBOARDING & SECRETARY REGISTRATION</span>
+            <h2>Register Your Society & Secretary Office</h2>
+            <p>Onboard your residential housing society and create the primary administrative committee account.</p>
+          } @else if (selectedRole === 'Maintenance Staff') {
+            <span class="badge-role">MAINTENANCE CREW ONBOARDING</span>
+            <h2>Register As Maintenance Staff</h2>
+            <p>Join the on-site society maintenance & repairs team to receive service tickets and work orders.</p>
+          } @else {
+            <span class="badge-role">NEW RESIDENT ONBOARDING</span>
+            <h2>Join SocietySync</h2>
+            <p>Register your apartment to access digital maintenance, gate passes, and society services.</p>
+          }
+        </div>
+
+        @if (errorMessage) {
+          <div class="alert-box">
+            <span>⚠️ {{ errorMessage }}</span>
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" class="register-form" novalidate>
+          <!-- 1. SECRETARY FORM FIELDS -->
+          @if (selectedRole === 'Secretary') {
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Housing Society Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="societyName"
+                  name="societyName"
+                  placeholder="e.g. Greenwood Heights Co-op Society"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Society Registration / RERA No. *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="societyRegNo"
+                  name="societyRegNo"
+                  placeholder="e.g. MAH/PUN/2021/8941"
+                  class="form-control"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>City & Locality *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="city"
+                  name="city"
+                  placeholder="e.g. Technology Park, Pune"
+                  class="form-control" />
+              </div>
+
+              <div class="form-field">
+                <label>Total Units / Flats *</label>
+                <select [(ngModel)]="totalUnits" name="totalUnits" class="form-control">
+                  <option value="Under 50 Units (1-2 Towers)">Under 50 Units (1-2 Towers)</option>
+                  <option value="50 to 150 Units (3-4 Towers)">50 to 150 Units (3-4 Towers)</option>
+                  <option value="150 to 400 Units (Large Gated Society)">150 to 400 Units (Large Gated Society)</option>
+                  <option value="500+ Units (Township Layout)">500+ Units (Township Layout)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Secretary / Admin Legal Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="fullName"
+                  name="fullName"
+                  placeholder="e.g. Rajesh K. Varma"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Designation *</label>
+                <select [(ngModel)]="secretaryDesignation" name="secretaryDesignation" class="form-control">
+                  <option value="Society Secretary">Society Secretary</option>
+                  <option value="Chairman / President">Chairman / President</option>
+                  <option value="Treasurer">Treasurer</option>
+                  <option value="Managing Committee Member">Managing Committee Member</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Official Email Address *</label>
+                <input
+                  type="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  placeholder="e.g. secretary@greenwoodheights.org"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Mobile Number *</label>
+                <input
+                  type="tel"
+                  [(ngModel)]="phone"
+                  name="phone"
+                  placeholder="+91 98220 12345"
+                  class="form-control"
+                  required />
+              </div>
+            </div>
+          }
+
+          <!-- 2. MAINTENANCE STAFF FORM FIELDS -->
+          @if (selectedRole === 'Maintenance Staff') {
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Staff Full Legal Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="fullName"
+                  name="fullName"
+                  placeholder="e.g. Suresh Kumar"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Mobile / Contact Number *</label>
+                <input
+                  type="tel"
+                  [(ngModel)]="phone"
+                  name="phone"
+                  placeholder="+91 98111 22334"
+                  class="form-control"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Email Address *</label>
+                <input
+                  type="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  placeholder="e.g. suresh.repairs@societysync.com"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Employee / Vendor Badge ID *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="employeeId"
+                  name="employeeId"
+                  placeholder="e.g. TECH-804"
+                  class="form-control"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Primary Trade Specialization *</label>
+                <select [(ngModel)]="staffSpecialization" name="staffSpecialization" class="form-control">
+                  <option value="Electrician">Electrician & Wiring</option>
+                  <option value="Plumber">Plumbing & Water Systems</option>
+                  <option value="Lift & Elevator Technician">Lift & Elevator Maintenance</option>
+                  <option value="Carpenter & Mason">Carpenter & Civil Masonry</option>
+                  <option value="HVAC & AC Service">HVAC & Air Conditioning</option>
+                  <option value="Security & Intercom">Security, CCTV & Intercom</option>
+                  <option value="General Handyman">General Society Caretaker</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label>Work Shift / Type *</label>
+                <select [(ngModel)]="workType" name="workType" class="form-control">
+                  <option value="Full-Time On-Site Crew">Full-Time On-Site Crew</option>
+                  <option value="Authorized Vendor Technician">Authorized Vendor Technician</option>
+                  <option value="Emergency Night Shift">Emergency 24/7 Crew</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Assigned Society *</label>
+              <select [(ngModel)]="staffSociety" name="staffSociety" class="form-control">
+                <option value="Greenwood Heights Co-op Society">Greenwood Heights Co-op Society (SOC-4102)</option>
+                <option value="Palm Meadows Residential Township">Palm Meadows Residential Township (SOC-1088)</option>
+                <option value="Silver Oak Luxury Residency">Silver Oak Luxury Residency (SOC-9932)</option>
+              </select>
+            </div>
+          }
+
+          <!-- 3. RESIDENT FORM FIELDS -->
+          @if (selectedRole === 'Resident') {
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Full Legal Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="fullName"
+                  name="fullName"
+                  placeholder="e.g. Priya Sharma"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Mobile Number *</label>
+                <input
+                  type="tel"
+                  [(ngModel)]="phone"
+                  name="phone"
+                  placeholder="+91 98765 12340"
+                  class="form-control"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Email Address *</label>
+              <input
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="e.g. priya.sharma@example.com"
+                class="form-control"
+                required />
+            </div>
+
+            <div class="form-row-3">
+              <div class="form-field">
+                <label>Tower / Wing *</label>
+                <select [(ngModel)]="wing" name="wing" class="form-control">
+                  <option value="Tower A">Tower A</option>
+                  <option value="Tower B">Tower B</option>
+                  <option value="Tower C">Tower C</option>
+                  <option value="Central Villas">Central Villas</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label>Flat Number *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="flatNumber"
+                  name="flatNumber"
+                  placeholder="e.g. A-204"
+                  class="form-control"
+                  required />
+              </div>
+
+              <div class="form-field">
+                <label>Resident Type *</label>
+                <select [(ngModel)]="residentType" name="residentType" class="form-control">
+                  <option value="Flat Owner">Flat Owner</option>
+                  <option value="Tenant">Tenant</option>
+                  <option value="Committee Member">Committee Member</option>
+                </select>
+              </div>
+            </div>
+          }
+
+          <!-- Common Password Credentials -->
+          <div class="form-row-2">
+            <div class="form-field">
+              <label>Create Password *</label>
+              <input
+                type="password"
+                [(ngModel)]="password"
+                name="password"
+                placeholder="Minimum 6 characters"
+                class="form-control"
+                required />
+            </div>
+
+            <div class="form-field">
+              <label>Confirm Password *</label>
+              <input
+                type="password"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                placeholder="Re-enter password"
+                class="form-control"
+                required />
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="register-submit-btn" [disabled]="isSubmitting">
+            @if (isSubmitting) {
+              <span>Submitting Verification...</span>
+            } @else {
+              @if (selectedRole === 'Secretary') {
+                <span>Register Society & Secretary Account →</span>
+              } @else if (selectedRole === 'Maintenance Staff') {
+                <span>Submit Staff Registration →</span>
+              } @else {
+                <span>Submit Resident Registration →</span>
+              }
+            }
+          </button>
+
+          <!-- Trust Footnote -->
+          <p class="verification-note">
+            @if (selectedRole === 'Secretary') {
+              🏛️ Society onboarding requests are verified with official registration records before generating your dedicated society database.
+            } @else if (selectedRole === 'Maintenance Staff') {
+              🔧 Maintenance staff registrations are authorized and activated by the Society Secretary office for assigned work tickets.
+            } @else {
+              🛡️ For gated community security, resident registrations are cross-verified against society allotment records by the Secretary office.
+            }
+          </p>
+        </form>
+      } @else {
+        <!-- Success State -->
+        <div class="success-register-state">
+          <div class="success-badge-crest">✓</div>
+          <h2>Registration Request Submitted!</h2>
+
+          @if (selectedRole === 'Secretary') {
+            <p>
+              Thank you, <strong>{{ fullName }}</strong>. Your onboarding request for <strong>{{ societyName }}</strong> has been received by our society onboarding team.
+            </p>
+            <div class="instructions-box">
+              <div class="step-line"><span>1</span> Society bylaws & RERA registration <strong>{{ societyRegNo }}</strong> verified.</div>
+              <div class="step-line"><span>2</span> Automated society master ledger & flat directory provisioned.</div>
+              <div class="step-line"><span>3</span> Activation link and admin credentials sent to <strong>{{ email }}</strong> and <strong>{{ phone }}</strong>.</div>
+            </div>
+          } @else if (selectedRole === 'Maintenance Staff') {
+            <p>
+              Thank you, <strong>{{ fullName }}</strong>. Your registration as <strong>{{ staffSpecialization }}</strong> for <strong>{{ staffSociety }}</strong> has been logged.
+            </p>
+            <div class="instructions-box">
+              <div class="step-line"><span>1</span> Society administration verifies Employee ID <strong>{{ employeeId }}</strong>.</div>
+              <div class="step-line"><span>2</span> Digital work order dispatch & service ticket queue permissions activated.</div>
+              <div class="step-line"><span>3</span> Login to start receiving repair tickets and reporting delays.</div>
+            </div>
+          } @else {
+            <p>
+              Thank you, <strong>{{ fullName }}</strong>. Your details for <strong>Flat {{ flatNumber }} ({{ wing }})</strong> have been queued for society verification.
+            </p>
+            <div class="instructions-box">
+              <div class="step-line"><span>1</span> Society administration verifies flat allotment.</div>
+              <div class="step-line"><span>2</span> You receive an activation SMS & email link on {{ phone }}.</div>
+              <div class="step-line"><span>3</span> Login and immediately access your resident dashboard.</div>
+            </div>
+          }
+
+          <div class="success-actions">
+            <button type="button" class="register-submit-btn" (click)="goToLogin()">
+              Go to Sign In →
+            </button>
+            <a routerLink="/" class="back-home-btn">Return to Home</a>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>

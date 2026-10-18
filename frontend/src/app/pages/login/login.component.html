@@ -1,0 +1,254 @@
+<div class="login-container">
+  <!-- Left Side: Hero Image & Branding -->
+  <div class="hero-pane">
+    <div class="hero-image-wrapper">
+      <img src="society_hero.jpg" alt="SocietySync Residential Community" class="hero-bg-img" />
+      <div class="hero-overlay"></div>
+    </div>
+
+    <!-- Top Left Brand Title with Logo -->
+    <a routerLink="/" class="hero-brand" title="Back to Home">
+      <div class="brand-crest-box">
+        <img src="logo.png" alt="SocietySync Logo" class="brand-logo-img" />
+      </div>
+      <h1 class="brand-logo">SocietySync</h1>
+    </a>
+
+    <!-- Subtle bottom badge -->
+    <div class="hero-footer-caption">
+      <span class="caption-pill">Smart Community Living</span>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form Card -->
+  <div class="form-pane">
+    <a routerLink="/" class="mobile-brand-bar" title="Back to Home">
+      <div class="brand-crest-box">
+        <img src="logo.png" alt="SocietySync Logo" class="brand-logo-img" />
+      </div>
+      <span class="mobile-logo">SocietySync</span>
+    </a>
+
+    <div class="card-wrapper">
+      <!-- 4 Role Selector Tabs -->
+      <div class="role-selector-bar">
+        @for (item of roles; track item.role) {
+          <button
+            type="button"
+            class="role-tab-btn"
+            [class.active]="selectedRole === item.role"
+            (click)="selectRole(item.role)">
+            <span class="role-tab-icon">{{ item.icon }}</span>
+            <span class="role-tab-label">{{ item.label }}</span>
+          </button>
+        }
+      </div>
+
+      <div class="login-card">
+        <!-- Header with Dynamic Role -->
+        <header class="card-header">
+          <h2 class="resident-heading">{{ selectedRole }} Login</h2>
+          <h3 class="welcome-heading">Welcome Back</h3>
+          <p class="welcome-subtext">
+            @if (selectedRole === 'Resident') {
+              Access your society, services, and updates.
+            } @else if (selectedRole === 'Secretary Admin') {
+              Manage society affairs, approvals, and notices.
+            } @else if (selectedRole === 'Super Admin') {
+              Complete multi-society and master portal control.
+            } @else {
+              Work orders, service tickets, and maintenance logs.
+            }
+          </p>
+        </header>
+
+        <!-- Feedback Alert -->
+        @if (errorMessage) {
+          <div class="alert alert-error" role="alert">
+            <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        @if (successMessage) {
+          <div class="alert alert-success" role="alert">
+            <svg class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ successMessage }}</span>
+          </div>
+        }
+
+        <!-- Login Form -->
+        <form (ngSubmit)="onSubmit()" class="login-form" novalidate>
+          <!-- Identity Input -->
+          <div class="input-field-group">
+            <input
+              type="text"
+              id="identity"
+              name="identity"
+              [(ngModel)]="identity"
+              placeholder="Email address or registered mobile number"
+              class="form-input"
+              [class.has-error]="errorMessage && !identity"
+              autocomplete="username"
+              required />
+          </div>
+
+          <!-- Password Input -->
+          <div class="input-field-group password-group">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              name="password"
+              [(ngModel)]="password"
+              placeholder="Password"
+              class="form-input password-input"
+              [class.has-error]="errorMessage && !password"
+              autocomplete="current-password"
+              required />
+
+            <button
+              type="button"
+              class="password-visibility-btn"
+              (click)="togglePasswordVisibility()"
+              [title]="showPassword ? 'Hide password' : 'Show password'"
+              aria-label="Toggle password visibility">
+              @if (showPassword) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-svg">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-svg">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              }
+            </button>
+          </div>
+
+          <!-- Options Row: Remember Me & Forgot Password -->
+          <div class="form-row-options">
+            <label class="remember-checkbox-label">
+              <input
+                type="checkbox"
+                [(ngModel)]="rememberMe"
+                name="rememberMe"
+                class="custom-checkbox" />
+              <span>Remember Me</span>
+            </label>
+
+            <a href="#forgot" (click)="openForgotPassword($event)" class="forgot-link">
+              Forgot Password?
+            </a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="sign-in-btn" [disabled]="isLoading">
+            @if (isLoading) {
+              <span class="btn-spinner"></span>
+              <span>Signing in as {{ selectedRole }}...</span>
+            } @else {
+              <span>Sign In as {{ selectedRole }}</span>
+            }
+          </button>
+
+          <!-- Register Prompt -->
+          <div class="register-prompt">
+            @if (selectedRole === 'Secretary Admin') {
+              <span>Managing a new housing society?</span>
+              <a [routerLink]="['/register']" [queryParams]="{ role: 'secretary' }" class="register-link">Register Society</a>
+            } @else if (selectedRole === 'Resident') {
+              <span>Don't have an account?</span>
+              <a [routerLink]="['/register']" [queryParams]="{ role: 'resident' }" class="register-link">Register</a>
+            } @else {
+              <span>New maintenance staff?</span>
+              <a [routerLink]="['/register']" [queryParams]="{ role: 'staff' }" class="register-link">Join Crew</a>
+            }
+          </div>
+
+          <div class="superadmin-portal-link">
+            <span>Platform administration?</span>
+            <a routerLink="/super-admin-login" class="superadmin-link">Super Admin Console →</a>
+          </div>
+
+
+
+          <!-- Security note -->
+          <footer class="security-footer">
+            <p class="security-text">
+              Secure access to your community portal. Your data is protected.
+            </p>
+          </footer>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  @if (showForgotPasswordModal) {
+    <div class="modal-backdrop" (click)="closeForgotPassword()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Reset Password</h3>
+          <button type="button" class="close-btn" (click)="closeForgotPassword()">✕</button>
+        </div>
+        <div class="modal-body">
+          @if (!forgotSuccess) {
+            <p>Enter your registered email address or mobile number to receive a password reset link.</p>
+            <div class="input-field-group">
+              <input
+                type="text"
+                [(ngModel)]="forgotIdentity"
+                placeholder="Enter email or mobile"
+                class="form-input" />
+            </div>
+            <button type="button" class="sign-in-btn" (click)="submitForgotPassword()">
+              Send Reset Link
+            </button>
+          } @else {
+            <div class="reset-success-box">
+              <div class="success-icon-circle">✓</div>
+              <h4>Instructions Sent!</h4>
+              <p>We've sent a verification code to <strong>{{ forgotIdentity }}</strong>. Please check your messages.</p>
+              <button type="button" class="sign-in-btn secondary" (click)="closeForgotPassword()">
+                Back to Sign In
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Register Modal -->
+  @if (showRegisterModal) {
+    <div class="modal-backdrop" (click)="closeRegister()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Join SocietySync</h3>
+          <button type="button" class="close-btn" (click)="closeRegister()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>Resident registration is verified through your housing society administration to safeguard community security.</p>
+          <div class="society-verify-info">
+            <div class="info-row">
+              <span class="info-bullet">✦</span>
+              <span>Submit your flat allotment letter or registered rent agreement to the society office.</span>
+            </div>
+            <div class="info-row">
+              <span class="info-bullet">✦</span>
+              <span>You will receive an activation SMS and email link to set your password and access your resident portal.</span>
+            </div>
+          </div>
+          <button type="button" class="sign-in-btn" (click)="closeRegister()">
+            Got It
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

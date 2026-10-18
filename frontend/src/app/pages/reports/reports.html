@@ -1,0 +1,334 @@
+<div class="reports-page">
+  <!-- Header Title & Action -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">Polls, Surveys & Executive Reports</h1>
+      <p class="page-subtitle">Community democratic voting, AGM resolutions, financial audits, and society analytics</p>
+    </div>
+    <div class="header-actions">
+      <div class="tab-switcher">
+        <button class="tab-btn" [class.active]="activeTab() === 'polls'" (click)="activeTab.set('polls')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 20V10" />
+            <path d="M12 20V4" />
+            <path d="M6 20v-6" />
+          </svg>
+          Community Polls ({{ polls().length }})
+        </button>
+        <button class="tab-btn" [class.active]="activeTab() === 'reports'" (click)="activeTab.set('reports')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          Executive Reports ({{ reports().length }})
+        </button>
+      </div>
+
+      <button class="btn btn-primary" *ngIf="activeTab() === 'polls'" (click)="openNewPollModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Create New Poll
+      </button>
+
+      <button class="btn btn-primary" *ngIf="activeTab() === 'reports'" (click)="exportGeneral('Consolidated PDF')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Export Full Report
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Strip -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Active Referendums</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">2 Open</span>
+          <span class="kpi-tag primary">Live Voting</span>
+        </div>
+        <span class="kpi-sub">Solar Project & Diwali Timings</span>
+      </div>
+      <div class="kpi-icon-wrap bg-green">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 20V10" />
+          <path d="M12 20V4" />
+          <path d="M6 20v-6" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Voter Turnout Rate</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">78.4%</span>
+          <span class="kpi-tag success">High Engagement</span>
+        </div>
+        <span class="kpi-sub">188 of 240 units participated</span>
+      </div>
+      <div class="kpi-icon-wrap bg-emerald">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <polyline points="16 11 18 13 22 9" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">Collection Efficiency</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">98.2%</span>
+          <span class="kpi-tag primary">₹18.4L Paid</span>
+        </div>
+        <span class="kpi-sub">8 pending units under notice</span>
+      </div>
+      <div class="kpi-icon-wrap bg-dark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+          <polyline points="17 6 23 6 23 12" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-content">
+        <span class="kpi-label">SLA Turnaround</span>
+        <div class="kpi-value-row">
+          <span class="kpi-value">94.2%</span>
+          <span class="kpi-tag success">&lt; 24h Resolved</span>
+        </div>
+        <span class="kpi-sub">Average response: 3.4 hours</span>
+      </div>
+      <div class="kpi-icon-wrap bg-sage">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: COMMUNITY POLLS -->
+  <div class="tab-pane" *ngIf="activeTab() === 'polls'">
+    <!-- Filter Pills -->
+    <div class="filter-strip">
+      <button class="pill-btn" [class.active]="pollFilter() === 'ALL'" (click)="pollFilter.set('ALL')">
+        All Polls ({{ polls().length }})
+      </button>
+      <button class="pill-btn" [class.active]="pollFilter() === 'Active'" (click)="pollFilter.set('Active')">
+        Active Referendums
+      </button>
+      <button class="pill-btn" [class.active]="pollFilter() === 'Closed'" (click)="pollFilter.set('Closed')">
+        Concluded Polls
+      </button>
+    </div>
+
+    <!-- Polls Grid -->
+    <div class="polls-grid">
+      <div class="poll-card" *ngFor="let poll of filteredPolls()">
+        <div class="poll-header">
+          <div class="poll-status-row">
+            <span class="poll-status" [ngClass]="poll.status.toLowerCase()">
+              {{ poll.status }}
+            </span>
+            <span class="audience-tag">{{ poll.targetAudience }}</span>
+            <span class="deadline-tag">Closes: {{ poll.endDate }}</span>
+          </div>
+          <h3 class="poll-question">{{ poll.question }}</h3>
+          <p class="poll-desc">{{ poll.description }}</p>
+        </div>
+
+        <!-- Options with interactive progress bars -->
+        <div class="poll-options">
+          <div
+            class="poll-option-item"
+            *ngFor="let opt of poll.options"
+            [class.selected]="opt.userVoted"
+            (click)="castVote(poll, opt.id)"
+          >
+            <div class="opt-progress-bg" [style.width.%]="getOptionPercentage(poll, opt.votes)"></div>
+            <div class="opt-content">
+              <div class="opt-left">
+                <span class="radio-indicator" [class.checked]="opt.userVoted"></span>
+                <span class="opt-text">{{ opt.text }}</span>
+              </div>
+              <div class="opt-right">
+                <span class="opt-percent">{{ getOptionPercentage(poll, opt.votes) }}%</span>
+                <span class="opt-votes">({{ opt.votes }} votes)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="poll-footer">
+          <span class="total-count">
+            <strong>{{ poll.totalVotes }}</strong> total resident votes recorded
+          </span>
+          <span class="hint" *ngIf="poll.status === 'Active'">Click any option to cast your vote</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: EXECUTIVE REPORTS -->
+  <div class="tab-pane" *ngIf="activeTab() === 'reports'">
+    <div class="filter-strip">
+      <button class="pill-btn" [class.active]="reportCategoryFilter() === 'ALL'" (click)="reportCategoryFilter.set('ALL')">
+        All Reports ({{ reports().length }})
+      </button>
+      <button class="pill-btn" [class.active]="reportCategoryFilter() === 'Financial'" (click)="reportCategoryFilter.set('Financial')">
+        Financial & Dues
+      </button>
+      <button class="pill-btn" [class.active]="reportCategoryFilter() === 'Maintenance'" (click)="reportCategoryFilter.set('Maintenance')">
+        Maintenance SLA
+      </button>
+      <button class="pill-btn" [class.active]="reportCategoryFilter() === 'Occupancy'" (click)="reportCategoryFilter.set('Occupancy')">
+        Census & Occupancy
+      </button>
+      <button class="pill-btn" [class.active]="reportCategoryFilter() === 'Security'" (click)="reportCategoryFilter.set('Security')">
+        Security Logs
+      </button>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="table-container">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th style="width: 38%;">Report Title & Scope</th>
+            <th>Category</th>
+            <th>Reporting Period</th>
+            <th>Generated On</th>
+            <th>Format & Size</th>
+            <th style="text-align: right;">Download Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rep of filteredReports()" class="table-row">
+            <td>
+              <div class="rep-title-cell">
+                <div class="rep-icon" [ngClass]="rep.format.toLowerCase()">
+                  <span>{{ rep.format }}</span>
+                </div>
+                <div class="rep-text">
+                  <span class="rep-name">{{ rep.title }}</span>
+                  <span class="rep-summary">{{ rep.summary }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge rep-badge" [ngClass]="rep.category.toLowerCase()">
+                {{ rep.category }}
+              </span>
+            </td>
+            <td>
+              <span class="period-text">{{ rep.period }}</span>
+            </td>
+            <td>
+              <span class="date-text">{{ rep.generatedOn }}</span>
+            </td>
+            <td>
+              <span class="size-text">{{ rep.format }} ({{ rep.fileSize }})</span>
+            </td>
+            <td style="text-align: right;">
+              <button class="btn btn-outline btn-sm" (click)="downloadReport(rep)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download {{ rep.format }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Create New Poll Modal -->
+  <div class="modal-backdrop" *ngIf="showCreatePollModal()" (click)="closeNewPollModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 20V10" />
+              <path d="M12 20V4" />
+              <path d="M6 20v-6" />
+            </svg>
+          </div>
+          <div>
+            <h3>Create Community Referendum / Poll</h3>
+            <p>Publish an official society poll for democratic voting</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="closeNewPollModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Poll / Referendum Question <span class="required">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Approve installation of CCTV in service elevators?"
+            [(ngModel)]="newPoll.question"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Background Context & Justification</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            placeholder="Explain estimated cost, timeline, and pros/cons for residents..."
+            [(ngModel)]="newPoll.description"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Target Voters</label>
+            <select class="form-control" [(ngModel)]="newPoll.targetAudience">
+              <option value="All Residents">All Residents (Owners & Tenants)</option>
+              <option value="Flat Owners Only">Flat Owners Only (Statutory AGM Matters)</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label>Voting Deadline</label>
+            <input type="text" class="form-control" [(ngModel)]="newPoll.endDate" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Option 1 <span class="required">*</span></label>
+          <input type="text" class="form-control" placeholder="e.g. Yes, Approve" [(ngModel)]="newPoll.opt1" />
+        </div>
+
+        <div class="form-group">
+          <label>Option 2 <span class="required">*</span></label>
+          <input type="text" class="form-control" placeholder="e.g. No, Reject" [(ngModel)]="newPoll.opt2" />
+        </div>
+
+        <div class="form-group">
+          <label>Option 3 (Optional)</label>
+          <input type="text" class="form-control" placeholder="e.g. Postpone to AGM" [(ngModel)]="newPoll.opt3" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="closeNewPollModal()">Cancel</button>
+        <button class="btn btn-primary" (click)="submitPoll()">Publish Referendum</button>
+      </div>
+    </div>
+  </div>
+</div>

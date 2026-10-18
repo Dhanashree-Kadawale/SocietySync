@@ -1,0 +1,148 @@
+<div class="complaints-section card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Recent Complaints</h3>
+      <p class="section-subtitle">{{ filtered.length }} of {{ allComplaints.length }} complaints</p>
+    </div>
+    <button class="btn btn-primary btn-sm" (click)="navigateTo('/complaints')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Complaint
+    </button>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <div class="search-filter">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search complaints..." [(ngModel)]="searchQuery" (ngModelChange)="onSearch()" class="filter-input">
+    </div>
+    <div class="filter-chips">
+      <span class="filter-label">Status:</span>
+      <button *ngFor="let s of statusOptions"
+              class="filter-chip"
+              [class.active]="filterStatus === s"
+              (click)="onFilterStatus(s)">
+        {{ s === 'all' ? 'All' : s }}
+      </button>
+    </div>
+    <div class="filter-chips">
+      <span class="filter-label">Priority:</span>
+      <button *ngFor="let p of priorityOptions"
+              class="filter-chip"
+              [class.active]="filterPriority === p"
+              (click)="onFilterPriority(p)">
+        {{ p === 'all' ? 'All' : p }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Complaint ID</th>
+          <th>Resident / Flat</th>
+          <th>Category / Title</th>
+          <th>Priority</th>
+          <th>Assigned Staff</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filtered">
+          <td>
+            <span class="complaint-id">{{ c.id }}</span>
+          </td>
+          <td>
+            <div class="resident-cell">
+              <div class="resident-avatar">{{ c.residentName.charAt(0) }}</div>
+              <div>
+                <p class="resident-name">{{ c.residentName }}</p>
+                <p class="flat-num">{{ c.flatNumber }} · {{ c.building }}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <p class="complaint-title">{{ c.title }}</p>
+            <p class="complaint-category">{{ c.category }}</p>
+          </td>
+          <td>
+            <span class="badge" [class]="getPriorityClass(c.priority)">
+              {{ c.priority }}
+            </span>
+          </td>
+          <td>
+            <div class="staff-cell" *ngIf="c.assignedStaff; else unassigned">
+              <div class="staff-avatar">{{ c.assignedStaff.charAt(0) }}</div>
+              <span class="staff-name">{{ c.assignedStaff }}</span>
+            </div>
+            <ng-template #unassigned>
+              <button class="assign-btn" (click)="openAssign(c)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Assign
+              </button>
+            </ng-template>
+          </td>
+          <td>
+            <span class="badge" [class]="getStatusClass(c.status)">{{ c.status }}</span>
+          </td>
+          <td>
+            <span class="date-cell">{{ formatDate(c.createdAt) }}</span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="action-btn view-btn" title="View Details"
+                      (click)="navigateTo('/complaints')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button class="action-btn resolve-btn" title="Mark Resolved"
+                      *ngIf="c.status !== 'Resolved' && c.status !== 'Closed'"
+                      (click)="resolveComplaint(c)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filtered.length === 0">
+          <td colspan="8" class="empty-row">
+            <div class="empty-state">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="var(--text-muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <p>No complaints match your filters</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- View All -->
+  <div class="table-footer">
+    <button class="view-all-link" (click)="navigateTo('/complaints')">
+      View all complaints →
+    </button>
+  </div>
+</div>
+
+<!-- Assign Modal Overlay -->
+<div class="modal-overlay" *ngIf="showAssignModal" (click)="showAssignModal = false">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h4>Assign Staff</h4>
+      <p>{{ selectedComplaint?.id }} — {{ selectedComplaint?.title }}</p>
+      <button class="modal-close" (click)="showAssignModal = false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="staff-list">
+      <button class="staff-option" *ngFor="let s of ['Mohan Lal', 'Deepak Yadav', 'Sunita Devi', 'Ramesh Kumar', 'Asha Rani']"
+              (click)="assignStaff(s)">
+        <div class="staff-opt-avatar">{{ s.charAt(0) }}</div>
+        <span>{{ s }}</span>
+        <svg class="assign-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+</div>

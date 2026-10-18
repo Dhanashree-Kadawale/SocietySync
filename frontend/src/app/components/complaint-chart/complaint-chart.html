@@ -1,0 +1,49 @@
+<div class="chart-card card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Complaint Status</h3>
+      <p class="chart-subtitle">Distribution by resolution status</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="doughnut-wrap">
+      <div class="doughnut-container">
+        <canvas #doughnutCanvas></canvas>
+        <div class="doughnut-center">
+          <span class="doughnut-total">{{ stats.total }}</span>
+          <span class="doughnut-label">Total</span>
+        </div>
+      </div>
+      <div class="complaint-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#DC4545"></div>
+          <div class="legend-info">
+            <span class="legend-label">Open</span>
+            <span class="legend-count">{{ stats.open }}</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#F9CE60"></div>
+          <div class="legend-info">
+            <span class="legend-label">In Progress</span>
+            <span class="legend-count">{{ stats.inProgress }}</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#1D5245"></div>
+          <div class="legend-info">
+            <span class="legend-label">Resolved</span>
+            <span class="legend-count">{{ stats.resolved }}</span>
+          </div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#71948F"></div>
+          <div class="legend-info">
+            <span class="legend-label">Closed</span>
+            <span class="legend-count">{{ stats.closed }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

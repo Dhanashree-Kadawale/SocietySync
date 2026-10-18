@@ -1,0 +1,152 @@
+<div class="super-admin-root">
+  <!-- Ambient Residential Backdrop with Soft Overlay -->
+  <div class="scenic-backdrop-container" aria-hidden="true">
+    <img src="society_hero.jpg" alt="SocietySync Architecture" class="scenic-bg-photo" />
+    <div class="scenic-green-overlay"></div>
+  </div>
+
+  <!-- Topbar -->
+  <header class="super-admin-topbar">
+    <a routerLink="/" class="brand-link">
+      <div class="brand-crest">
+        <img src="logo.png" alt="SocietySync" class="brand-logo-img" />
+      </div>
+      <div>
+        <span class="brand-title">SocietySync</span>
+        <span class="brand-badge">ROOT CONSOLE</span>
+      </div>
+    </a>
+
+    <div class="topbar-nav">
+      <a routerLink="/login" class="nav-back-link">
+        <span>← Standard Login</span>
+      </a>
+      <a routerLink="/" class="nav-home-link">
+        <span>Home</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Login Card Container -->
+  <main class="super-admin-content">
+    <div class="master-card-wrapper">
+      <div class="master-login-card">
+        <!-- Shield Emblem -->
+        <div class="shield-crest-box">
+          <div class="shield-icon">🛡️</div>
+        </div>
+
+        <div class="master-card-header">
+          <span class="security-eyebrow">RESTRICTED ACCESS · LEVEL 4 GOVERNANCE</span>
+          <h2>Super Admin Console</h2>
+          <p>
+            Authenticate with your root administrative credentials to govern multi-society instances, audit ledgers, and manage platform security.
+          </p>
+        </div>
+
+        <!-- Alert Boxes -->
+        @if (errorMessage) {
+          <div class="alert alert-error" role="alert">
+            <span class="alert-icon">⚠️</span>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        @if (successMessage) {
+          <div class="alert alert-success" role="alert">
+            <span class="alert-icon">✓</span>
+            <span>{{ successMessage }}</span>
+          </div>
+        }
+
+        <!-- Master Login Form -->
+        <form (ngSubmit)="onSubmit()" class="master-form" novalidate>
+          <div class="form-field">
+            <label for="masterEmail">Master Admin Identity *</label>
+            <div class="input-with-icon">
+              <span class="field-icon">👤</span>
+              <input
+                type="email"
+                id="masterEmail"
+                name="masterEmail"
+                [(ngModel)]="masterEmail"
+                placeholder="super.admin@societysync.com"
+                class="master-input"
+                required
+                autocomplete="username" />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="masterPassword">Root Passcode *</label>
+            <div class="input-with-icon">
+              <span class="field-icon">🔑</span>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="masterPassword"
+                name="masterPassword"
+                [(ngModel)]="masterPassword"
+                placeholder="Enter root passcode"
+                class="master-input"
+                required
+                autocomplete="current-password" />
+              <button
+                type="button"
+                (click)="togglePassword()"
+                class="toggle-eye-btn"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="securityToken">Master 2FA Hardware Token / Security PIN</label>
+            <div class="input-with-icon">
+              <span class="field-icon">🔒</span>
+              <input
+                type="text"
+                id="securityToken"
+                name="securityToken"
+                [(ngModel)]="securityToken"
+                placeholder="e.g. ROOT-8941"
+                class="master-input" />
+            </div>
+          </div>
+
+          <div class="form-options-row">
+            <label class="remember-label">
+              <input type="checkbox" [(ngModel)]="rememberSession" name="rememberSession" class="custom-chk" />
+              <span>Keep root session authorized for 8 hours</span>
+            </label>
+            <span class="ip-shield-pill">IP Monitored</span>
+          </div>
+
+          <button type="submit" class="master-submit-btn" [disabled]="isLoading">
+            @if (isLoading) {
+              <span>Verifying Root Session...</span>
+            } @else {
+              <span>Authorize Master Session →</span>
+            }
+          </button>
+
+          <!-- Quick Demo Switcher -->
+          <div class="demo-credentials-bar">
+            <span>Demo Master Profile:</span>
+            <button type="button" class="demo-quick-btn" (click)="loadDemoCredentials()">
+              Auto-fill Root Credentials
+            </button>
+          </div>
+        </form>
+
+        <!-- Security Notice -->
+        <div class="master-card-footer">
+          <div class="footer-trust-line">
+            <span class="trust-dot"></span>
+            <span>Bank-grade 256-bit SSL encrypted · All root actions logged in immutable audit vault</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

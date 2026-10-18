@@ -1,0 +1,1724 @@
+<div class="resident-portal-shell">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="portal-toast" role="status">
+      <span class="toast-icon">✓</span>
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Sidebar -->
+  <aside class="portal-sidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+      <div class="brand-crest">
+        <img src="logo.png" alt="SocietySync" class="brand-logo-img" />
+      </div>
+      <div>
+        <h2 class="brand-name">SocietySync</h2>
+        <span class="brand-tag">RESIDENT PORTAL</span>
+      </div>
+    </div>
+
+    <!-- Resident Flat Badge -->
+    <div class="resident-flat-badge" (click)="setTab('flat')">
+      <div class="flat-icon">⌂</div>
+      <div class="flat-meta">
+        <strong>{{ residentService.flatInfo().flatNumber }}</strong>
+        <small>Tower A · Greenwood</small>
+      </div>
+      <span class="flat-verified-tag">Owner</span>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="portal-nav">
+      <p class="nav-section-title">MAIN SERVICES</p>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'overview'"
+        (click)="setTab('overview')">
+        <span class="nav-icon">▦</span>
+        <span class="nav-text">Dashboard</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'bills'"
+        (click)="setTab('bills')">
+        <span class="nav-icon">💳</span>
+        <span class="nav-text">Maintenance Bills</span>
+        @if (residentService.unpaidBillCount() > 0) {
+          <span class="nav-badge alert-badge">{{ residentService.unpaidBillCount() }} Due</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'complaints'"
+        (click)="setTab('complaints')">
+        <span class="nav-icon">🛠️</span>
+        <span class="nav-text">Complaints</span>
+        @if (residentService.activeComplaintCount() > 0) {
+          <span class="nav-badge info-badge">{{ residentService.activeComplaintCount() }}</span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'flat'"
+        (click)="setTab('flat')">
+        <span class="nav-icon">🏢</span>
+        <span class="nav-text">Flat Information</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'facilities'"
+        (click)="setTab('facilities')">
+        <span class="nav-icon">📅</span>
+        <span class="nav-text">Facility Booking</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'visitors'"
+        (click)="setTab('visitors')">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Visitor Management</span>
+      </button>
+
+      <p class="nav-section-title">COMMUNITY</p>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'notices'"
+        (click)="setTab('notices')">
+        <span class="nav-icon">📢</span>
+        <span class="nav-text">Notice Board</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'documents'"
+        (click)="setTab('documents')">
+        <span class="nav-icon">📁</span>
+        <span class="nav-text">Document Access</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'polls'"
+        (click)="setTab('polls')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Polls & Surveys</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'feedback'"
+        (click)="setTab('feedback')">
+        <span class="nav-icon">💬</span>
+        <span class="nav-text">Feedback & Suggestions</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn"
+        [class.active]="activeTab() === 'profile'"
+        (click)="setTab('profile')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-text">Profile Management</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="emergency-contact-box">
+        <div class="emergency-header">
+          <span class="emergency-icon">🚨</span>
+          <strong>Security Gate 1</strong>
+        </div>
+        <p class="emergency-phone">Intercom: <strong>4001</strong> · Mobile: <strong>+91 98220 99111</strong></p>
+      </div>
+
+      <div class="resident-user-chip">
+        <div class="user-avatar">PS</div>
+        <div class="user-details">
+          <strong>Priya Sharma</strong>
+          <small>Flat A-204 · Resident</small>
+        </div>
+        <button type="button" class="sign-out-btn" (click)="logout()" title="Sign Out">
+          ⇥
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="portal-main">
+    <!-- Topbar -->
+    <header class="portal-topbar">
+      <div class="topbar-left">
+        <span class="society-title">Greenwood Heights</span>
+        <span class="breadcrumb-separator">/</span>
+        <strong class="topbar-current-tab">
+          @if (activeTab() === 'overview') { Resident Dashboard }
+          @else if (activeTab() === 'bills') { Maintenance Bills & Payments }
+          @else if (activeTab() === 'complaints') { Complaints & Requests }
+          @else if (activeTab() === 'flat') { Flat & Vehicle Information }
+          @else if (activeTab() === 'facilities') { Amenities & Facility Booking }
+          @else if (activeTab() === 'visitors') { Visitor Management & Gate Passes }
+          @else if (activeTab() === 'notices') { Society Notice Board }
+          @else if (activeTab() === 'documents') { Society Documents & Bylaws }
+          @else if (activeTab() === 'polls') { Community Polls & Surveys }
+          @else if (activeTab() === 'feedback') { Suggestions & Feedback }
+          @else { Profile Management }
+        </strong>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Quick Action Buttons -->
+        <button type="button" class="topbar-action-btn" (click)="openComplaintModal()">
+          <span>＋</span> Raise Complaint
+        </button>
+
+        @if (residentService.unpaidBillCount() > 0) {
+          <button type="button" class="topbar-action-btn highlight-btn" (click)="openPayModal(residentService.bills()[0])">
+            <span>💳</span> Pay ₹{{ residentService.totalDueAmount() }}
+          </button>
+        }
+
+        <button type="button" class="topbar-action-btn" (click)="openVisitorModal()">
+          <span>＋</span> Pre-Approve Visitor
+        </button>
+
+        <!-- Notifications Bell -->
+        <button
+          type="button"
+          class="icon-bell-btn"
+          (click)="toggleNotifications()"
+          aria-label="Notifications">
+          🔔
+          @if (residentService.unreadNotificationCount() > 0) {
+            <span class="notification-badge-count">
+              {{ residentService.unreadNotificationCount() }}
+            </span>
+          }
+        </button>
+
+        <!-- Profile Chip -->
+        <div class="topbar-user" (click)="setTab('profile')">
+          <div class="user-avatar-sm">PS</div>
+          <span class="user-name-sm">Priya S.</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dynamic Tab Content -->
+    <div class="portal-page-body">
+
+      <!-- ================= 1. DASHBOARD OVERVIEW ================= -->
+      @if (activeTab() === 'overview') {
+        <!-- Welcome Banner -->
+        <section class="overview-welcome-card">
+          <div class="welcome-text-col">
+            <span class="date-tag">Saturday, 17 October 2026 · Flat A-204</span>
+            <h1>Welcome home, Priya Sharma! 🌿</h1>
+            <p>Access your society services, clear dues, register complaints, and book amenities with ease.</p>
+          </div>
+          <div class="welcome-actions-col">
+            <button type="button" class="banner-btn primary" (click)="setTab('bills')">
+              View Maintenance Bills
+            </button>
+            <button type="button" class="banner-btn secondary" (click)="setTab('facilities')">
+              Book Clubhouse
+            </button>
+          </div>
+        </section>
+
+        <!-- 4 Key Metrics Cards -->
+        <section class="kpi-grid">
+          <!-- Metric 1: Maintenance Dues -->
+          <article class="kpi-card" [class.attention]="residentService.unpaidBillCount() > 0">
+            <div class="kpi-header">
+              <span class="kpi-label">Maintenance Dues</span>
+              <span class="kpi-icon-pill">💳</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>₹{{ residentService.totalDueAmount() }}</h2>
+              @if (residentService.unpaidBillCount() > 0) {
+                <span class="status-tag unpaid">Due 25 Oct</span>
+              } @else {
+                <span class="status-tag paid">All Paid</span>
+              }
+            </div>
+            <p class="kpi-subtext">October 2026 bill generated</p>
+            @if (residentService.unpaidBillCount() > 0) {
+              <button type="button" class="kpi-action-btn" (click)="openPayModal(residentService.bills()[0])">
+                Pay Now →
+              </button>
+            } @else {
+              <button type="button" class="kpi-action-btn" (click)="setTab('bills')">
+                View History →
+              </button>
+            }
+          </article>
+
+          <!-- Metric 2: Complaints -->
+          <article class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Active Complaints</span>
+              <span class="kpi-icon-pill">🛠️</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>{{ residentService.activeComplaintCount() }}</h2>
+              <span class="status-tag in-progress">In Progress</span>
+            </div>
+            <p class="kpi-subtext">Plumber assigned for master shower</p>
+            <button type="button" class="kpi-action-btn" (click)="setTab('complaints')">
+              Track Complaints →
+            </button>
+          </article>
+
+          <!-- Metric 3: Upcoming Bookings -->
+          <article class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Upcoming Bookings</span>
+              <span class="kpi-icon-pill">📅</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>{{ residentService.upcomingBookingCount() }}</h2>
+              <span class="status-tag confirmed">Confirmed</span>
+            </div>
+            <p class="kpi-subtext">Clubhouse on 24 Oct (5 PM - 9 PM)</p>
+            <button type="button" class="kpi-action-btn" (click)="setTab('facilities')">
+              Manage Bookings →
+            </button>
+          </article>
+
+          <!-- Metric 4: Expected Visitors -->
+          <article class="kpi-card">
+            <div class="kpi-header">
+              <span class="kpi-label">Visitor Passes</span>
+              <span class="kpi-icon-pill">👥</span>
+            </div>
+            <div class="kpi-value-row">
+              <h2>1 Expected</h2>
+              <span class="status-tag pass">PASS-8941</span>
+            </div>
+            <p class="kpi-subtext">Sunil Verma · Guest (18 Oct)</p>
+            <button type="button" class="kpi-action-btn" (click)="setTab('visitors')">
+              Gate Management →
+            </button>
+          </article>
+        </section>
+
+        <!-- 2 Column Layout: Notices & Recent Activity -->
+        <section class="dashboard-split-grid">
+          <!-- Left: Society Notices -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h3>📢 Recent Society Notices</h3>
+                <p>Important announcements from your managing committee</p>
+              </div>
+              <button type="button" class="link-btn" (click)="setTab('notices')">View all →</button>
+            </div>
+            <div class="notice-feed">
+              @for (notice of residentService.notices().slice(0, 3); track notice.id) {
+                <div class="notice-card-item" (click)="openNotice(notice)">
+                  <div class="notice-date-badge">
+                    <strong>{{ notice.date.split(' ')[0] }}</strong>
+                    <span>{{ notice.date.split(' ')[1] }}</span>
+                  </div>
+                  <div class="notice-body">
+                    <div class="notice-meta-tags">
+                      <span class="category-tag">{{ notice.category }}</span>
+                      @if (notice.priority === 'High') {
+                        <span class="urgent-tag">High Priority</span>
+                      }
+                    </div>
+                    <h4>{{ notice.title }}</h4>
+                    <p>{{ notice.content }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Right: Flat Quick Details & Quick Actions -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h3>⌂ My Residence Details</h3>
+                <p>Registered flat and parking allocation</p>
+              </div>
+              <button type="button" class="link-btn" (click)="setTab('flat')">Full details →</button>
+            </div>
+
+            <div class="flat-summary-table">
+              <div class="summary-row">
+                <span>Flat & Tower:</span>
+                <strong>{{ residentService.flatInfo().flatNumber }} ({{ residentService.flatInfo().wing }})</strong>
+              </div>
+              <div class="summary-row">
+                <span>Carpet Area:</span>
+                <strong>{{ residentService.flatInfo().carpetAreaSqFt }} sq.ft ({{ residentService.flatInfo().bhkType }})</strong>
+              </div>
+              <div class="summary-row">
+                <span>Dedicated Parking:</span>
+                <strong>{{ residentService.flatInfo().parkingSlot }}</strong>
+              </div>
+              <div class="summary-row">
+                <span>Primary Vehicle:</span>
+                <strong>MH 12 AB 4589 (Honda City)</strong>
+              </div>
+              <div class="summary-row">
+                <span>Occupancy Status:</span>
+                <strong class="green-text">Owner Verified (3 Occupants)</strong>
+              </div>
+            </div>
+
+            <h4 class="mini-section-heading">⚡ Quick Actions</h4>
+            <div class="quick-shortcuts-grid">
+              <button type="button" class="shortcut-tile" (click)="openComplaintModal()">
+                <span>🛠️</span>
+                <small>Report Issue</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="openBookingModal('Clubhouse')">
+                <span>🎉</span>
+                <small>Book Hall</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="openVisitorModal()">
+                <span>🎟️</span>
+                <small>Visitor Pass</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="setTab('polls')">
+                <span>📊</span>
+                <small>Vote in Polls</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="setTab('documents')">
+                <span>📁</span>
+                <small>Society Bylaws</small>
+              </button>
+              <button type="button" class="shortcut-tile" (click)="openFeedbackModal()">
+                <span>💬</span>
+                <small>Give Feedback</small>
+              </button>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 2. MAINTENANCE BILLS & PAYMENTS ================= -->
+      @if (activeTab() === 'bills') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Maintenance Bills & Online Payments</h2>
+              <p>Review monthly dues, breakdown charges, and pay online through secure gateway.</p>
+            </div>
+            @if (residentService.unpaidBillCount() > 0) {
+              <button type="button" class="primary-action-btn" (click)="openPayModal(residentService.bills()[0])">
+                💳 Pay Outstanding (₹{{ residentService.totalDueAmount() }})
+              </button>
+            }
+          </div>
+
+          <!-- Bills List -->
+          <div class="bills-list-grid">
+            @for (bill of residentService.bills(); track bill.id) {
+              <div class="bill-card" [class.unpaid]="bill.status === 'Unpaid'">
+                <div class="bill-card-top">
+                  <div>
+                    <span class="invoice-number">{{ bill.billNumber }}</span>
+                    <h3>{{ bill.month }} Maintenance Bill</h3>
+                    <span class="bill-due">Due Date: <strong>{{ bill.dueDate }}</strong></span>
+                  </div>
+                  <div class="bill-status-badge" [class.unpaid]="bill.status === 'Unpaid'" [class.paid]="bill.status === 'Paid'">
+                    {{ bill.status }}
+                  </div>
+                </div>
+
+                <!-- Breakdown Table -->
+                <div class="bill-breakdown">
+                  <div class="breakdown-row">
+                    <span>Society Maintenance Charge:</span>
+                    <span>₹{{ bill.baseAmount }}</span>
+                  </div>
+                  <div class="breakdown-row">
+                    <span>Sinking Fund Allocation:</span>
+                    <span>₹{{ bill.sinkingFund }}</span>
+                  </div>
+                  <div class="breakdown-row">
+                    <span>Water Supply & Sewage:</span>
+                    <span>₹{{ bill.waterCharges }}</span>
+                  </div>
+                  <div class="breakdown-row">
+                    <span>Dedicated Parking Slot Charge:</span>
+                    <span>₹{{ bill.parkingCharges }}</span>
+                  </div>
+                  <div class="breakdown-row total-row">
+                    <strong>Total Amount Payable:</strong>
+                    <strong>₹{{ bill.totalAmount }}</strong>
+                  </div>
+                </div>
+
+                <div class="bill-card-footer">
+                  @if (bill.status === 'Unpaid') {
+                    <button type="button" class="primary-action-btn" (click)="openPayModal(bill)">
+                      Pay Online Now (₹{{ bill.totalAmount }})
+                    </button>
+                  } @else {
+                    <div class="paid-info-row">
+                      <span>Paid on {{ bill.paidDate }} via {{ bill.paymentMode }}</span>
+                      <button type="button" class="receipt-btn" (click)="showToast('Receipt #' + bill.receiptNumber + ' ready for download.')">
+                        Download Receipt
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Payment History & Receipts -->
+          <div class="panel-box mt-30">
+            <div class="panel-box-header">
+              <div>
+                <h3>📜 Payment Records & Official Receipts</h3>
+                <p>Complete historical log of all online and offline transactions</p>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>RECEIPT NO</th>
+                    <th>BILL PERIOD</th>
+                    <th>AMOUNT</th>
+                    <th>DATE & TIME</th>
+                    <th>PAYMENT METHOD</th>
+                    <th>TRANSACTION ID</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (record of residentService.paymentHistory(); track record.id) {
+                    <tr>
+                      <td><strong>{{ record.receiptNumber }}</strong></td>
+                      <td>{{ record.billMonth }}</td>
+                      <td>₹{{ record.amount }}</td>
+                      <td>{{ record.paymentDate }}</td>
+                      <td><span class="mode-pill">{{ record.paymentMethod }}</span></td>
+                      <td><code>{{ record.transactionId }}</code></td>
+                      <td><span class="status-tag paid">{{ record.status }}</span></td>
+                      <td>
+                        <button type="button" class="action-link-btn" (click)="viewReceipt(record)">
+                          View Receipt
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 3. COMPLAINTS & TRACKING ================= -->
+      @if (activeTab() === 'complaints') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Complaints & Service Requests</h2>
+              <p>Report plumbing, electrical, elevator, or common area maintenance issues and track resolution.</p>
+            </div>
+            <button type="button" class="primary-action-btn" (click)="openComplaintModal()">
+              ＋ Report New Issue
+            </button>
+          </div>
+
+          <!-- Complaints List -->
+          <div class="complaints-list">
+            @for (complaint of residentService.complaints(); track complaint.id) {
+              <div class="complaint-card">
+                <div class="complaint-card-header">
+                  <div>
+                    <div class="complaint-tags-row">
+                      <span class="ticket-id">{{ complaint.id }}</span>
+                      <span class="category-pill">{{ complaint.category }}</span>
+                      <span class="priority-pill" [class.urgent]="complaint.priority === 'Urgent'" [class.high]="complaint.priority === 'High'" [class.medium]="complaint.priority === 'Medium'">
+                        {{ complaint.priority }} Priority
+                      </span>
+                    </div>
+                    <h3>{{ complaint.title }}</h3>
+                    <p class="complaint-desc">{{ complaint.description }}</p>
+                  </div>
+                  <div class="complaint-date">
+                    <span>Reported: <strong>{{ complaint.dateReported }}</strong></span>
+                  </div>
+                </div>
+
+                <!-- Resolution Progress Pipeline -->
+                <div class="status-tracker-pipeline">
+                  <div class="step" [class.done]="true">
+                    <div class="step-dot">✓</div>
+                    <span>Reported</span>
+                  </div>
+                  <div class="step-line" [class.done]="complaint.status !== 'Reported'"></div>
+
+                  <div class="step" [class.done]="complaint.status === 'Assigned' || complaint.status === 'In Progress' || complaint.status === 'Resolved' || complaint.status === 'Closed'">
+                    <div class="step-dot">
+                      {{ complaint.status === 'Reported' ? '2' : '✓' }}
+                    </div>
+                    <span>Assigned</span>
+                  </div>
+                  <div class="step-line" [class.done]="complaint.status === 'In Progress' || complaint.status === 'Resolved' || complaint.status === 'Closed'"></div>
+
+                  <div class="step" [class.done]="complaint.status === 'In Progress' || complaint.status === 'Resolved' || complaint.status === 'Closed'">
+                    <div class="step-dot">
+                      {{ (complaint.status === 'Resolved' || complaint.status === 'Closed') ? '✓' : '3' }}
+                    </div>
+                    <span>In Progress</span>
+                  </div>
+                  <div class="step-line" [class.done]="complaint.status === 'Resolved' || complaint.status === 'Closed'"></div>
+
+                  <div class="step" [class.done]="complaint.status === 'Resolved' || complaint.status === 'Closed'">
+                    <div class="step-dot">
+                      {{ (complaint.status === 'Resolved' || complaint.status === 'Closed') ? '✓' : '4' }}
+                    </div>
+                    <span>Resolved</span>
+                  </div>
+                </div>
+
+                <!-- Assigned Technician or Resolution Note -->
+                @if (complaint.assignedStaff) {
+                  <div class="assigned-staff-banner">
+                    <span class="staff-icon">👷</span>
+                    <div class="staff-info">
+                      <strong>Assigned Staff: {{ complaint.assignedStaff.name }}</strong>
+                      <small>{{ complaint.assignedStaff.role }} · Phone: {{ complaint.assignedStaff.phone }}</small>
+                    </div>
+                  </div>
+                }
+
+                @if (complaint.resolutionNote) {
+                  <div class="resolution-note-banner">
+                    <span class="check-icon">✓</span>
+                    <div>
+                      <strong>Resolution Note:</strong>
+                      <p>{{ complaint.resolutionNote }} (Closed on {{ complaint.resolvedDate }})</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 4. FLAT INFORMATION ================= -->
+      @if (activeTab() === 'flat') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Flat & Allotment Information</h2>
+              <p>Registered unit specifications, parking allocation, and registered vehicles.</p>
+            </div>
+            <button type="button" class="secondary-action-btn" (click)="setTab('profile')">
+              Update Emergency Details
+            </button>
+          </div>
+
+          <div class="flat-grid-layout">
+            <!-- Flat Details Box -->
+            <div class="info-card">
+              <div class="info-card-header">
+                <span class="info-card-icon">🏢</span>
+                <h3>Apartment Details</h3>
+              </div>
+              <div class="meta-field-list">
+                <div class="meta-field">
+                  <span>Society Name:</span>
+                  <strong>Greenwood Heights Residential Complex</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Building / Wing:</span>
+                  <strong>{{ residentService.flatInfo().wing }}</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Flat Number:</span>
+                  <strong class="highlight-code">{{ residentService.flatInfo().flatNumber }}</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Floor:</span>
+                  <strong>{{ residentService.flatInfo().floor }}nd Floor</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Apartment Configuration:</span>
+                  <strong>{{ residentService.flatInfo().bhkType }}</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Carpet Area:</span>
+                  <strong>{{ residentService.flatInfo().carpetAreaSqFt }} Sq. Ft.</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Ownership Type:</span>
+                  <strong class="green-text">{{ residentService.flatInfo().ownershipType }}</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Resident Since:</span>
+                  <strong>{{ residentService.flatInfo().residentSince }}</strong>
+                </div>
+                <div class="meta-field">
+                  <span>Registered Occupants:</span>
+                  <strong>{{ residentService.flatInfo().occupancyCount }} Persons</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parking & Vehicles Box -->
+            <div class="info-card">
+              <div class="info-card-header">
+                <span class="info-card-icon">🚗</span>
+                <h3>Parking & Registered Vehicles</h3>
+              </div>
+              <div class="parking-slot-badge">
+                <span>Allotted Slot:</span>
+                <strong>{{ residentService.flatInfo().parkingSlot }}</strong>
+              </div>
+
+              <div class="vehicle-list">
+                @for (v of residentService.flatInfo().vehicles; track v.registrationNumber) {
+                  <div class="vehicle-item">
+                    <div class="vehicle-icon">
+                      {{ v.type === 'Car' ? '🚘' : '🛵' }}
+                    </div>
+                    <div class="vehicle-info">
+                      <strong>{{ v.model }}</strong>
+                      <span class="plate-number">{{ v.registrationNumber }}</span>
+                      <small>Designated: {{ v.slot }}</small>
+                    </div>
+                    <span class="verified-rfid-tag">RFID Tag Active</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Emergency Contact Info -->
+              <div class="emergency-box-flat">
+                <h4>Registered Emergency Contact</h4>
+                <p><strong>{{ residentService.flatInfo().emergencyContact.name }}</strong> ({{ residentService.flatInfo().emergencyContact.relationship }})</p>
+                <p>Phone: {{ residentService.flatInfo().emergencyContact.phone }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 5. FACILITY BOOKINGS ================= -->
+      @if (activeTab() === 'facilities') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Amenities & Facility Booking</h2>
+              <p>Reserve society amenities, clubhouse, community hall, tennis court, and banquet deck.</p>
+            </div>
+            <button type="button" class="primary-action-btn" (click)="openBookingModal('Clubhouse')">
+              ＋ New Reservation
+            </button>
+          </div>
+
+          <!-- Facilities Cards Grid -->
+          <div class="amenities-grid">
+            <!-- Facility 1: Clubhouse -->
+            <div class="amenity-card">
+              <div class="amenity-badge">₹1,500 / slot</div>
+              <h3>Clubhouse Hall</h3>
+              <p>Air-conditioned multipurpose clubhouse with projector, audio setup, and seating for 50 guests.</p>
+              <ul class="amenity-specs">
+                <li>✦ Capacity: 50 Persons</li>
+                <li>✦ Timings: 09:00 AM - 10:00 PM</li>
+                <li>✦ Amenities: AC, Sound System, Projector</li>
+              </ul>
+              <button type="button" class="book-amenity-btn" (click)="openBookingModal('Clubhouse')">
+                Book Clubhouse
+              </button>
+            </div>
+
+            <!-- Facility 2: Community Hall -->
+            <div class="amenity-card">
+              <div class="amenity-badge">₹3,000 / day</div>
+              <h3>Grand Community Hall</h3>
+              <p>Spacious banquet hall suitable for weddings, family receptions, religious pooja, and parties.</p>
+              <ul class="amenity-specs">
+                <li>✦ Capacity: 150 Persons</li>
+                <li>✦ Full day / Half day slots</li>
+                <li>✦ Attached catering pantry & green rooms</li>
+              </ul>
+              <button type="button" class="book-amenity-btn" (click)="openBookingModal('Community Hall')">
+                Book Community Hall
+              </button>
+            </div>
+
+            <!-- Facility 3: Swimming Pool -->
+            <div class="amenity-card">
+              <div class="amenity-badge free">Free for Residents</div>
+              <h3>Swimming Pool</h3>
+              <p>Temperature-controlled lap pool and kids paddling pool with certified lifeguard on duty.</p>
+              <ul class="amenity-specs">
+                <li>✦ Timings: 06:00 AM - 09:30 AM & 04:30 PM - 08:30 PM</li>
+                <li>✦ Closed on Mondays for filtration</li>
+              </ul>
+              <button type="button" class="book-amenity-btn secondary" (click)="openBookingModal('Swimming Pool')">
+                Reserve Slot
+              </button>
+            </div>
+
+            <!-- Facility 4: Tennis Court -->
+            <div class="amenity-card">
+              <div class="amenity-badge free">Free for Residents</div>
+              <h3>Floodlit Tennis Court</h3>
+              <p>Synthetic all-weather surface with LED night floodlights and racquets available on deposit.</p>
+              <ul class="amenity-specs">
+                <li>✦ 1-hour bookable slots</li>
+                <li>✦ 06:00 AM - 09:00 PM</li>
+              </ul>
+              <button type="button" class="book-amenity-btn secondary" (click)="openBookingModal('Tennis Court')">
+                Reserve Court
+              </button>
+            </div>
+
+            <!-- Facility 5: Gymnasium -->
+            <div class="amenity-card">
+              <div class="amenity-badge free">Free for Residents</div>
+              <h3>Fitness Center & Gym</h3>
+              <p>Equipped with commercial treadmills, ellipticals, free weights, and stretching zone.</p>
+              <ul class="amenity-specs">
+                <li>✦ Open daily 05:30 AM - 10:30 PM</li>
+                <li>✦ Biometric access</li>
+              </ul>
+              <button type="button" class="book-amenity-btn secondary" (click)="openBookingModal('Gymnasium')">
+                Reserve Pass
+              </button>
+            </div>
+
+            <!-- Facility 6: Barbeque Deck -->
+            <div class="amenity-card">
+              <div class="amenity-badge">₹800 / evening</div>
+              <h3>Barbeque Deck & Lawn</h3>
+              <p>Outdoor open-air grill deck overlooking central fountains, perfect for family cookouts.</p>
+              <ul class="amenity-specs">
+                <li>✦ Capacity: 20 Persons</li>
+                <li>✦ 06:00 PM - 10:30 PM</li>
+              </ul>
+              <button type="button" class="book-amenity-btn" (click)="openBookingModal('Barbeque Deck')">
+                Book BBQ Deck
+              </button>
+            </div>
+          </div>
+
+          <!-- My Bookings Table -->
+          <div class="panel-box mt-30">
+            <div class="panel-box-header">
+              <div>
+                <h3>My Current & Past Reservations</h3>
+                <p>Track your confirmed bookings and gate permits</p>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>BOOKING ID</th>
+                    <th>FACILITY</th>
+                    <th>RESERVED DATE</th>
+                    <th>TIME SLOT</th>
+                    <th>GUESTS</th>
+                    <th>FEE</th>
+                    <th>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (b of residentService.bookings(); track b.id) {
+                    <tr>
+                      <td><strong>{{ b.id }}</strong></td>
+                      <td>{{ b.facilityName }}</td>
+                      <td>{{ b.date }}</td>
+                      <td>{{ b.timeSlot }}</td>
+                      <td>{{ b.guestsCount }} Guests</td>
+                      <td>{{ b.bookingFee === 0 ? 'Free' : '₹' + b.bookingFee }}</td>
+                      <td>
+                        <span class="status-tag" [class.confirmed]="b.status === 'Confirmed'" [class.paid]="b.status === 'Completed'">
+                          {{ b.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 6. VISITOR MANAGEMENT ================= -->
+      @if (activeTab() === 'visitors') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Visitor Management & Gate Passes</h2>
+              <p>Pre-approve upcoming guests, cabs, and deliveries with instant digital entry passcodes.</p>
+            </div>
+            <button type="button" class="primary-action-btn" (click)="openVisitorModal()">
+              ＋ Pre-Approve Expected Visitor
+            </button>
+          </div>
+
+          <!-- Active Visitors & Expected Passes -->
+          <div class="visitors-grid">
+            @for (v of residentService.visitors(); track v.id) {
+              <div class="visitor-card">
+                <div class="visitor-card-header">
+                  <div>
+                    <span class="purpose-pill">{{ v.purpose }}</span>
+                    <h3>{{ v.name }}</h3>
+                    <p class="visitor-phone">📞 {{ v.phone }}</p>
+                  </div>
+                  <div class="pass-code-box">
+                    <small>ENTRY PASS</small>
+                    <strong>{{ v.entryPassCode }}</strong>
+                  </div>
+                </div>
+
+                <div class="visitor-meta-row">
+                  <div>
+                    <span>Expected Date:</span>
+                    <strong>{{ v.date }} at {{ v.time }}</strong>
+                  </div>
+                  @if (v.vehicleNumber) {
+                    <div>
+                      <span>Vehicle:</span>
+                      <strong>{{ v.vehicleNumber }}</strong>
+                    </div>
+                  }
+                </div>
+
+                <div class="visitor-card-actions">
+                  <div class="visitor-status-indicator">
+                    <span class="status-dot" [class.expected]="v.status === 'Expected'" [class.approved]="v.status === 'Approved'"></span>
+                    <span>Status: <strong>{{ v.status }}</strong></span>
+                  </div>
+
+                  @if (v.status === 'Expected') {
+                    <div class="gate-btn-group">
+                      <button type="button" class="gate-approve-btn" (click)="approveVisitor(v.id)">
+                        Approve Entry
+                      </button>
+                      <button type="button" class="gate-deny-btn" (click)="denyVisitor(v.id)">
+                        Deny
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 7. NOTICE BOARD ================= -->
+      @if (activeTab() === 'notices') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Society Notice Board</h2>
+              <p>Official circulars, maintenance schedules, and community updates.</p>
+            </div>
+          </div>
+
+          <div class="full-notices-list">
+            @for (notice of residentService.notices(); track notice.id) {
+              <article class="full-notice-card" (click)="openNotice(notice)">
+                <div class="notice-top">
+                  <div class="notice-badges">
+                    <span class="category-pill">{{ notice.category }}</span>
+                    @if (notice.priority === 'High') {
+                      <span class="priority-pill urgent">High Importance</span>
+                    }
+                  </div>
+                  <span class="notice-date-str">Published on: {{ notice.date }}</span>
+                </div>
+                <h3>{{ notice.title }}</h3>
+                <p class="notice-excerpt">{{ notice.content }}</p>
+                <div class="notice-card-bottom">
+                  <span>Issued by: <strong>{{ notice.issuedBy }}</strong></span>
+                  <button type="button" class="view-notice-btn">
+                    Read Circular →
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 8. DOCUMENT ACCESS ================= -->
+      @if (activeTab() === 'documents') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Society Documents & Bylaws</h2>
+              <p>Official downloadable records, audit statements, bylaws, and renovation forms.</p>
+            </div>
+          </div>
+
+          <div class="documents-grid">
+            @for (doc of residentService.documents(); track doc.id) {
+              <div class="document-card">
+                <div class="doc-icon-col">
+                  <span class="doc-file-type">{{ doc.fileType }}</span>
+                </div>
+                <div class="doc-content-col">
+                  <span class="doc-category">{{ doc.category }}</span>
+                  <h3>{{ doc.title }}</h3>
+                  <p>{{ doc.description }}</p>
+                  <div class="doc-footer-row">
+                    <small>Size: {{ doc.fileSize }} · Updated {{ doc.uploadedDate }}</small>
+                    <button type="button" class="download-doc-btn" (click)="showToast('Downloading ' + doc.title + '...')">
+                      ⬇ Download File
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 9. POLLS & SURVEYS ================= -->
+      @if (activeTab() === 'polls') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Society Polls & Surveys</h2>
+              <p>Cast your vote on community decisions, amenity upgrades, and budget proposals.</p>
+            </div>
+          </div>
+
+          <div class="polls-grid">
+            @for (poll of residentService.polls(); track poll.id) {
+              <div class="poll-card">
+                <div class="poll-header">
+                  <span class="poll-category">{{ poll.category }}</span>
+                  <span class="poll-deadline">Ends: {{ poll.endDate }}</span>
+                </div>
+                <h3>{{ poll.title }}</h3>
+                <p class="poll-desc">{{ poll.description }}</p>
+
+                <div class="poll-options-list">
+                  @for (opt of poll.options; track opt.id) {
+                    <div
+                      class="poll-option-item"
+                      [class.selected]="poll.userVotedOptionId === opt.id"
+                      (click)="voteInPoll(poll.id, opt.id)">
+                      <div class="option-header-row">
+                        <label class="radio-label">
+                          <input
+                            type="radio"
+                            [name]="'poll_' + poll.id"
+                            [checked]="poll.userVotedOptionId === opt.id" />
+                          <span>{{ opt.text }}</span>
+                        </label>
+                        <strong class="vote-count">
+                          {{ poll.totalVotes > 0 ? (opt.votes / poll.totalVotes * 100 | number:'1.0-0') : 0 }}%
+                          <small>({{ opt.votes }} votes)</small>
+                        </strong>
+                      </div>
+
+                      <div class="poll-progress-bar">
+                        <div
+                          class="poll-progress-fill"
+                          [style.width.%]="poll.totalVotes > 0 ? (opt.votes / poll.totalVotes * 100) : 0">
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="poll-footer">
+                  <span>Total votes cast: <strong>{{ poll.totalVotes }} residents</strong></span>
+                  @if (poll.userVotedOptionId) {
+                    <span class="voted-tag">✓ Your vote is recorded</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- ================= 10. FEEDBACK & SUGGESTIONS ================= -->
+      @if (activeTab() === 'feedback') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Suggestions & Management Feedback</h2>
+              <p>Share ideas, improvement suggestions, or appreciation directly with the managing committee.</p>
+            </div>
+            <button type="button" class="primary-action-btn" (click)="openFeedbackModal()">
+              ＋ Submit Feedback
+            </button>
+          </div>
+
+          <!-- Submitted Feedbacks Table -->
+          <div class="panel-box">
+            <div class="panel-box-header">
+              <div>
+                <h3>My Submitted Feedback & Status</h3>
+                <p>Tracking managing committee review</p>
+              </div>
+            </div>
+
+            <div class="feedbacks-list">
+              @for (fb of residentService.feedbacks(); track fb.id) {
+                <div class="feedback-item-card">
+                  <div class="feedback-top-row">
+                    <div>
+                      <span class="category-pill">{{ fb.category }}</span>
+                      <h4>{{ fb.subject }}</h4>
+                    </div>
+                    <div class="feedback-rating">
+                      @for (star of [1,2,3,4,5]; track star) {
+                        <span class="star-icon" [class.filled]="star <= fb.rating">★</span>
+                      }
+                    </div>
+                  </div>
+                  <p class="feedback-body">{{ fb.message }}</p>
+                  <div class="feedback-status-row">
+                    <small>Submitted: {{ fb.submittedDate }}</small>
+                    <span class="status-tag" [class.in-progress]="fb.status === 'Under Review'" [class.paid]="fb.status === 'Acknowledged'">
+                      {{ fb.status }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================= 11. PROFILE MANAGEMENT ================= -->
+      @if (activeTab() === 'profile') {
+        <section class="section-container">
+          <div class="section-title-row">
+            <div>
+              <h2>Resident Profile Management</h2>
+              <p>Maintain your contact details, emergency contacts, and account security.</p>
+            </div>
+          </div>
+
+          <div class="profile-layout-grid">
+            <!-- Left: Identity Card -->
+            <div class="profile-avatar-card">
+              <div class="profile-avatar-large">PS</div>
+              <h3>Priya Sharma</h3>
+              <p class="profile-role-badge">Flat Owner & Resident</p>
+              <div class="profile-quick-stats">
+                <div><span>Flat</span><strong>A-204</strong></div>
+                <div><span>Tower</span><strong>Tower A</strong></div>
+                <div><span>Member</span><strong>Since 2022</strong></div>
+              </div>
+              <button type="button" class="secondary-action-btn w-100 mt-15" (click)="showToast('Verification badge confirmed by society secretary.')">
+                ✓ Verified Resident
+              </button>
+            </div>
+
+            <!-- Right: Editable Details -->
+            <div class="profile-form-card">
+              <h3>Personal & Contact Information</h3>
+              <form (ngSubmit)="saveProfileChanges()" class="profile-form">
+                <div class="form-row-2">
+                  <div class="form-field">
+                    <label>Full Legal Name</label>
+                    <input type="text" value="Priya Sharma" disabled class="input-disabled" />
+                    <small class="field-hint">Name changes require society secretary approval</small>
+                  </div>
+                  <div class="form-field">
+                    <label>Registered Flat Number</label>
+                    <input type="text" [value]="residentService.flatInfo().flatNumber" disabled class="input-disabled" />
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-field">
+                    <label>Registered Email Address</label>
+                    <input type="email" value="priya.sharma@greenwood.com" disabled class="input-disabled" />
+                  </div>
+                  <div class="form-field">
+                    <label>Registered Mobile Number</label>
+                    <input type="tel" value="+91 98765 12340" disabled class="input-disabled" />
+                  </div>
+                </div>
+
+                <h4 class="form-subheading">🚨 Emergency Contact Information</h4>
+                <div class="form-row-3">
+                  <div class="form-field">
+                    <label>Contact Name</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="profileForm.emergencyName"
+                      name="emergencyName"
+                      class="form-control"
+                      placeholder="e.g. Vikas Sharma" />
+                  </div>
+                  <div class="form-field">
+                    <label>Relationship</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="profileForm.emergencyRelation"
+                      name="emergencyRelation"
+                      class="form-control"
+                      placeholder="e.g. Spouse" />
+                  </div>
+                  <div class="form-field">
+                    <label>Emergency Phone</label>
+                    <input
+                      type="tel"
+                      [(ngModel)]="profileForm.emergencyPhone"
+                      name="emergencyPhone"
+                      class="form-control"
+                      placeholder="+91 ..." />
+                  </div>
+                </div>
+
+                <div class="form-actions-bar">
+                  <button type="submit" class="primary-action-btn">
+                    Save Profile Updates
+                  </button>
+                  <button type="button" class="logout-profile-btn" (click)="logout()">
+                    Sign Out of Account
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+      }
+
+    </div>
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. ONLINE PAYMENT MODAL -->
+  @if (showPayModal() && selectedBillForPayment()) {
+    <div class="modal-backdrop" (click)="closePayModal()">
+      <div class="modal-card wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Pay Maintenance Online</h3>
+          <button type="button" class="close-btn" (click)="closePayModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          @if (!paymentSuccess()) {
+            <!-- Bill Summary -->
+            <div class="payment-bill-summary">
+              <div>
+                <span>Bill For:</span>
+                <strong>{{ selectedBillForPayment()?.month }}</strong>
+              </div>
+              <div>
+                <span>Due Date:</span>
+                <strong>{{ selectedBillForPayment()?.dueDate }}</strong>
+              </div>
+              <div class="pay-amount-box">
+                <span>Amount:</span>
+                <h2>₹{{ selectedBillForPayment()?.totalAmount }}</h2>
+              </div>
+            </div>
+
+            <!-- Payment Method Tabs -->
+            <div class="payment-method-selector">
+              <button
+                type="button"
+                class="method-btn"
+                [class.active]="paymentMethod() === 'UPI'"
+                (click)="paymentMethod.set('UPI')">
+                <span>📱 UPI / QR</span>
+              </button>
+              <button
+                type="button"
+                class="method-btn"
+                [class.active]="paymentMethod() === 'Credit Card'"
+                (click)="paymentMethod.set('Credit Card')">
+                <span>💳 Card</span>
+              </button>
+              <button
+                type="button"
+                class="method-btn"
+                [class.active]="paymentMethod() === 'Net Banking'"
+                (click)="paymentMethod.set('Net Banking')">
+                <span>🏦 Net Banking</span>
+              </button>
+            </div>
+
+            <!-- UPI Form -->
+            @if (paymentMethod() === 'UPI') {
+              <div class="method-body">
+                <label>Enter UPI VPA / ID</label>
+                <input
+                  type="text"
+                  [ngModel]="upiId()"
+                  (ngModelChange)="upiId.set($event)"
+                  class="form-control"
+                  placeholder="name@okaxis" />
+                <p class="helper-text">You can pay using Google Pay, PhonePe, Paytm, or BHIM.</p>
+              </div>
+            }
+
+            <!-- Card Form -->
+            @if (paymentMethod() === 'Credit Card') {
+              <div class="method-body">
+                <label>Card Number</label>
+                <input type="text" class="form-control" placeholder="4532 •••• •••• 9821" value="4532 8910 2314 9821" />
+                <div class="card-extra-row">
+                  <div>
+                    <label>Expiry</label>
+                    <input type="text" class="form-control" placeholder="MM/YY" value="08/29" />
+                  </div>
+                  <div>
+                    <label>CVV</label>
+                    <input type="password" class="form-control" placeholder="•••" value="891" />
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Net Banking -->
+            @if (paymentMethod() === 'Net Banking') {
+              <div class="method-body">
+                <label>Select Bank</label>
+                <select class="form-control">
+                  <option selected>HDFC Bank</option>
+                  <option>State Bank of India</option>
+                  <option>ICICI Bank</option>
+                  <option>Axis Bank</option>
+                </select>
+              </div>
+            }
+
+            <button
+              type="button"
+              class="primary-action-btn pay-submit-btn"
+              [disabled]="isPaying()"
+              (click)="executePayment()">
+              @if (isPaying()) {
+                <span class="btn-spinner"></span>
+                <span>Connecting to Gateway...</span>
+              } @else {
+                <span>Authorize & Pay ₹{{ selectedBillForPayment()?.totalAmount }}</span>
+              }
+            </button>
+          } @else {
+            <!-- Payment Success Screen -->
+            <div class="payment-success-screen">
+              <div class="success-icon-badge">✓</div>
+              <h3>Payment Completed Successfully!</h3>
+              <p>Your maintenance dues for <strong>{{ selectedBillForPayment()?.month }}</strong> have been settled.</p>
+
+              @if (selectedReceipt()) {
+                <div class="receipt-preview-box">
+                  <div class="receipt-line">
+                    <span>Receipt Number:</span>
+                    <strong>{{ selectedReceipt()?.receiptNumber }}</strong>
+                  </div>
+                  <div class="receipt-line">
+                    <span>Transaction ID:</span>
+                    <code>{{ selectedReceipt()?.transactionId }}</code>
+                  </div>
+                  <div class="receipt-line">
+                    <span>Amount Paid:</span>
+                    <strong>₹{{ selectedReceipt()?.amount }}</strong>
+                  </div>
+                  <div class="receipt-line">
+                    <span>Mode:</span>
+                    <span>{{ selectedReceipt()?.paymentMethod }}</span>
+                  </div>
+                </div>
+              }
+
+              <div class="success-actions">
+                <button type="button" class="primary-action-btn" (click)="closePayModal()">
+                  Done
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 2. REPORT COMPLAINT MODAL -->
+  @if (showComplaintModal()) {
+    <div class="modal-backdrop" (click)="closeComplaintModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Report Maintenance Complaint</h3>
+          <button type="button" class="close-btn" (click)="closeComplaintModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="submitComplaint()">
+            <div class="form-field">
+              <label>Complaint Title *</label>
+              <input
+                type="text"
+                [(ngModel)]="newComplaint.title"
+                name="title"
+                class="form-control"
+                placeholder="e.g. Water leakage in balcony tap"
+                required />
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Category *</label>
+                <select [(ngModel)]="newComplaint.category" name="category" class="form-control">
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Lift">Elevator / Lift</option>
+                  <option value="Carpentry">Carpentry</option>
+                  <option value="Housekeeping">Housekeeping</option>
+                  <option value="Security">Security</option>
+                  <option value="General">General Maintenance</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Urgency Level *</label>
+                <select [(ngModel)]="newComplaint.priority" name="priority" class="form-control">
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent / Emergency</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Issue Description</label>
+              <textarea
+                [(ngModel)]="newComplaint.description"
+                name="description"
+                class="form-control"
+                rows="3"
+                placeholder="Describe the issue, location in flat, and convenient inspection hours..."></textarea>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="secondary-action-btn" (click)="closeComplaintModal()">Cancel</button>
+              <button type="submit" class="primary-action-btn">Register Complaint</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 3. BOOK FACILITY MODAL -->
+  @if (showBookingModal()) {
+    <div class="modal-backdrop" (click)="closeBookingModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Book Society Amenity</h3>
+          <button type="button" class="close-btn" (click)="closeBookingModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="submitBooking()">
+            <div class="form-field">
+              <label>Select Facility *</label>
+              <select [(ngModel)]="newBooking.facilityName" name="facilityName" class="form-control">
+                <option value="Clubhouse">Clubhouse (₹1,500)</option>
+                <option value="Community Hall">Community Hall (₹3,000)</option>
+                <option value="Swimming Pool">Swimming Pool (Free)</option>
+                <option value="Tennis Court">Tennis Court (Free)</option>
+                <option value="Gymnasium">Gymnasium (Free)</option>
+                <option value="Barbeque Deck">Barbeque Deck (₹800)</option>
+              </select>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Reservation Date *</label>
+                <input type="date" [(ngModel)]="newBooking.date" name="date" class="form-control" required />
+              </div>
+              <div class="form-field">
+                <label>Time Slot *</label>
+                <select [(ngModel)]="newBooking.timeSlot" name="timeSlot" class="form-control">
+                  <option value="06:00 AM - 09:00 AM">Morning: 06:00 AM - 09:00 AM</option>
+                  <option value="10:00 AM - 02:00 PM">Noon: 10:00 AM - 02:00 PM</option>
+                  <option value="05:00 PM - 09:00 PM">Evening: 05:00 PM - 09:00 PM</option>
+                  <option value="Full Day (09:00 AM - 10:00 PM)">Full Day</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Expected Number of Guests</label>
+              <input type="number" [(ngModel)]="newBooking.guestsCount" name="guestsCount" class="form-control" min="1" max="150" />
+            </div>
+
+            <div class="form-field">
+              <label>Special Requests or Purpose</label>
+              <input type="text" [(ngModel)]="newBooking.specialRequests" name="specialRequests" class="form-control" placeholder="e.g. Birthday celebration, projector setup" />
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="secondary-action-btn" (click)="closeBookingModal()">Cancel</button>
+              <button type="submit" class="primary-action-btn">Confirm Reservation</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 4. VISITOR PRE-APPROVAL MODAL -->
+  @if (showVisitorModal()) {
+    <div class="modal-backdrop" (click)="closeVisitorModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Pre-Approve Visitor / Gate Pass</h3>
+          <button type="button" class="close-btn" (click)="closeVisitorModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="submitVisitor()">
+            <div class="form-field">
+              <label>Visitor Full Name *</label>
+              <input type="text" [(ngModel)]="newVisitor.name" name="name" class="form-control" placeholder="e.g. Sunil Verma" required />
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Visitor Mobile Number *</label>
+                <input type="tel" [(ngModel)]="newVisitor.phone" name="phone" class="form-control" placeholder="+91 98..." required />
+              </div>
+              <div class="form-field">
+                <label>Purpose of Visit *</label>
+                <select [(ngModel)]="newVisitor.purpose" name="purpose" class="form-control">
+                  <option value="Guest">Guest / Friend</option>
+                  <option value="Delivery">Delivery (Amazon/Swiggy)</option>
+                  <option value="Cab">Cab (Uber/Ola)</option>
+                  <option value="Service Provider">Service Provider / Maid</option>
+                  <option value="Home Repair">Home Repair / Contractor</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label>Date of Visit</label>
+                <input type="date" [(ngModel)]="newVisitor.date" name="date" class="form-control" />
+              </div>
+              <div class="form-field">
+                <label>Expected Time</label>
+                <input type="time" [(ngModel)]="newVisitor.time" name="time" class="form-control" />
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label>Vehicle Number (Optional)</label>
+              <input type="text" [(ngModel)]="newVisitor.vehicleNumber" name="vehicleNumber" class="form-control" placeholder="e.g. MH 12 CD 4455" />
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="secondary-action-btn" (click)="closeVisitorModal()">Cancel</button>
+              <button type="submit" class="primary-action-btn">Generate Entry Pass</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 5. VIEW NOTICE CIRCULAR MODAL -->
+  @if (showNoticeModal() && selectedNotice()) {
+    <div class="modal-backdrop" (click)="closeNoticeModal()">
+      <div class="modal-card wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <span class="category-pill">{{ selectedNotice()?.category }}</span>
+            <h3 class="mt-5">{{ selectedNotice()?.title }}</h3>
+          </div>
+          <button type="button" class="close-btn" (click)="closeNoticeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="notice-full-text">{{ selectedNotice()?.content }}</p>
+          <div class="notice-meta-box">
+            <div>
+              <span>Date of Announcement:</span>
+              <strong>{{ selectedNotice()?.date }}</strong>
+            </div>
+            <div>
+              <span>Issuing Authority:</span>
+              <strong>{{ selectedNotice()?.issuedBy }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="primary-action-btn" (click)="closeNoticeModal()">Close Notice</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 6. SUBMIT FEEDBACK MODAL -->
+  @if (showFeedbackModal()) {
+    <div class="modal-backdrop" (click)="closeFeedbackModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Submit Suggestion or Feedback</h3>
+          <button type="button" class="close-btn" (click)="closeFeedbackModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="submitFeedback()">
+            <div class="form-field">
+              <label>Category</label>
+              <select [(ngModel)]="feedbackForm.category" name="category" class="form-control">
+                <option value="Amenities">Amenities & Clubhouse</option>
+                <option value="Cleanliness">Cleanliness & Waste Management</option>
+                <option value="Security">Security & Gate Staff</option>
+                <option value="Maintenance">Maintenance & Power</option>
+                <option value="General Suggestion">General Society Suggestion</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label>Subject *</label>
+              <input type="text" [(ngModel)]="feedbackForm.subject" name="subject" class="form-control" placeholder="Brief summary of your suggestion" required />
+            </div>
+
+            <div class="form-field">
+              <label>Detailed Message *</label>
+              <textarea [(ngModel)]="feedbackForm.message" name="message" class="form-control" rows="4" placeholder="Write your suggestion or appreciation..." required></textarea>
+            </div>
+
+            <div class="form-field">
+              <label>Rating (1 to 5 Stars)</label>
+              <div class="star-rating-select">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <button
+                    type="button"
+                    class="star-btn"
+                    [class.active]="star <= feedbackForm.rating"
+                    (click)="feedbackForm.rating = star">
+                    ★
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="secondary-action-btn" (click)="closeFeedbackModal()">Cancel</button>
+              <button type="submit" class="primary-action-btn">Submit Suggestion</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 7. NOTIFICATIONS DRAWER -->
+  @if (showNotificationsDrawer()) {
+    <div class="notifications-drawer-backdrop" (click)="toggleNotifications()">
+      <div class="notifications-drawer" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div>
+            <h3>Notifications</h3>
+            <small>{{ residentService.unreadNotificationCount() }} unread alerts</small>
+          </div>
+          <div class="drawer-header-actions">
+            <button type="button" class="text-link-btn" (click)="markAllRead()">Mark All Read</button>
+            <button type="button" class="close-btn" (click)="toggleNotifications()">✕</button>
+          </div>
+        </div>
+
+        <div class="drawer-body">
+          @for (item of residentService.notifications(); track item.id) {
+            <div
+              class="notif-item"
+              [class.unread]="!item.isRead"
+              (click)="residentService.markNotificationRead(item.id); item.linkTab && setTab(item.linkTab)">
+              <div class="notif-icon">
+                @if (item.category === 'Bill') { 💳 }
+                @else if (item.category === 'Complaint') { 🛠️ }
+                @else if (item.category === 'Visitor') { 👥 }
+                @else if (item.category === 'Facility') { 📅 }
+                @else { 📢 }
+              </div>
+              <div class="notif-content">
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.message }}</p>
+                <small>{{ item.timestamp }}</small>
+              </div>
+              @if (!item.isRead) {
+                <span class="unread-dot"></span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 8. PAYMENT RECEIPT MODAL -->
+  @if (showReceiptModal() && selectedReceipt()) {
+    <div class="modal-backdrop" (click)="closeReceiptModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Official Payment Receipt</h3>
+          <button type="button" class="close-btn" (click)="closeReceiptModal()">✕</button>
+        </div>
+        <div class="modal-body receipt-modal-body">
+          <div class="receipt-header-branding">
+            <h4>Greenwood Heights Co-Operative Housing Society Ltd.</h4>
+            <small>Registration No: PNA/HSG/2021/7798 · Pune - 411045</small>
+          </div>
+
+          <div class="receipt-table-info">
+            <div class="r-row"><span>Receipt No:</span><strong>{{ selectedReceipt()?.receiptNumber }}</strong></div>
+            <div class="r-row"><span>Date:</span><strong>{{ selectedReceipt()?.paymentDate }}</strong></div>
+            <div class="r-row"><span>Resident:</span><strong>Priya Sharma (Flat A-204)</strong></div>
+            <div class="r-row"><span>Bill Period:</span><strong>{{ selectedReceipt()?.billMonth }}</strong></div>
+            <div class="r-row"><span>Transaction ID:</span><code>{{ selectedReceipt()?.transactionId }}</code></div>
+            <div class="r-row"><span>Payment Mode:</span><strong>{{ selectedReceipt()?.paymentMethod }}</strong></div>
+            <div class="r-row total"><span>Amount Received:</span><strong>₹{{ selectedReceipt()?.amount }}</strong></div>
+          </div>
+
+          <div class="receipt-status-seal">
+            <span>PAID IN FULL · SYSTEM GENERATED</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="secondary-action-btn" (click)="downloadReceiptPdf(selectedReceipt()!)">⬇ Download PDF</button>
+          <button type="button" class="primary-action-btn" (click)="closeReceiptModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,147 @@
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MockDataService } from '../../services/mock-data.service';
+import { Resident } from '../../models/models';
+
+@Component({
+  selector: 'app-residents-page',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './residents.html',
+  styleUrl: './residents.css'
+})
+export class ResidentsPageComponent implements OnInit {
+  public mockData = inject(MockDataService);
+
+  public residents = signal<Resident[]>([]);
+  public searchQuery = signal<string>('');
+  public selectedType = signal<string>('ALL');
+  public selectedStatus = signal<string>('ALL');
+  public selectedBuilding = signal<string>('ALL');
+
+  // Modals
+  public showAddModal = signal<boolean>(false);
+  public showDetailDrawer = signal<boolean>(false);
+  public selectedResident = signal<Resident | null>(null);
+
+  // Form
+  public residentForm: any = {
+    name: '',
+    email: '',
+    phone: '',
+    flatNumber: 'A-102',
+    building: 'Block A',
+    type: 'Owner' as 'Owner' | 'Tenant',
+    status: 'Active' as 'Active' | 'Pending' | 'Inactive',
+    joinDate: new Date().toISOString().split('T')[0]
+  };
+
+  ngOnInit() {
+    this.residents.set(this.mockData.getResidents());
+  }
+
+  // Filtered residents
+  public filteredResidents = computed(() => {
+    let list = this.residents();
+    const q = this.searchQuery().toLowerCase().trim();
+    const type = this.selectedType();
+    const status = this.selectedStatus();
+    const bldg = this.selectedBuilding();
+
+    if (q) {
+      list = list.filter(r =>
+        r.name.toLowerCase().includes(q) ||
+        r.flatNumber.toLowerCase().includes(q) ||
+        r.email.toLowerCase().includes(q) ||
+        r.phone.toLowerCase().includes(q)
+      );
+    }
+    if (type !== 'ALL') list = list.filter(r => r.type === type);
+    if (status !== 'ALL') list = list.filter(r => r.status === status);
+    if (bldg !== 'ALL') list = list.filter(r => r.building === bldg);
+    return list;
+  });
+
+  // KPIs
+  public totalCount = computed(() => this.residents().length);
+  public ownerCount = computed(() => this.residents().filter(r => r.type === 'Owner').length);
+  public tenantCount = computed(() => this.residents().filter(r => r.type === 'Tenant').length);
+  public pendingCount = computed(() => this.residents().filter(r => r.status === 'Pending').length);
+
+  // Actions
+  openAddModal() {
+    this.residentForm = {
+      name: '',
+      email: '',
+      phone: '',
+      flatNumber: 'A-102',
+      building: 'Block A',
+      type: 'Owner',
+      status: 'Active',
+      joinDate: new Date().toISOString().split('T')[0]
+    };
+    this.showAddModal.set(true);
+  }
+
+  closeAddModal() {
+    this.showAddModal.set(false);
+  }
+
+  saveResident() {
+    if (!this.residentForm.name || !this.residentForm.phone) return;
+    const newRes: Resident = {
+      id: `R00${this.residents().length + 1}`,
+      name: this.residentForm.name,
+      email: this.residentForm.email || `${this.residentForm.name.toLowerCase().replace(' ', '.')}@email.com`,
+      phone: this.residentForm.phone,
+      flatNumber: this.residentForm.flatNumber,
+      building: this.residentForm.building,
+      type: this.residentForm.type,
+      status: this.residentForm.status,
+      joinDate: this.residentForm.joinDate
+    };
+
+    this.residents.update(prev => [newRes, ...prev]);
+    this.mockData.showToast({
+      type: 'success',
+      title: 'Resident Onboarded',
+      message: `${newRes.name} registered to Flat ${newRes.flatNumber}.`
+    });
+    this.closeAddModal();
+  }
+
+  approveResident(r: Resident, event?: MouseEvent) {
+    if (event) event.stopPropagation();
+    this.residents.update(prev =>
+      prev.map(item => item.id === r.id ? { ...item, status: 'Active' } : item)
+    );
+    this.mockData.showToast({
+      type: 'success',
+      title: 'Residency Approved',
+      message: `${r.name}'s residency for Flat ${r.flatNumber} has been verified and approved.`
+    });
+  }
+
+  viewDetails(r: Resident) {
+    this.selectedResident.set(r);
+    this.showDetailDrawer.set(true);
+  }
+
+  closeDrawer() {
+    this.showDetailDrawer.set(false);
+  }
+
+  deleteResident(r: Resident, event?: MouseEvent) {
+    if (event) event.stopPropagation();
+    if (confirm(`Remove ${r.name} from society resident records?`)) {
+      this.residents.update(prev => prev.filter(item => item.id !== r.id));
+      if (this.showDetailDrawer()) this.closeDrawer();
+      this.mockData.showToast({
+        type: 'info',
+        title: 'Resident Removed',
+        message: `${r.name} record archived.`
+      });
+    }
+  }
+}

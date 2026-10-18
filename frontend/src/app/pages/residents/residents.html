@@ -1,0 +1,223 @@
+<div class="residents-page">
+
+  <!-- Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb-trail">
+        <span class="crumb-parent">Green Heights</span>
+        <span class="crumb-separator">/</span>
+        <span class="crumb-current">Resident Directory</span>
+      </div>
+      <h1 class="page-title">Resident & Member Directory</h1>
+      <p class="page-subtitle">Manage society occupant records, verify homeowner KYC documentation, process tenant registrations, and review pending approvals.</p>
+    </div>
+
+    <div class="header-action-group">
+      <button class="btn-primary-action" (click)="openAddModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        + Add Resident
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Total Registered</span><span class="kpi-icon">👥</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ totalCount() }}</span><span class="kpi-badge badge-active">Active</span></div>
+      <p class="kpi-footnote">Society members directory</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Homeowners</span><span class="kpi-icon icon-green">🏠</span></div>
+      <div class="kpi-body"><span class="kpi-number text-green">{{ ownerCount() }}</span><span class="kpi-badge badge-green">Verified</span></div>
+      <p class="kpi-footnote">Unit title holders</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Tenants</span><span class="kpi-icon">🔑</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ tenantCount() }}</span><span class="kpi-badge badge-subtle">Leased</span></div>
+      <p class="kpi-footnote">Registered agreement occupants</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Pending Approval</span><span class="kpi-icon icon-amber">⏳</span></div>
+      <div class="kpi-body"><span class="kpi-number text-amber">{{ pendingCount() }}</span><span class="kpi-badge badge-amber">Needs Review</span></div>
+      <p class="kpi-footnote">New onboarding requests</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-panel">
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search by resident name, phone, or flat #..." [(ngModel)]="searchQuery" />
+      <button *ngIf="searchQuery()" class="btn-clear" (click)="searchQuery.set('')">✕</button>
+    </div>
+
+    <div class="filter-controls-group">
+      <select class="filter-select" [(ngModel)]="selectedType">
+        <option value="ALL">All Occupancy Types</option>
+        <option value="Owner">Owners Only</option>
+        <option value="Tenant">Tenants Only</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedStatus">
+        <option value="ALL">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending Approval</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedBuilding">
+        <option value="ALL">All Blocks / Towers</option>
+        <option value="Block A">Tower A</option>
+        <option value="Block B">Tower B</option>
+        <option value="Block C">Tower C</option>
+        <option value="Block D">Tower D</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container-card">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Resident Name</th>
+          <th>Flat Unit</th>
+          <th>Tower</th>
+          <th>Type</th>
+          <th>Contact Phone</th>
+          <th>Email Address</th>
+          <th>Onboarding Date</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of filteredResidents()" (click)="viewDetails(r)" class="clickable-row">
+          <td>
+            <div class="resident-profile-cell">
+              <div class="avatar-circle">{{ r.name.charAt(0) }}</div>
+              <div>
+                <span class="resident-title">{{ r.name }}</span>
+                <span class="resident-id-sub">{{ r.id }}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge-type">{{ r.flatNumber }}</span></td>
+          <td>{{ r.building }}</td>
+          <td>
+            <span class="type-pill" [class.type-owner]="r.type === 'Owner'" [class.type-tenant]="r.type === 'Tenant'">
+              {{ r.type }}
+            </span>
+          </td>
+          <td>{{ r.phone }}</td>
+          <td><span class="text-secondary">{{ r.email }}</span></td>
+          <td>{{ r.joinDate | date:'mediumDate' }}</td>
+          <td>
+            <span class="status-pill" [class.pill-active]="r.status === 'Active'" [class.pill-pending]="r.status === 'Pending'">
+              {{ r.status }}
+            </span>
+          </td>
+          <td class="text-right action-cell" (click)="$event.stopPropagation()">
+            <button *ngIf="r.status === 'Pending'" class="table-btn-icon text-green" (click)="approveResident(r, $event)" title="Approve Resident">✅</button>
+            <button class="table-btn-icon" (click)="viewDetails(r)" title="View Profile">👁️</button>
+            <button class="table-btn-icon text-danger" (click)="deleteResident(r, $event)" title="Delete Record">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal: Add Resident -->
+  <div class="modal-backdrop" *ngIf="showAddModal()" (click)="closeAddModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Register New Society Resident</h3>
+        <button class="btn-close" (click)="closeAddModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Full Name *</label>
+          <input type="text" placeholder="e.g. Ramesh Kulkarni" [(ngModel)]="residentForm.name" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Mobile Number *</label>
+            <input type="text" placeholder="+91 98220 00000" [(ngModel)]="residentForm.phone" />
+          </div>
+          <div class="form-field">
+            <label>Email Address</label>
+            <input type="email" placeholder="resident@email.com" [(ngModel)]="residentForm.email" />
+          </div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label>Tower *</label>
+            <select [(ngModel)]="residentForm.building">
+              <option value="Block A">Tower A</option>
+              <option value="Block B">Tower B</option>
+              <option value="Block C">Tower C</option>
+              <option value="Block D">Tower D</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Flat # *</label>
+            <input type="text" placeholder="e.g. A-302" [(ngModel)]="residentForm.flatNumber" />
+          </div>
+          <div class="form-field">
+            <label>Occupancy *</label>
+            <select [(ngModel)]="residentForm.type">
+              <option value="Owner">Owner</option>
+              <option value="Tenant">Tenant</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAddModal()">Cancel</button>
+        <button class="btn-save" (click)="saveResident()" [disabled]="!residentForm.name || !residentForm.phone">Save Resident</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer: Resident Profile Details -->
+  <div class="drawer-backdrop" *ngIf="showDetailDrawer()" (click)="closeDrawer()">
+    <div class="detail-drawer" (click)="$event.stopPropagation()" *ngIf="selectedResident() as r">
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-pretitle">{{ r.type }} · Flat {{ r.flatNumber }}</span>
+          <h2 class="drawer-title">{{ r.name }}</h2>
+        </div>
+        <button class="btn-close" (click)="closeDrawer()">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-status-box status-occupied">
+          <div class="avatar-lg">{{ r.name.charAt(0) }}</div>
+          <div>
+            <span class="status-main-label">{{ r.name }}</span>
+            <span class="status-sub-label">{{ r.type }} at {{ r.flatNumber }} ({{ r.building }})</span>
+          </div>
+        </div>
+
+        <div class="specs-card">
+          <h4 class="specs-heading">Contact Information</h4>
+          <div class="spec-item-row"><span class="spec-label">Mobile Phone</span><span class="spec-val">{{ r.phone }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Email</span><span class="spec-val">{{ r.email }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Onboarding Date</span><span class="spec-val">{{ r.joinDate | date:'mediumDate' }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">KYC Verification</span><span class="spec-val text-green">✓ Verified</span></div>
+        </div>
+
+        <div class="specs-card">
+          <h4 class="specs-heading">Apartment & Access</h4>
+          <div class="spec-item-row"><span class="spec-label">Assigned Flat</span><span class="spec-val font-bold">{{ r.flatNumber }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Tower / Wing</span><span class="spec-val">{{ r.building }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Society App Status</span><span class="spec-val text-green">Mobile App Active</span></div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn-danger-outline" (click)="deleteResident(r)">Remove Member</button>
+        <button class="btn-primary-action" (click)="closeDrawer()">Done</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,330 @@
+<div class="buildings-page">
+
+  <!-- Header -->
+  <div class="page-header-row">
+    <div>
+      <div class="breadcrumb-trail">
+        <span class="crumb-parent">Green Heights</span>
+        <span class="crumb-separator">/</span>
+        <span class="crumb-current">Buildings & Flats Information</span>
+      </div>
+      <h1 class="page-title">Flat Inventory & Tower Management</h1>
+      <p class="page-subtitle">Configure society wings, monitor occupancy status, manage floor plans, and maintain resident flat allocations.</p>
+    </div>
+
+    <div class="header-action-group">
+      <button class="btn-outline-action" (click)="openAddTowerModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="22.01"/><line x1="15" y1="22" x2="15" y2="22.01"/></svg>
+        + Add Wing / Tower
+      </button>
+      <button class="btn-primary-action" (click)="openAddFlatModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        + Register New Flat
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Total Wings / Towers</span><span class="kpi-icon">🏢</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ towers.length }}</span><span class="kpi-badge badge-active">All Active</span></div>
+      <p class="kpi-footnote">Towers A, B, C & D operational</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Total Units</span><span class="kpi-icon">🏠</span></div>
+      <div class="kpi-body"><span class="kpi-number">{{ totalFlatsCount() }}</span><span class="kpi-badge badge-subtle">Registered</span></div>
+      <p class="kpi-footnote">Total inventory in society</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Occupied Flats</span><span class="kpi-icon icon-green">👥</span></div>
+      <div class="kpi-body"><span class="kpi-number text-green">{{ occupiedCount() }}</span><span class="kpi-badge badge-green">{{ (occupiedCount() / totalFlatsCount() * 100).toFixed(1) }}% Rate</span></div>
+      <p class="kpi-footnote">Verified owner & tenant homes</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Vacant Flats</span><span class="kpi-icon icon-amber">🔑</span></div>
+      <div class="kpi-body"><span class="kpi-number text-amber">{{ vacantCount() }}</span><span class="kpi-badge badge-amber">Move-in Ready</span></div>
+      <p class="kpi-footnote">Available for lease or sale</p>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-header"><span class="kpi-title">Under Maintenance</span><span class="kpi-icon icon-red">🛠️</span></div>
+      <div class="kpi-body"><span class="kpi-number text-red">{{ maintenanceCount() }}</span><span class="kpi-badge badge-red">Active Work</span></div>
+      <p class="kpi-footnote">Plumbing & civil repair works</p>
+    </div>
+  </div>
+
+  <!-- Tower Navigation Tabs -->
+  <div class="towers-tabs-wrapper">
+    <div class="towers-tabs-list">
+      <button class="tower-tab" [class.active]="selectedTower() === 'ALL'" (click)="selectedTower.set('ALL')">
+        <span class="tower-tab-icon">🌐</span>
+        <span class="tower-tab-name">All Towers</span>
+        <span class="tower-tab-count">{{ flats().length }}</span>
+      </button>
+      <button class="tower-tab" *ngFor="let t of towers" [class.active]="selectedTower() === t.id" (click)="selectedTower.set(t.id)">
+        <span class="tower-tab-icon">🏢</span>
+        <div class="tower-tab-text">
+          <span class="tower-tab-name">{{ t.name }}</span>
+          <span class="tower-tab-sub">{{ t.floors }} Floors · {{ t.occupied }}/{{ t.totalFlats }} Occupied</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="filters-panel">
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search by Flat # (e.g. A-101), Resident name, or Parking slot..." [(ngModel)]="searchQuery" />
+      <button *ngIf="searchQuery()" class="btn-clear" (click)="searchQuery.set('')">✕</button>
+    </div>
+
+    <div class="filter-controls-group">
+      <div class="bhk-pills">
+        <button *ngFor="let bhk of ['ALL', '1BHK', '2BHK', '3BHK', '4BHK']" class="bhk-pill" [class.active]="selectedType() === bhk" (click)="selectedType.set(bhk)">
+          {{ bhk === 'ALL' ? 'All Types' : bhk }}
+        </button>
+      </div>
+
+      <select class="filter-select" [(ngModel)]="selectedStatus">
+        <option value="ALL">All Statuses</option>
+        <option value="Occupied">Occupied</option>
+        <option value="Vacant">Vacant</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+      </select>
+
+      <div class="view-switcher">
+        <button class="view-btn" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')">Floor Grid</button>
+        <button class="view-btn" [class.active]="viewMode() === 'table'" (click)="viewMode.set('table')">Table</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Mode A: Floor-by-Floor Grid -->
+  <div *ngIf="viewMode() === 'grid'" class="floors-matrix-container">
+    <div class="floor-row" *ngFor="let fg of floorsList()">
+      <div class="floor-marker">
+        <span class="floor-badge">Floor {{ fg.floorNumber }}</span>
+        <span class="floor-count">{{ fg.flats.length }} Units</span>
+      </div>
+      <div class="floor-units-grid">
+        <div class="flat-card" *ngFor="let f of fg.flats"
+             [class.status-occupied]="f.status === 'Occupied'"
+             [class.status-vacant]="f.status === 'Vacant'"
+             [class.status-maintenance]="f.status === 'Under Maintenance'"
+             (click)="viewDetails(f)">
+          <div class="flat-card-head">
+            <span class="flat-number">{{ f.number }}</span>
+            <span class="flat-type-badge">{{ f.type }}</span>
+            <span class="flat-status-dot" [title]="f.status"></span>
+          </div>
+          <div class="flat-card-meta">
+            <span class="flat-tower-name">{{ f.building }}</span>
+            <span class="flat-area">{{ f.area }} sq.ft</span>
+          </div>
+          <div class="flat-card-resident">
+            <div class="resident-avatar-mini" [class.avatar-vacant]="f.status === 'Vacant'">
+              {{ f.resident ? f.resident.charAt(0) : '—' }}
+            </div>
+            <div class="resident-text-mini">
+              <span class="resident-name-mini">{{ f.resident || 'Vacant Unit' }}</span>
+              <span class="parking-tag">🚗 {{ f.parkingSlot || 'No slot' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Mode B: Detailed Table View -->
+  <div *ngIf="viewMode() === 'table'" class="table-container-card">
+    <table class="inventory-table">
+      <thead>
+        <tr>
+          <th>Flat #</th>
+          <th>Tower / Wing</th>
+          <th>Floor</th>
+          <th>Unit Type</th>
+          <th>Carpet Area</th>
+          <th>Occupancy Status</th>
+          <th>Resident / Owner</th>
+          <th>Intercom</th>
+          <th>Parking Slot</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let f of filteredFlats()" (click)="viewDetails(f)" class="clickable-row">
+          <td><span class="table-flat-num">{{ f.number }}</span></td>
+          <td><span class="table-tower">{{ f.building }}</span></td>
+          <td>Floor {{ f.floor }}</td>
+          <td><span class="badge-type">{{ f.type }}</span></td>
+          <td>{{ f.area }} sq.ft</td>
+          <td>
+            <span class="status-pill"
+                  [class.pill-occupied]="f.status === 'Occupied'"
+                  [class.pill-vacant]="f.status === 'Vacant'"
+                  [class.pill-maintenance]="f.status === 'Under Maintenance'">
+              {{ f.status }}
+            </span>
+          </td>
+          <td>
+            <div class="table-resident-cell">
+              <span class="resident-name">{{ f.resident || 'Vacant' }}</span>
+              <span class="resident-contact" *ngIf="f.ownerPhone">{{ f.ownerPhone }}</span>
+            </div>
+          </td>
+          <td>{{ f.intercomNumber || '—' }}</td>
+          <td>{{ f.parkingSlot || 'None' }}</td>
+          <td class="text-right action-cell" (click)="$event.stopPropagation()">
+            <button class="table-btn-icon" (click)="viewDetails(f)" title="View Details">👁️</button>
+            <button class="table-btn-icon text-danger" (click)="deleteFlat(f, $event)" title="Delete Flat">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal: Add New Flat -->
+  <div class="modal-backdrop" *ngIf="showAddFlatModal()" (click)="closeAddFlatModal()">
+    <div class="modal-dialog modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Register New Flat Unit</h3>
+        <button class="btn-close" (click)="closeAddFlatModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label>Select Tower *</label>
+            <select [(ngModel)]="flatForm.building">
+              <option *ngFor="let t of towers" [value]="t.id">{{ t.name }}</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Flat Number *</label>
+            <input type="text" placeholder="e.g. A-701" [(ngModel)]="flatForm.number" />
+          </div>
+          <div class="form-field">
+            <label>Floor Number *</label>
+            <input type="number" min="1" max="25" [(ngModel)]="flatForm.floor" />
+          </div>
+          <div class="form-field">
+            <label>Apartment Type *</label>
+            <select [(ngModel)]="flatForm.type">
+              <option value="1BHK">1 BHK</option>
+              <option value="2BHK">2 BHK</option>
+              <option value="3BHK">3 BHK</option>
+              <option value="4BHK">4 BHK</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Carpet Area (sq.ft) *</label>
+            <input type="number" [(ngModel)]="flatForm.area" />
+          </div>
+          <div class="form-field">
+            <label>Initial Status *</label>
+            <select [(ngModel)]="flatForm.status">
+              <option value="Occupied">Occupied</option>
+              <option value="Vacant">Vacant</option>
+              <option value="Under Maintenance">Under Maintenance</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Resident Full Name</label>
+            <input type="text" placeholder="e.g. Priya Sharma" [(ngModel)]="flatForm.resident" />
+          </div>
+          <div class="form-field">
+            <label>Parking Slot</label>
+            <input type="text" placeholder="e.g. B1-Slot-42" [(ngModel)]="flatForm.parkingSlot" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAddFlatModal()">Cancel</button>
+        <button class="btn-save" (click)="saveNewFlat()" [disabled]="!flatForm.number">Save Flat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add Tower -->
+  <div class="modal-backdrop" *ngIf="showAddTowerModal()" (click)="closeAddTowerModal()">
+    <div class="modal-dialog modal-md" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Society Wing / Tower</h3>
+        <button class="btn-close" (click)="closeAddTowerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>Tower Name *</label>
+          <input type="text" placeholder="e.g. Tower E - Silver Oak" [(ngModel)]="towerForm.name" />
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Total Floors *</label>
+            <input type="number" [(ngModel)]="towerForm.floors" />
+          </div>
+          <div class="form-field">
+            <label>Total Units Planned *</label>
+            <input type="number" [(ngModel)]="towerForm.totalFlats" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeAddTowerModal()">Cancel</button>
+        <button class="btn-save" (click)="saveNewTower()" [disabled]="!towerForm.name">Add Tower</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide-out Drawer: Flat Quick View -->
+  <div class="drawer-backdrop" *ngIf="showDrawer()" (click)="closeDrawer()">
+    <div class="detail-drawer" (click)="$event.stopPropagation()" *ngIf="activeFlat() as f">
+      <div class="drawer-header">
+        <div>
+          <span class="drawer-pretitle">{{ f.building }}</span>
+          <h2 class="drawer-title">Unit {{ f.number }}</h2>
+        </div>
+        <button class="btn-close" (click)="closeDrawer()">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-status-box"
+             [class.status-occupied]="f.status === 'Occupied'"
+             [class.status-vacant]="f.status === 'Vacant'"
+             [class.status-maintenance]="f.status === 'Under Maintenance'">
+          <span class="status-indicator-lg"></span>
+          <div>
+            <span class="status-main-label">{{ f.status }}</span>
+            <span class="status-sub-label">{{ f.status === 'Occupied' ? 'Unit is active with registered occupants' : f.status === 'Vacant' ? 'Move-in ready' : 'Repair work active' }}</span>
+          </div>
+        </div>
+
+        <div class="quick-status-actions">
+          <span class="quick-status-label">Update Status:</span>
+          <div class="quick-status-buttons">
+            <button class="qs-btn qs-occupied" (click)="quickStatus('Occupied')">Occupied</button>
+            <button class="qs-btn qs-vacant" (click)="quickStatus('Vacant')">Vacant</button>
+            <button class="qs-btn qs-maintenance" (click)="quickStatus('Under Maintenance')">Maintenance</button>
+          </div>
+        </div>
+
+        <div class="specs-card">
+          <h4 class="specs-heading">Apartment Specifications</h4>
+          <div class="spec-item-row"><span class="spec-label">Wing</span><span class="spec-val">{{ f.building }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Floor</span><span class="spec-val">Floor {{ f.floor }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Type</span><span class="spec-val badge-type">{{ f.type }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Carpet Area</span><span class="spec-val">{{ f.area }} sq.ft</span></div>
+          <div class="spec-item-row"><span class="spec-label">Parking</span><span class="spec-val">{{ f.parkingSlot || 'None' }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Intercom</span><span class="spec-val">{{ f.intercomNumber || 'Not set' }}</span></div>
+          <div class="spec-item-row"><span class="spec-label">Resident</span><span class="spec-val font-bold">{{ f.resident || 'Vacant' }}</span></div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn-danger-outline" (click)="deleteFlat(f)">Delete Flat</button>
+        <button class="btn-primary-action" (click)="closeDrawer()">Done</button>
+      </div>
+    </div>
+  </div>
+
+</div>
