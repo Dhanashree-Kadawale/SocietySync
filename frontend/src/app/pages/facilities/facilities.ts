@@ -11,11 +11,11 @@ import { Facility, FacilityBooking } from '../../models/models';
   templateUrl: './facilities.html',
   styleUrl: './facilities.css'
 })
-export class FacilitiesPageComponent implements OnInit {
+export class FacilitiesPageComponent {
   public mockData = inject(MockDataService);
 
-  public facilities = signal<Facility[]>([]);
-  public bookings = signal<FacilityBooking[]>([]);
+  public facilities = this.mockData.facilities;
+  public bookings = this.mockData.bookings;
 
   public selectedFacility = signal<string>('ALL');
   public selectedStatus = signal<string>('ALL');
@@ -34,11 +34,6 @@ export class FacilitiesPageComponent implements OnInit {
     amount: 8000,
     purpose: 'Family Get-Together'
   };
-
-  ngOnInit() {
-    this.facilities.set(this.mockData.getFacilities());
-    this.bookings.set(this.mockData.getFacilityBookings());
-  }
 
   public filteredBookings = computed(() => {
     let list = this.bookings();
@@ -75,9 +70,7 @@ export class FacilitiesPageComponent implements OnInit {
   }
 
   saveBooking() {
-    const newBkg: FacilityBooking = {
-      id: `BKG-00${this.bookings().length + 1}`,
-      facilityId: 'FAC-001',
+    this.mockData.addBooking({
       facilityName: this.bookingForm.facilityName,
       residentName: this.bookingForm.residentName,
       flatNumber: this.bookingForm.flatNumber,
@@ -85,38 +78,17 @@ export class FacilitiesPageComponent implements OnInit {
       startTime: this.bookingForm.startTime,
       endTime: this.bookingForm.endTime,
       amount: this.bookingForm.amount,
-      status: 'Confirmed',
-      purpose: this.bookingForm.purpose
-    };
-
-    this.bookings.update(prev => [newBkg, ...prev]);
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Facility Reserved',
-      message: `${newBkg.facilityName} booked for ${newBkg.residentName} on ${newBkg.date}.`
+      purpose: this.bookingForm.purpose,
+      status: 'Confirmed'
     });
     this.closeBookModal();
   }
 
   confirmBooking(b: FacilityBooking) {
-    this.bookings.update(prev =>
-      prev.map(item => item.id === b.id ? { ...item, status: 'Confirmed' } : item)
-    );
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Booking Confirmed',
-      message: `Reservation #${b.id} marked as Confirmed.`
-    });
+    this.mockData.updateBookingStatus(b.id, 'Confirmed');
   }
 
   cancelBooking(b: FacilityBooking) {
-    this.bookings.update(prev =>
-      prev.map(item => item.id === b.id ? { ...item, status: 'Cancelled' } : item)
-    );
-    this.mockData.showToast({
-      type: 'info',
-      title: 'Booking Cancelled',
-      message: `Reservation #${b.id} has been cancelled.`
-    });
+    this.mockData.updateBookingStatus(b.id, 'Cancelled');
   }
 }

@@ -2,6 +2,9 @@ export type UserRole = 'Resident' | 'Secretary Admin' | 'Super Admin' | 'Mainten
 
 export interface User {
   id: string;
+  userId?: number;
+  residentId?: number;
+  societyId?: number;
   name: string;
   email: string;
   phone: string;
@@ -26,7 +29,7 @@ export interface FlatInfo {
   bhkType: string;
   carpetAreaSqFt: number;
   parkingSlot: string;
-  ownershipType: 'Owner' | 'Tenant';
+  ownershipType: 'Owner' | 'Tenant' | '';
   residentSince: string;
   occupancyCount: number;
   emergencyContact: {
@@ -88,11 +91,12 @@ export interface PaymentRecord {
   paymentMethod: 'UPI' | 'Credit Card' | 'Debit Card' | 'Net Banking';
   transactionId: string;
   status: 'Success' | 'Processing' | 'Failed';
+  receiptUrl?: string;
 }
 
 export interface FacilityBooking {
   id: string;
-  facilityName: 'Clubhouse' | 'Community Hall' | 'Swimming Pool' | 'Tennis Court' | 'Gymnasium' | 'Barbeque Deck';
+  facilityName: string;
   date: string;
   timeSlot: string;
   guestsCount: number;
@@ -100,6 +104,17 @@ export interface FacilityBooking {
   bookingFee: number;
   specialRequests?: string;
   createdAt: string;
+}
+
+export interface ResidentFacility {
+  id: string;
+  name: string;
+  description: string;
+  capacity: number;
+  pricePerHour: number;
+  status: string;
+  amenities: string;
+  imageUrl?: string;
 }
 
 export interface Visitor {
@@ -135,6 +150,7 @@ export interface SocietyDocument {
   fileType: 'PDF' | 'DOCX';
   uploadedDate: string;
   description: string;
+  fileUrl?: string;
 }
 
 export interface PollOption {
@@ -233,4 +249,3 @@ export interface StaffNotification {
   isRead: boolean;
   taskId?: string;
 }
-

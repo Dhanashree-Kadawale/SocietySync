@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 export type RegisterRole = 'Secretary' | 'Maintenance Staff' | 'Resident';
 
@@ -59,7 +60,8 @@ export class RegisterComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -82,7 +84,7 @@ export class RegisterComponent implements OnInit {
     this.errorMessage = '';
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     this.errorMessage = '';
 
     // Validate common fields
@@ -125,10 +127,42 @@ export class RegisterComponent implements OnInit {
 
     this.isSubmitting = true;
 
-    setTimeout(() => {
-      this.isSubmitting = false;
+    const payload = {
+      name: this.fullName.trim(),
+      email: this.email.trim(),
+      phone: this.phone.trim(),
+      password: this.password,
+      role: this.selectedRole,
+      societyName: this.selectedRole === 'Secretary' ? this.societyName.trim() : (this.selectedRole === 'Maintenance Staff' ? this.staffSociety : ''),
+      societyRegNo: this.societyRegNo.trim(),
+      city: this.city.trim() || 'Pune',
+      totalUnits: this.totalUnits,
+      flatNumber: this.flatNumber.trim(),
+      buildingName: this.wing.trim(),
+      staffSpecialization: this.staffSpecialization,
+      employeeId: this.employeeId.trim(),
+      residentType: this.residentType
+    };
+
+    try {
+      await this.authService.register(payload);
       this.isRegistered.set(true);
-    }, 700);
+
+      let loginRole = 'Resident';
+      if (this.selectedRole === 'Secretary') {
+        loginRole = 'Secretary Admin';
+      } else if (this.selectedRole === 'Maintenance Staff') {
+        loginRole = 'Maintenance Staff';
+      }
+      try {
+        sessionStorage.setItem('last_registered_email', this.email.trim());
+        sessionStorage.setItem('last_registered_role', loginRole);
+      } catch {}
+    } catch (err: any) {
+      this.errorMessage = err?.message || 'Registration failed. Please verify your details.';
+    } finally {
+      this.isSubmitting = false;
+    }
   }
 
   goToLogin(): void {
@@ -138,6 +172,16 @@ export class RegisterComponent implements OnInit {
     } else if (this.selectedRole === 'Maintenance Staff') {
       loginRole = 'Maintenance Staff';
     }
-    this.router.navigate(['/login'], { queryParams: { role: loginRole } });
+    this.router.navigate(['/login'], { queryParams: { role: loginRole, email: this.email.trim(), registered: 'true' } });
+  }
+
+  enterDashboard(): void {
+    if (this.selectedRole === 'Secretary') {
+      this.router.navigate(['/dashboard']);
+    } else if (this.selectedRole === 'Maintenance Staff') {
+      this.router.navigate(['/staff-dashboard']);
+    } else {
+      this.router.navigate(['/resident']);
+    }
   }
 }

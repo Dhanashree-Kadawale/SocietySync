@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import { Visitor } from '../../models/models';
 
 @Component({
@@ -11,10 +12,11 @@ import { Visitor } from '../../models/models';
   templateUrl: './visitors.html',
   styleUrl: './visitors.css'
 })
-export class VisitorsPageComponent implements OnInit {
+export class VisitorsPageComponent {
   public mockData = inject(MockDataService);
+  public authService = inject(AuthService, { optional: true });
 
-  public visitors = signal<Visitor[]>([]);
+  public visitors = this.mockData.visitors;
   public searchQuery = signal<string>('');
   public selectedStatus = signal<string>('ALL');
 
@@ -24,14 +26,10 @@ export class VisitorsPageComponent implements OnInit {
     name: '',
     phone: '',
     purpose: 'Guest',
-    hostResident: 'Rahul Verma',
-    flatNumber: 'A-204',
-    vehicleNumber: 'MH 12 CD 3456'
+    hostResident: '',
+    flatNumber: '',
+    vehicleNumber: ''
   };
-
-  ngOnInit() {
-    this.visitors.set(this.mockData.getVisitors());
-  }
 
   public filteredVisitors = computed(() => {
     let list = this.visitors();
@@ -54,12 +52,13 @@ export class VisitorsPageComponent implements OnInit {
   public checkedOutCount = computed(() => this.visitors().filter(v => v.status === 'Out').length);
 
   openPreApproveModal() {
+    const user = this.authService?.currentUser();
     this.visitorForm = {
       name: '',
       phone: '',
       purpose: 'Guest',
-      hostResident: 'Rahul Verma',
-      flatNumber: 'A-204',
+      hostResident: user?.name || 'Resident Member',
+      flatNumber: user?.flat || 'A-101',
       vehicleNumber: ''
     };
     this.showPreApproveModal.set(true);
@@ -71,35 +70,18 @@ export class VisitorsPageComponent implements OnInit {
 
   savePreApproval() {
     if (!this.visitorForm.name || !this.visitorForm.phone) return;
-    const newVis: Visitor = {
-      id: `VIS-00${this.visitors().length + 1}`,
+    this.mockData.addVisitor({
       name: this.visitorForm.name,
       phone: this.visitorForm.phone,
       purpose: this.visitorForm.purpose,
       hostResident: this.visitorForm.hostResident,
       flatNumber: this.visitorForm.flatNumber,
-      checkIn: new Date().toISOString(),
-      vehicleNumber: this.visitorForm.vehicleNumber,
-      status: 'In'
-    };
-
-    this.visitors.update(prev => [newVis, ...prev]);
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Gate Pass Issued',
-      message: `Visitor pass issued for ${newVis.name} visiting ${newVis.flatNumber}.`
+      vehicleNumber: this.visitorForm.vehicleNumber
     });
     this.closePreApproveModal();
   }
 
   checkOutVisitor(v: Visitor) {
-    this.visitors.update(prev =>
-      prev.map(item => item.id === v.id ? { ...item, status: 'Out', checkOut: new Date().toISOString() } : item)
-    );
-    this.mockData.showToast({
-      type: 'info',
-      title: 'Visitor Checked Out',
-      message: `${v.name} departure logged at Main Gate.`
-    });
+    this.mockData.checkoutVisitor(v.id);
   }
 }

@@ -11,5 +11,9 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findByPhone(String phone);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE REPLACE(REPLACE(REPLACE(u.phone, ' ', ''), '-', ''), '+91', '') = :digitsOnly")
+    Optional<User> findByPhoneDigits(@org.springframework.data.repository.query.Param("digitsOnly") String digitsOnly);
+
     List<User> findBySocietyId(Long societyId);
 }

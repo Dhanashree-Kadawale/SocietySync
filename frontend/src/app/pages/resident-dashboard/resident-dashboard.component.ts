@@ -9,6 +9,7 @@ import {
   FacilityBooking,
   MaintenanceBill,
   Notice,
+  SocietyDocument,
   PaymentRecord,
   Visitor,
   FeedbackSubmission
@@ -76,8 +77,9 @@ export class ResidentDashboardComponent {
 
   // 3. Facility Booking Form
   newBooking = {
-    facilityName: 'Clubhouse' as FacilityBooking['facilityName'],
-    date: '2026-10-25',
+    facilityId: '',
+    facilityName: '' as FacilityBooking['facilityName'],
+    date: new Date().toISOString().slice(0, 10),
     timeSlot: '05:00 PM - 09:00 PM',
     guestsCount: 15,
     specialRequests: ''
@@ -88,8 +90,8 @@ export class ResidentDashboardComponent {
     name: '',
     phone: '',
     purpose: 'Guest' as Visitor['purpose'],
-    date: '2026-10-18',
-    time: '05:00 PM',
+    date: new Date().toISOString().slice(0, 10),
+    time: '17:00',
     vehicleNumber: ''
   };
 
@@ -120,6 +122,64 @@ export class ResidentDashboardComponent {
       emergencyPhone: info.emergencyContact.phone,
       emergencyRelation: info.emergencyContact.relationship
     };
+  }
+
+  get userInitials(): string {
+    const name = this.authService.currentUser()?.name || 'Resident';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  get userName(): string {
+    return this.authService.currentUser()?.name || 'Resident';
+  }
+
+  get userShortName(): string {
+    const parts = (this.authService.currentUser()?.name || 'Resident').trim().split(/\s+/);
+    return parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : parts[0];
+  }
+
+  get userEmail(): string {
+    return this.authService.currentUser()?.email || '';
+  }
+
+  get userPhone(): string {
+    return this.authService.currentUser()?.phone || '';
+  }
+
+  get userFlat(): string {
+    return this.authService.currentUser()?.flat || '';
+  }
+
+  get societyName(): string {
+    return this.authService.currentUser()?.societyName || '';
+  }
+
+  get nearestUnpaidBill(): MaintenanceBill | undefined {
+    return this.residentService.bills()
+      .filter(bill => bill.status !== 'Paid')
+      .sort((left, right) => left.dueDate.localeCompare(right.dueDate))[0];
+  }
+
+  get expectedVisitors(): Visitor[] {
+    return this.residentService.visitors().filter(visitor =>
+      visitor.status === 'Expected' || visitor.status === 'Approved'
+    );
+  }
+
+  get activeComplaint(): Complaint | undefined {
+    return this.residentService.complaints().find(complaint =>
+      complaint.status !== 'Resolved' && complaint.status !== 'Closed'
+    );
+  }
+
+  get upcomingBooking(): FacilityBooking | undefined {
+    return this.residentService.bookings().find(booking =>
+      booking.status === 'Confirmed' || booking.status === 'Pending Approval'
+    );
   }
 
   // Set active tab
@@ -168,13 +228,18 @@ export class ResidentDashboardComponent {
     if (!bill) return;
 
     this.isPaying.set(true);
-    setTimeout(() => {
-      const receipt = this.residentService.payBill(bill.id, this.paymentMethod());
+    this.residentService.payBill(bill.id, this.paymentMethod()).subscribe({
+      next: receipt => {
       this.isPaying.set(false);
       this.paymentSuccess.set(true);
       this.selectedReceipt.set(receipt);
-      this.showToast(`₹${bill.totalAmount} paid successfully for ${bill.month}!`);
-    }, 1200);
+      this.showToast(`Payment record saved for ${bill.month}. No external payment was processed.`);
+      },
+      error: error => {
+        this.isPaying.set(false);
+        this.showToast(error?.error?.message || error?.message || 'Payment failed. Please try again.');
+      }
+    });
   }
 
   viewReceipt(receipt: PaymentRecord): void {
@@ -188,7 +253,22 @@ export class ResidentDashboardComponent {
   }
 
   downloadReceiptPdf(receipt: PaymentRecord): void {
-    this.showToast(`Downloading receipt ${receipt.receiptNumber} as PDF...`);
+    if (!receipt.receiptUrl) {
+      this.showToast('A receipt file is not available for this payment yet.');
+      return;
+    }
+    window.open(receipt.receiptUrl, '_blank', 'noopener');
+  }
+
+  downloadBillReceipt(bill: MaintenanceBill): void {
+    const receipt = this.residentService.paymentHistory().find(payment =>
+      payment.billId === bill.id && payment.receiptUrl
+    );
+    if (receipt) {
+      this.downloadReceiptPdf(receipt);
+      return;
+    }
+    this.showToast('A receipt file is not available for this bill yet.');
   }
 
   // --- 2. COMPLAINTS ---
@@ -216,16 +296,31 @@ export class ResidentDashboardComponent {
       category: this.newComplaint.category,
       priority: this.newComplaint.priority,
       description: this.newComplaint.description || 'Reported via resident portal.'
+    }).subscribe({
+      next: response => {
+        if (!response.success) {
+          this.showToast(response.message || 'Complaint could not be registered.');
+          return;
+        }
+        this.closeComplaintModal();
+        this.showToast('Complaint registered successfully.');
+      },
+      error: error => this.showToast(error?.error?.message || error?.message || 'Complaint could not be registered.')
     });
-    this.closeComplaintModal();
-    this.showToast('Complaint registered successfully! Assigned to maintenance team.');
   }
 
   // --- 3. FACILITY BOOKINGS ---
-  openBookingModal(facilityName?: FacilityBooking['facilityName']): void {
-    if (facilityName) {
-      this.newBooking.facilityName = facilityName;
+  openBookingModal(facilityIdentifier?: string): void {
+    const facilities = this.residentService.facilities();
+    const selected = facilities.find(facility =>
+      facility.id === facilityIdentifier || facility.name === facilityIdentifier
+    ) || facilities.find(facility => facility.status === 'AVAILABLE');
+    if (!selected || selected.status !== 'AVAILABLE') {
+      this.showToast('There are no available facilities to book.');
+      return;
     }
+    this.newBooking.facilityId = selected.id;
+    this.newBooking.facilityName = selected.name;
     this.showBookingModal.set(true);
   }
 
@@ -234,25 +329,30 @@ export class ResidentDashboardComponent {
   }
 
   submitBooking(): void {
-    const feeMap: Record<FacilityBooking['facilityName'], number> = {
-      'Clubhouse': 1500,
-      'Community Hall': 3000,
-      'Swimming Pool': 0,
-      'Tennis Court': 0,
-      'Gymnasium': 0,
-      'Barbeque Deck': 800
-    };
+    const facility = this.residentService.facilities().find(item => item.id === this.newBooking.facilityId);
+    if (!facility || facility.status !== 'AVAILABLE') {
+      this.showToast('Choose an available facility before submitting.');
+      return;
+    }
 
     this.residentService.bookFacility({
-      facilityName: this.newBooking.facilityName,
+      facilityId: facility.id,
+      facilityName: facility.name,
       date: this.newBooking.date,
       timeSlot: this.newBooking.timeSlot,
       guestsCount: this.newBooking.guestsCount,
-      bookingFee: feeMap[this.newBooking.facilityName] || 0,
       specialRequests: this.newBooking.specialRequests
+    }).subscribe({
+      next: response => {
+        if (!response.success) {
+          this.showToast(response.message || 'Booking could not be submitted.');
+          return;
+        }
+        this.closeBookingModal();
+        this.showToast(`Booking request submitted for ${this.newBooking.facilityName}; awaiting approval.`);
+      },
+      error: error => this.showToast(error?.error?.message || error?.message || 'Booking could not be submitted.')
     });
-    this.closeBookingModal();
-    this.showToast(`Reservation confirmed for ${this.newBooking.facilityName}!`);
   }
 
   // --- 4. VISITORS ---
@@ -261,8 +361,8 @@ export class ResidentDashboardComponent {
       name: '',
       phone: '',
       purpose: 'Guest',
-      date: '2026-10-18',
-      time: '05:00 PM',
+      date: new Date().toISOString().slice(0, 10),
+      time: '17:00',
       vehicleNumber: ''
     };
     this.showVisitorModal.set(true);
@@ -284,19 +384,35 @@ export class ResidentDashboardComponent {
       date: this.newVisitor.date,
       time: this.newVisitor.time,
       vehicleNumber: this.newVisitor.vehicleNumber
+    }).subscribe({
+      next: response => {
+        if (!response.success) {
+          this.showToast(response.message || 'Visitor could not be registered.');
+          return;
+        }
+        this.closeVisitorModal();
+        this.showToast(`Expected visitor ${this.newVisitor.name} registered.`);
+      },
+      error: error => this.showToast(error?.error?.message || error?.message || 'Visitor could not be registered.')
     });
-    this.closeVisitorModal();
-    this.showToast(`Expected visitor ${this.newVisitor.name} registered with entry pass!`);
   }
 
   approveVisitor(id: string): void {
-    this.residentService.approveVisitorEntry(id);
-    this.showToast('Visitor entry approved! Gate security notified.');
+    this.residentService.approveVisitorEntry(id).subscribe({
+      next: response => response.success
+        ? this.showToast('Visitor entry approved.')
+        : this.showToast(response.message || 'Visitor entry could not be approved.'),
+      error: error => this.showToast(error?.error?.message || error?.message || 'Visitor entry could not be approved.')
+    });
   }
 
   denyVisitor(id: string): void {
-    this.residentService.denyVisitorEntry(id);
-    this.showToast('Visitor entry denied.');
+    this.residentService.denyVisitorEntry(id).subscribe({
+      next: response => response.success
+        ? this.showToast('Visitor entry denied.')
+        : this.showToast(response.message || 'Visitor entry could not be denied.'),
+      error: error => this.showToast(error?.error?.message || error?.message || 'Visitor entry could not be denied.')
+    });
   }
 
   // --- 5. NOTICES ---
@@ -310,10 +426,22 @@ export class ResidentDashboardComponent {
     this.selectedNotice.set(null);
   }
 
+  downloadDocument(doc: SocietyDocument): void {
+    if (!doc.fileUrl) {
+      this.showToast('No download link has been added for this document yet.');
+      return;
+    }
+    window.open(doc.fileUrl, '_blank', 'noopener');
+  }
+
   // --- 6. POLLS ---
   voteInPoll(pollId: string, optionId: string): void {
-    this.residentService.castVote(pollId, optionId);
-    this.showToast('Your vote has been recorded securely!');
+    this.residentService.castVote(pollId, optionId).subscribe({
+      next: response => response.success
+        ? this.showToast('Your vote has been recorded.')
+        : this.showToast(response.message || 'Your vote could not be recorded.'),
+      error: error => this.showToast(error?.error?.message || error?.message || 'Your vote could not be recorded.')
+    });
   }
 
   // --- 7. FEEDBACK ---
@@ -336,9 +464,17 @@ export class ResidentDashboardComponent {
       alert('Please provide a subject and message.');
       return;
     }
-    this.residentService.submitFeedback(this.feedbackForm);
-    this.closeFeedbackModal();
-    this.showToast('Thank you! Your suggestion was submitted to society management.');
+    this.residentService.submitFeedback(this.feedbackForm).subscribe({
+      next: response => {
+        if (!response.success) {
+          this.showToast(response.message || 'Feedback could not be submitted.');
+          return;
+        }
+        this.closeFeedbackModal();
+        this.showToast('Feedback submitted to society management.');
+      },
+      error: error => this.showToast(error?.error?.message || error?.message || 'Feedback could not be submitted.')
+    });
   }
 
   // --- 8. PROFILE UPDATE ---
@@ -348,7 +484,7 @@ export class ResidentDashboardComponent {
       emergencyPhone: this.profileForm.emergencyPhone,
       emergencyRelation: this.profileForm.emergencyRelation
     });
-    this.showToast('Profile and emergency contact updated successfully!');
+    this.showToast('Emergency contact updates are not saved yet; this feature requires a backend profile endpoint.');
   }
 
   // --- 9. NOTIFICATIONS ---
@@ -357,8 +493,12 @@ export class ResidentDashboardComponent {
   }
 
   markAllRead(): void {
-    this.residentService.markAllNotificationsRead();
-    this.showToast('All notifications marked as read.');
+    this.residentService.markAllNotificationsRead().subscribe({
+      next: response => response.success
+        ? this.showToast('All notifications marked as read.')
+        : this.showToast(response.message || 'Notifications could not be updated.'),
+      error: error => this.showToast(error?.error?.message || error?.message || 'Notifications could not be updated.')
+    });
   }
 
   // --- LOGOUT ---

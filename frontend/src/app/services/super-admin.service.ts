@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { ApiService } from './api.service';
+import { AuthService } from './auth.service';
 
 export interface SocietyRecord {
   id: string;
@@ -84,6 +86,116 @@ export interface AuditLogItem {
   providedIn: 'root'
 })
 export class SuperAdminService {
+  private api = inject(ApiService);
+  private authService = inject(AuthService, { optional: true });
+
+  constructor() {
+    this.syncFromBackend();
+    this.authService?.authStateChanged$.subscribe(() => {
+      this.syncFromBackend();
+    });
+  }
+
+  syncFromBackend(): void {
+    // 1. Societies
+    this.api.getSocieties().subscribe({
+      next: (res) => {
+        if (res?.success && res.data?.length) {
+          const mapped: SocietyRecord[] = res.data.map(s => ({
+            id: s.code || ('SOC-' + s.id),
+            name: s.name,
+            regNumber: s.registrationNumber || 'REG-' + s.id,
+            location: s.location || (s.city ? s.city + ', MH' : 'Baner, Pune, MH'),
+            units: s.totalUnits || 100,
+            towers: s.totalTowers || 3,
+            adminName: s.adminName || 'Admin',
+            adminEmail: s.adminEmail || 'admin@society.com',
+            status: (s.status === 'ACTIVE' ? 'Active' : s.status === 'PENDING' ? 'Pending Verification' : 'Suspended') as any,
+            subscriptionPlan: (s.subscriptionPlan || 'Enterprise') as any,
+            onboardedDate: s.onboardedDate || '12 Jan 2024',
+            monthlyDuesVolume: s.monthlyDuesVolume || '₹5,00,000'
+          }));
+          this.societies.set(mapped);
+        }
+      },
+      error: () => {}
+    });
+
+    // 2. Verifications
+    this.api.getVerifications().subscribe({
+      next: (res) => {
+        if (res?.success && res.data?.length) {
+          const mapped: VerificationRequest[] = res.data.map(v => ({
+            id: 'VER-' + v.id,
+            societyName: v.societyName,
+            secretaryName: v.secretaryName,
+            secretaryEmail: v.secretaryEmail,
+            phone: v.phone || '+91 98220 99401',
+            regNumber: v.registrationNumber || 'MAH/PUN/2024/7701',
+            city: v.city || 'Pune',
+            units: v.totalUnits || 120,
+            submissionDate: v.createdAt ? new Date(v.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
+            documents: [
+              { name: 'Society_Registration_Certificate.pdf', size: '2.4 MB', type: 'Certificate' },
+              { name: 'Model_Bylaws_Adoption_Signed.pdf', size: '4.1 MB', type: 'Legal Bylaws' }
+            ],
+            status: (v.status === 'VERIFIED' ? 'Verified' : v.status === 'REQUIRES_CLARIFICATION' ? 'Requires Clarification' : v.status === 'REJECTED' ? 'Rejected' : 'Under Review') as any,
+            notes: v.notes
+          }));
+          this.verifications.set(mapped);
+        }
+      },
+      error: () => {}
+    });
+
+    // 3. Platform Users / Residents
+    this.api.getResidents().subscribe({
+      next: (res) => {
+        if (res?.success && res.data?.length) {
+          const mapped: PlatformUser[] = res.data.map(u => ({
+            id: 'USR-' + u.id,
+            name: u.name,
+            email: u.email || '',
+            phone: u.phone || '',
+            societyName: 'Greenwood Heights',
+            role: 'Resident',
+            flat: u.flatNumber || 'A-101',
+            status: (u.status === 'ACTIVE' ? 'Active' : 'Locked 2FA') as any,
+            registeredDate: u.joinDate || 'Today'
+          }));
+          this.platformUsers.set(mapped);
+        }
+      },
+      error: () => {}
+    });
+
+    // 4. Support Tickets
+    this.api.getSupportTickets().subscribe({
+      next: (res) => {
+        if (res?.success && res.data?.length) {
+          const mapped: SupportTicket[] = res.data.map(t => ({
+            id: 'SUP-' + t.id,
+            societyName: t.societyName || 'Greenwood Heights Co-op Society',
+            secretaryName: t.createdByName || 'Secretary',
+            secretaryEmail: t.createdByEmail || 'secretary@greenwood.com',
+            subject: t.subject,
+            category: (t.category || 'Billing & Gateway') as any,
+            priority: (t.priority === 'HIGH' ? 'Urgent' : t.priority === 'LOW' ? 'Normal' : 'Medium') as any,
+            status: (t.status === 'IN_PROGRESS' ? 'In Progress' : t.status === 'RESOLVED' ? 'Resolved' : 'Open') as any,
+            createdAt: t.createdAt ? new Date(t.createdAt).toLocaleString('en-IN') : 'Today',
+            messages: (t.messages || []).map((m: any) => ({
+              sender: m.senderName || 'Desk',
+              text: m.message,
+              time: m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Now',
+              isStaff: m.isStaff || false
+            }))
+          }));
+          this.supportTickets.set(mapped);
+        }
+      },
+      error: () => {}
+    });
+  }
   // 1. Societies State
   readonly societies = signal<SocietyRecord[]>([
     {
@@ -452,6 +564,12 @@ export class SuperAdminService {
 
   // Actions: Society Management
   updateSocietyStatus(id: string, status: 'Active' | 'Pending Verification' | 'Suspended'): void {
+    const numericId = parseInt(id.replace(/\D/g, ''), 10);
+    if (numericId) {
+      this.api.updateSociety(numericId, {
+        status: status === 'Active' ? 'ACTIVE' : status === 'Suspended' ? 'INACTIVE' : 'PENDING'
+      }).subscribe({ error: () => {} });
+    }
     this.societies.update(list =>
       list.map(s => (s.id === id ? { ...s, status } : s))
     );
@@ -459,20 +577,45 @@ export class SuperAdminService {
   }
 
   addSociety(society: Omit<SocietyRecord, 'id' | 'onboardedDate'>): void {
-    const newId = `SOC-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newRecord: SocietyRecord = {
-      ...society,
-      id: newId,
-      onboardedDate: 'Today'
-    };
-    this.societies.update(list => [newRecord, ...list]);
-    this.recordAudit(`Onboarded new society: ${newRecord.name}`, newId, 'Info');
+    this.api.createSociety({
+      name: society.name,
+      registrationNumber: society.regNumber,
+      city: society.location.split(',')[0].trim(),
+      totalUnits: society.units,
+      totalTowers: society.towers,
+      status: society.status === 'Active' ? 'ACTIVE' : 'PENDING',
+      subscriptionPlan: society.subscriptionPlan
+    }).subscribe({
+      next: (res) => {
+        const newRecord: SocietyRecord = {
+          ...society,
+          id: res.data?.code || `SOC-${res.data?.id || Math.floor(1000 + Math.random() * 9000)}`,
+          onboardedDate: 'Today'
+        };
+        this.societies.update(list => [newRecord, ...list]);
+      },
+      error: () => {
+        const newId = `SOC-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newRecord: SocietyRecord = {
+          ...society,
+          id: newId,
+          onboardedDate: 'Today'
+        };
+        this.societies.update(list => [newRecord, ...list]);
+      }
+    });
+    this.recordAudit(`Onboarded new society: ${society.name}`, society.name, 'Info');
   }
 
   // Actions: Verification
   verifyAndAuthorizeSociety(reqId: string): void {
     const req = this.verifications().find(v => v.id === reqId);
     if (!req) return;
+
+    const numericId = parseInt(reqId.replace(/\D/g, ''), 10);
+    if (numericId) {
+      this.api.updateVerificationStatus(numericId, 'VERIFIED', 'Verified by Super Admin').subscribe({ error: () => {} });
+    }
 
     this.verifications.update(list =>
       list.map(v => (v.id === reqId ? { ...v, status: 'Verified' } : v))
@@ -514,6 +657,10 @@ export class SuperAdminService {
   }
 
   requestVerificationClarification(reqId: string, notes: string): void {
+    const numericId = parseInt(reqId.replace(/\D/g, ''), 10);
+    if (numericId) {
+      this.api.updateVerificationStatus(numericId, 'REQUIRES_CLARIFICATION', notes).subscribe({ error: () => {} });
+    }
     this.verifications.update(list =>
       list.map(v => (v.id === reqId ? { ...v, status: 'Requires Clarification', notes } : v))
     );
@@ -544,6 +691,14 @@ export class SuperAdminService {
 
   // Actions: Support Management
   replyToTicket(ticketId: string, replyText: string): void {
+    const numericId = parseInt(ticketId.replace(/\D/g, ''), 10);
+    if (numericId) {
+      this.api.addSupportTicketMessage(numericId, {
+        senderName: 'Super Admin Desk',
+        message: replyText,
+        isStaff: true
+      }).subscribe({ error: () => {} });
+    }
     this.supportTickets.update(list =>
       list.map(t => {
         if (t.id === ticketId) {
@@ -566,6 +721,10 @@ export class SuperAdminService {
   }
 
   resolveTicket(ticketId: string): void {
+    const numericId = parseInt(ticketId.replace(/\D/g, ''), 10);
+    if (numericId) {
+      this.api.updateSupportTicketStatus(numericId, 'RESOLVED').subscribe({ error: () => {} });
+    }
     this.supportTickets.update(list =>
       list.map(t => (t.id === ticketId ? { ...t, status: 'Resolved' } : t))
     );

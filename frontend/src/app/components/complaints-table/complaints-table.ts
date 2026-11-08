@@ -13,8 +13,6 @@ import { Complaint } from '../../models/models';
   styleUrl: './complaints-table.css'
 })
 export class ComplaintsTableComponent implements OnInit {
-  allComplaints: Complaint[] = [];
-  filtered: Complaint[] = [];
   searchQuery = '';
   filterStatus = 'all';
   filterPriority = 'all';
@@ -33,27 +31,28 @@ export class ComplaintsTableComponent implements OnInit {
     this.router.navigate([route]);
   }
 
-  ngOnInit() {
-    this.allComplaints = this.mockData.getComplaints();
-    this.filtered = [...this.allComplaints];
+  ngOnInit() {}
+
+  get allComplaints(): Complaint[] {
+    return this.mockData.complaints();
   }
 
-  applyFilters() {
-    this.filtered = this.allComplaints.filter(c => {
+  get filtered(): Complaint[] {
+    return this.allComplaints.filter(c => {
       const matchSearch = !this.searchQuery ||
-        c.residentName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        c.id.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        c.flatNumber.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        c.title.toLowerCase().includes(this.searchQuery.toLowerCase());
+        (c.residentName && c.residentName.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (c.id && c.id.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (c.flatNumber && c.flatNumber.toLowerCase().includes(this.searchQuery.toLowerCase())) ||
+        (c.title && c.title.toLowerCase().includes(this.searchQuery.toLowerCase()));
       const matchStatus = this.filterStatus === 'all' || c.status === this.filterStatus;
       const matchPriority = this.filterPriority === 'all' || c.priority === this.filterPriority;
       return matchSearch && matchStatus && matchPriority;
     });
   }
 
-  onSearch() { this.applyFilters(); }
-  onFilterStatus(val: string) { this.filterStatus = val; this.applyFilters(); }
-  onFilterPriority(val: string) { this.filterPriority = val; this.applyFilters(); }
+  onSearch() {}
+  onFilterStatus(val: string) { this.filterStatus = val; }
+  onFilterPriority(val: string) { this.filterPriority = val; }
 
   openAssign(complaint: Complaint) {
     this.selectedComplaint = complaint;
@@ -62,24 +61,13 @@ export class ComplaintsTableComponent implements OnInit {
 
   assignStaff(staff: string) {
     if (this.selectedComplaint) {
-      this.selectedComplaint.assignedStaff = staff;
-      this.selectedComplaint.status = 'In Progress';
-      this.mockData.showToast({
-        type: 'success',
-        title: 'Staff Assigned',
-        message: `${staff} assigned to ${this.selectedComplaint.id}`,
-      });
+      this.mockData.updateComplaintStatus(this.selectedComplaint.id, 'In Progress', staff);
     }
     this.showAssignModal = false;
   }
 
   resolveComplaint(complaint: Complaint) {
-    complaint.status = 'Resolved';
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Complaint Resolved',
-      message: `${complaint.id} marked as resolved`,
-    });
+    this.mockData.updateComplaintStatus(complaint.id, 'Resolved');
   }
 
   getPriorityClass(priority: string): string {

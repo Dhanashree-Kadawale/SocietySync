@@ -12,15 +12,15 @@ import { PendingAction } from '../../models/models';
   styleUrl: './pending-actions.css'
 })
 export class PendingActionsComponent implements OnInit {
-  pendingActions: PendingAction[] = [];
-
   constructor(
     private mockData: MockDataService,
     private router: Router
   ) {}
 
-  ngOnInit() {
-    this.pendingActions = this.mockData.getPendingActions();
+  ngOnInit() {}
+
+  get pendingActions(): PendingAction[] {
+    return this.mockData.getPendingActions();
   }
 
   handleAction(action: PendingAction) {

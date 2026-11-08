@@ -383,6 +383,29 @@
   border-radius: 4px;
 }
 
+.options-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.demo-fill-btn {
+  background: #EBF3F0;
+  border: 1px solid rgba(40, 107, 88, 0.2);
+  color: #286B58;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.demo-fill-btn:hover {
+  background: #286B58;
+  color: #ffffff;
+}
+
 .forgot-link {
   color: #286B58;
   font-size: 13.5px;

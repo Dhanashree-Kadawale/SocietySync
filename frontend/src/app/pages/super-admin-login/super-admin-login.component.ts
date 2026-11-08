@@ -12,9 +12,9 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './super-admin-login.component.css'
 })
 export class SuperAdminLoginComponent {
-  masterEmail = 'superadmin@societysync.com';
-  masterPassword = 'SuperAdmin@2026';
-  securityToken = 'ROOT-8941';
+  masterEmail = '';
+  masterPassword = '';
+  securityToken = '';
   rememberSession = true;
   showPassword = false;
   isLoading = false;

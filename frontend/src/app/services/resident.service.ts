@@ -1,4 +1,8 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { interval, Observable, Subscription, throwError } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
+import { ApiResponse, ApiService } from './api.service';
+import { AuthService } from './auth.service';
 import {
   FlatInfo,
   Complaint,
@@ -10,433 +14,511 @@ import {
   SocietyDocument,
   Poll,
   FeedbackSubmission,
-  NotificationItem
+  NotificationItem,
+  ResidentFacility
 } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResidentService {
+  private api = inject(ApiService);
+  private authService = inject(AuthService, { optional: true });
+  private refreshSubscription?: Subscription;
+
+  constructor() {
+    this.authService?.authStateChanged$.subscribe(user => {
+      this.refreshSubscription?.unsubscribe();
+      if (!user) {
+        this.clearResidentData();
+        return;
+      }
+
+      this.clearResidentData();
+      if (user.flat) {
+        this.flatInfo.update(f => ({
+          ...f,
+          flatNumber: user.flat,
+          wing: user.flat.split('-')[0]
+        }));
+      }
+      this.syncFromBackend();
+      this.refreshSubscription = interval(15000).subscribe(() => this.syncFromBackend());
+    });
+  }
+
   // 1. Flat & Profile Info
   readonly flatInfo = signal<FlatInfo>({
-    wing: 'Tower A - Palm Grove',
-    flatNumber: 'A-204',
-    floor: 2,
-    bhkType: '3 BHK Luxury Apartment',
-    carpetAreaSqFt: 1450,
-    parkingSlot: 'B1-Slot-42 (Covered)',
-    ownershipType: 'Owner',
-    residentSince: 'Nov 2022',
-    occupancyCount: 3,
+    wing: '',
+    flatNumber: '',
+    floor: 0,
+    bhkType: '',
+    carpetAreaSqFt: 0,
+    parkingSlot: '',
+    ownershipType: '',
+    residentSince: '',
+    occupancyCount: 0,
     emergencyContact: {
-      name: 'Vikas Sharma (Spouse)',
-      relationship: 'Spouse',
-      phone: '+91 98765 89012'
+      name: '',
+      relationship: '',
+      phone: ''
     },
-    vehicles: [
-      { type: 'Car', model: 'Honda City (White)', registrationNumber: 'MH 12 AB 4589', slot: 'B1-Slot-42' },
-      { type: 'Two-Wheeler', model: 'Ather 450X (Grey)', registrationNumber: 'MH 12 XY 9921', slot: 'Two-Wheeler Bay 14' }
-    ]
+    vehicles: []
   });
 
   // 2. Complaints
-  readonly complaints = signal<Complaint[]>([
-    {
-      id: 'CMP-2026-104',
-      title: 'Water pressure low in master bedroom bathroom',
-      category: 'Plumbing',
-      description: 'The overhead shower in master bedroom is receiving very low water pressure since yesterday morning.',
-      priority: 'Medium',
-      status: 'In Progress',
-      dateReported: '16 Oct 2026',
-      flat: 'A-204',
-      assignedStaff: {
-        name: 'Suresh Kumar',
-        phone: '+91 98220 11234',
-        role: 'Senior Plumber'
-      }
-    },
-    {
-      id: 'CMP-2026-092',
-      title: 'Balcony sliding door latch jammed',
-      category: 'Carpentry',
-      description: 'The lock latch on the living room balcony door is sticking and cannot be locked securely.',
-      priority: 'Low',
-      status: 'Assigned',
-      dateReported: '14 Oct 2026',
-      flat: 'A-204',
-      assignedStaff: {
-        name: 'Manoj Mistry',
-        phone: '+91 98220 55667',
-        role: 'Society Carpenter'
-      }
-    },
-    {
-      id: 'CMP-2026-081',
-      title: 'Tower A Lift 2 jerk during stop on 2nd floor',
-      category: 'Lift',
-      description: 'Lift 2 produces a loud mechanical thud and jerks slightly when leveling at the 2nd floor.',
-      priority: 'Urgent',
-      status: 'Resolved',
-      dateReported: '08 Oct 2026',
-      flat: 'A-204',
-      assignedStaff: {
-        name: 'Schindler Express Team',
-        phone: '1800-200-1199',
-        role: 'OEM Technician'
-      },
-      resolutionNote: 'Hydraulic leveling buffer sensor recalibrated and tested.',
-      resolvedDate: '10 Oct 2026'
-    }
-  ]);
+  readonly complaints = signal<Complaint[]>([]);
 
   // 3. Maintenance Bills
-  readonly bills = signal<MaintenanceBill[]>([
-    {
-      id: 'BILL-OCT-2026',
-      billNumber: 'INV/2026-27/1089',
-      month: 'October 2026',
-      dueDate: '25 Oct 2026',
-      issuedDate: '01 Oct 2026',
-      baseAmount: 3850,
-      sinkingFund: 650,
-      waterCharges: 400,
-      parkingCharges: 300,
-      penalty: 0,
-      totalAmount: 5200,
-      status: 'Unpaid'
-    },
-    {
-      id: 'BILL-SEP-2026',
-      billNumber: 'INV/2026-27/0984',
-      month: 'September 2026',
-      dueDate: '25 Sep 2026',
-      issuedDate: '01 Sep 2026',
-      baseAmount: 3850,
-      sinkingFund: 650,
-      waterCharges: 400,
-      parkingCharges: 300,
-      penalty: 0,
-      totalAmount: 5200,
-      status: 'Paid',
-      paidDate: '12 Sep 2026',
-      paymentMode: 'UPI (Google Pay)',
-      receiptNumber: 'RCP-2026-09-4421'
-    },
-    {
-      id: 'BILL-AUG-2026',
-      billNumber: 'INV/2026-27/0879',
-      month: 'August 2026',
-      dueDate: '25 Aug 2026',
-      issuedDate: '01 Aug 2026',
-      baseAmount: 3850,
-      sinkingFund: 650,
-      waterCharges: 400,
-      parkingCharges: 300,
-      penalty: 0,
-      totalAmount: 5200,
-      status: 'Paid',
-      paidDate: '15 Aug 2026',
-      paymentMode: 'Net Banking (HDFC)',
-      receiptNumber: 'RCP-2026-08-3190'
-    }
-  ]);
+  readonly bills = signal<MaintenanceBill[]>([]);
 
   // 4. Payment Records
-  readonly paymentHistory = signal<PaymentRecord[]>([
-    {
-      id: 'PAY-9011',
-      receiptNumber: 'RCP-2026-09-4421',
-      billId: 'BILL-SEP-2026',
-      billMonth: 'September 2026',
-      amount: 5200,
-      paymentDate: '12 Sep 2026, 04:32 PM',
-      paymentMethod: 'UPI',
-      transactionId: 'TXN-UPI-982187319',
-      status: 'Success'
-    },
-    {
-      id: 'PAY-8104',
-      receiptNumber: 'RCP-2026-08-3190',
-      billId: 'BILL-AUG-2026',
-      billMonth: 'August 2026',
-      amount: 5200,
-      paymentDate: '15 Aug 2026, 11:15 AM',
-      paymentMethod: 'Net Banking',
-      transactionId: 'TXN-HDFC-5519280',
-      status: 'Success'
-    },
-    {
-      id: 'PAY-7412',
-      receiptNumber: 'RCP-2026-07-2081',
-      billId: 'BILL-JUL-2026',
-      billMonth: 'July 2026',
-      amount: 5200,
-      paymentDate: '10 Jul 2026, 02:40 PM',
-      paymentMethod: 'Credit Card',
-      transactionId: 'TXN-CC-77192834',
-      status: 'Success'
-    }
-  ]);
+  readonly paymentHistory = signal<PaymentRecord[]>([]);
 
   // 5. Facility Bookings
-  readonly bookings = signal<FacilityBooking[]>([
-    {
-      id: 'BK-2026-042',
-      facilityName: 'Clubhouse',
-      date: '24 Oct 2026',
-      timeSlot: '05:00 PM - 09:00 PM',
-      guestsCount: 25,
-      status: 'Confirmed',
-      bookingFee: 1500,
-      specialRequests: 'Birthday celebration setup with projector access',
-      createdAt: '12 Oct 2026'
-    },
-    {
-      id: 'BK-2026-031',
-      facilityName: 'Tennis Court',
-      date: '28 Oct 2026',
-      timeSlot: '06:00 AM - 08:00 AM',
-      guestsCount: 4,
-      status: 'Confirmed',
-      bookingFee: 0,
-      createdAt: '15 Oct 2026'
-    },
-    {
-      id: 'BK-2026-018',
-      facilityName: 'Community Hall',
-      date: '05 Sep 2026',
-      timeSlot: '10:00 AM - 04:00 PM',
-      guestsCount: 60,
-      status: 'Completed',
-      bookingFee: 3000,
-      createdAt: '20 Aug 2026'
-    }
-  ]);
+  readonly bookings = signal<FacilityBooking[]>([]);
+  readonly facilities = signal<ResidentFacility[]>([]);
 
   // 6. Visitor Management
-  readonly visitors = signal<Visitor[]>([
-    {
-      id: 'VIS-101',
-      name: 'Sunil Verma',
-      phone: '+91 98223 99881',
-      purpose: 'Guest',
-      date: '18 Oct 2026',
-      time: '04:30 PM',
-      vehicleNumber: 'MH 14 CC 7712',
-      entryPassCode: 'PASS-8941',
-      status: 'Expected',
-      flat: 'A-204',
-      registeredAt: 'Today'
-    },
-    {
-      id: 'VIS-102',
-      name: 'Amazon Prime Delivery (Rahul)',
-      phone: '+91 97665 11029',
-      purpose: 'Delivery',
-      date: '17 Oct 2026',
-      time: '02:15 PM',
-      entryPassCode: 'PASS-3312',
-      status: 'Approved',
-      flat: 'A-204',
-      registeredAt: '17 Oct 2026'
-    },
-    {
-      id: 'VIS-103',
-      name: 'Urban Company Ac Technician',
-      phone: '+91 98550 44321',
-      purpose: 'Service Provider',
-      date: '15 Oct 2026',
-      time: '11:00 AM',
-      entryPassCode: 'PASS-5590',
-      status: 'Checked Out',
-      flat: 'A-204',
-      registeredAt: '15 Oct 2026'
-    }
-  ]);
+  readonly visitors = signal<Visitor[]>([]);
 
   // 7. Notice Board
-  readonly notices = signal<Notice[]>([
-    {
-      id: 'NTC-2026-24',
-      title: 'Scheduled Water Supply Pipeline Maintenance',
-      category: 'Maintenance',
-      date: '18 Oct 2026',
-      content: 'Water supply to Tower A and Tower B will experience low pressure between 10:00 AM and 01:00 PM due to preventive valve servicing on the terrace booster pumps.',
-      priority: 'High',
-      issuedBy: 'Estate Management Committee'
-    },
-    {
-      id: 'NTC-2026-23',
-      title: 'Diwali Grand Celebration & Cultural Night in Central Garden',
-      category: 'Celebration',
-      date: '28 Oct 2026',
-      content: 'All residents are cordially invited for the Grand Diwali Gathering featuring cultural dances, delicious food stalls, and eco-friendly diya illumination starting at 6:30 PM.',
-      priority: 'Normal',
-      issuedBy: 'Cultural Committee'
-    },
-    {
-      id: 'NTC-2026-22',
-      title: 'Basement Parking Slot Deep Cleaning Drive',
-      category: 'Rules',
-      date: '22 Oct 2026',
-      content: 'Basement level B1 and B2 will undergo mechanized pressure washing. Residents are requested to park in designated temporary open bays during their respective floor slots.',
-      priority: 'Normal',
-      issuedBy: 'Society Secretary Office'
-    },
-    {
-      id: 'NTC-2026-21',
-      title: 'Annual General Meeting (AGM) 2026 Announcement & Agenda',
-      category: 'General',
-      date: '12 Oct 2026',
-      content: 'The Annual General Body meeting is scheduled for 8th November 2026 at the Society Clubhouse at 10:30 AM. Audited financials are attached in the Documents section.',
-      priority: 'High',
-      issuedBy: 'Secretary - Rajesh Mehta'
-    }
-  ]);
+  readonly notices = signal<Notice[]>([]);
 
   // 8. Documents & Bylaws
-  readonly documents = signal<SocietyDocument[]>([
-    {
-      id: 'DOC-01',
-      title: 'Greenwood Heights Society Bylaws & Community Rules (2026 Ed.)',
-      category: 'Bylaws & Rules',
-      fileSize: '3.4 MB',
-      fileType: 'PDF',
-      uploadedDate: 'Jan 2026',
-      description: 'Comprehensive guidelines on renovation hours, pet policies, clubhouse usage, and quiet hours.'
-    },
-    {
-      id: 'DOC-02',
-      title: 'Audited Financial Statement & Balance Sheet FY 2025-26',
-      category: 'Financial & Audit',
-      fileSize: '5.1 MB',
-      fileType: 'PDF',
-      uploadedDate: 'Sep 2026',
-      description: 'Chartered accountant statutory audit report and sinking fund health statement.'
-    },
-    {
-      id: 'DOC-03',
-      title: 'Standard Flat Renovation & Interior Work NOC Form',
-      category: 'NOC Forms',
-      fileSize: '450 KB',
-      fileType: 'PDF',
-      uploadedDate: 'Mar 2026',
-      description: 'Form required prior to carrying out civil, electrical, or carpentry modifications.'
-    },
-    {
-      id: 'DOC-04',
-      title: 'Emergency Evacuation & Fire Safety Protocol Map',
-      category: 'Guidelines',
-      fileSize: '1.8 MB',
-      fileType: 'PDF',
-      uploadedDate: 'Feb 2026',
-      description: 'Detailed assembly area locations, hose reel points, and stairwell safety instructions.'
-    }
-  ]);
+  readonly documents = signal<SocietyDocument[]>([]);
 
   // 9. Polls & Surveys
-  readonly polls = signal<Poll[]>([
-    {
-      id: 'POLL-2026-01',
-      title: 'Proposal for Dedicated EV Charging Stations in Basement B1',
-      description: 'Should the society partner with an EV provider to install 8 fast-charging points funded via consumption-metered tariffs?',
-      category: 'Infrastructure',
-      endDate: '26 Oct 2026',
-      totalVotes: 142,
-      userVotedOptionId: 'OPT-1',
-      status: 'Active',
-      options: [
-        { id: 'OPT-1', text: 'Yes, fully approve installation', votes: 114 },
-        { id: 'OPT-2', text: 'Need more technical & cost details', votes: 21 },
-        { id: 'OPT-3', text: 'No, against the proposal', votes: 7 }
-      ]
-    },
-    {
-      id: 'POLL-2026-02',
-      title: 'Swimming Pool Winter Timings Adjustment',
-      description: 'Select your preferred morning opening slot for the heated pool during November-January.',
-      category: 'Amenities',
-      endDate: '30 Oct 2026',
-      totalVotes: 89,
-      status: 'Active',
-      options: [
-        { id: 'OPT-A', text: '06:30 AM - 10:30 AM', votes: 42 },
-        { id: 'OPT-B', text: '07:00 AM - 11:00 AM', votes: 36 },
-        { id: 'OPT-C', text: 'Keep current 06:00 AM - 09:30 AM', votes: 11 }
-      ]
-    }
-  ]);
+  readonly polls = signal<Poll[]>([]);
 
   // 10. Feedbacks
-  readonly feedbacks = signal<FeedbackSubmission[]>([
-    {
-      id: 'FB-01',
-      category: 'Cleanliness',
-      subject: 'Great upkeep of central garden blooming flowers',
-      message: 'Appreciating the gardening staff for the beautiful seasonal flower beds along the walking track.',
-      rating: 5,
-      submittedDate: '10 Oct 2026',
-      status: 'Acknowledged'
-    }
-  ]);
+  readonly feedbacks = signal<FeedbackSubmission[]>([]);
 
   // 11. Notifications
-  readonly notifications = signal<NotificationItem[]>([
-    {
-      id: 'NOTIF-1',
-      title: 'Maintenance Bill Generated',
-      message: 'Your maintenance dues for October 2026 (₹5,200) are due by 25 Oct 2026.',
-      category: 'Bill',
-      timestamp: 'Today, 09:00 AM',
-      isRead: false,
-      linkTab: 'bills'
-    },
-    {
-      id: 'NOTIF-2',
-      title: 'Technician Assigned',
-      message: 'Plumber Suresh Kumar has been assigned to your complaint CMP-2026-104.',
-      category: 'Complaint',
-      timestamp: 'Yesterday, 04:30 PM',
-      isRead: false,
-      linkTab: 'complaints'
-    },
-    {
-      id: 'NOTIF-3',
-      title: 'Facility Booking Confirmed',
-      message: 'Your Clubhouse booking for 24 Oct (05:00 PM - 09:00 PM) has been confirmed.',
-      category: 'Facility',
-      timestamp: '12 Oct 2026',
-      isRead: true,
-      linkTab: 'facilities'
-    },
-    {
-      id: 'NOTIF-4',
-      title: 'New Society Notice',
-      message: 'Notice regarding Water Supply Pipeline Maintenance has been posted.',
-      category: 'Notice',
-      timestamp: '11 Oct 2026',
-      isRead: true,
-      linkTab: 'notices'
-    }
-  ]);
+  readonly notifications = signal<NotificationItem[]>([]);
 
   // Computed summary metrics for Dashboard
-  readonly unpaidBillCount = computed(() => this.bills().filter(b => b.status === 'Unpaid').length);
+  readonly unpaidBillCount = computed(() => this.bills().filter(b => b.status !== 'Paid').length);
   readonly totalDueAmount = computed(() =>
     this.bills()
-      .filter(b => b.status === 'Unpaid')
+      .filter(b => b.status !== 'Paid')
       .reduce((sum, b) => sum + b.totalAmount, 0)
   );
   readonly activeComplaintCount = computed(() =>
     this.complaints().filter(c => c.status !== 'Resolved' && c.status !== 'Closed').length
   );
   readonly upcomingBookingCount = computed(() =>
-    this.bookings().filter(b => b.status === 'Confirmed').length
+    this.bookings().filter(b => b.status === 'Confirmed' || b.status === 'Pending Approval').length
   );
   readonly unreadNotificationCount = computed(() =>
     this.notifications().filter(n => !n.isRead).length
   );
+
+  private clearResidentData(): void {
+    this.complaints.set([]);
+    this.bills.set([]);
+    this.paymentHistory.set([]);
+    this.bookings.set([]);
+    this.facilities.set([]);
+    this.visitors.set([]);
+    this.notices.set([]);
+    this.documents.set([]);
+    this.polls.set([]);
+    this.feedbacks.set([]);
+    this.notifications.set([]);
+    this.flatInfo.set({
+      wing: '',
+      flatNumber: '',
+      floor: 0,
+      bhkType: '',
+      carpetAreaSqFt: 0,
+      parkingSlot: '',
+      ownershipType: '',
+      residentSince: '',
+      occupancyCount: 0,
+      emergencyContact: { name: '', relationship: '', phone: '' },
+      vehicles: []
+    });
+  }
+
+  private mapPriority(value: string): Complaint['priority'] {
+    const priority = value?.toUpperCase();
+    if (priority === 'LOW') return 'Low';
+    if (priority === 'HIGH') return 'High';
+    if (priority === 'URGENT') return 'Urgent';
+    return 'Medium';
+  }
+
+  private mapComplaintCategory(value: string): Complaint['category'] {
+    const category = value?.toUpperCase();
+    if (category === 'ELECTRICAL') return 'Electrical';
+    if (category === 'LIFT') return 'Lift';
+    if (category === 'CARPENTRY') return 'Carpentry';
+    if (category === 'CIVIL') return 'Civil';
+    if (category === 'HOUSEKEEPING') return 'Housekeeping';
+    if (category === 'SECURITY') return 'Security';
+    if (category === 'GENERAL') return 'General';
+    return 'Plumbing';
+  }
+
+  private mapComplaintStatus(value: string): Complaint['status'] {
+    const status = value?.toUpperCase();
+    if (status === 'ASSIGNED') return 'Assigned';
+    if (status === 'IN_PROGRESS') return 'In Progress';
+    if (status === 'RESOLVED') return 'Resolved';
+    if (status === 'CLOSED') return 'Closed';
+    return 'Reported';
+  }
+
+  private mapBillStatus(value: string): MaintenanceBill['status'] {
+    if (value === 'PAID') return 'Paid';
+    if (value === 'OVERDUE') return 'Overdue';
+    return 'Unpaid';
+  }
+
+  private mapBookingStatus(value: string): FacilityBooking['status'] {
+    if (value === 'APPROVED' || value === 'CONFIRMED') return 'Confirmed';
+    if (value === 'COMPLETED') return 'Completed';
+    if (value === 'CANCELLED' || value === 'REJECTED') return 'Cancelled';
+    return 'Pending Approval';
+  }
+
+  private mapVisitorStatus(value: string): Visitor['status'] {
+    if (value === 'CHECKED_IN') return 'Checked In';
+    if (value === 'APPROVED') return 'Approved';
+    if (value === 'DENIED') return 'Denied';
+    if (value === 'CHECKED_OUT') return 'Checked Out';
+    return 'Expected';
+  }
+
+  private mapVisitorPurpose(value: string): Visitor['purpose'] {
+    if (value === 'SERVICE_PROVIDER') return 'Service Provider';
+    if (value === 'HOME_REPAIR') return 'Home Repair';
+    if (value === 'DELIVERY') return 'Delivery';
+    if (value === 'CAB') return 'Cab';
+    return 'Guest';
+  }
+
+  private mapNoticeCategory(value: string): Notice['category'] {
+    if (value === 'MAINTENANCE') return 'Maintenance';
+    if (value === 'EMERGENCY') return 'Emergency';
+    if (value === 'CELEBRATION') return 'Celebration';
+    if (value === 'RULES') return 'Rules';
+    return 'General';
+  }
+
+  private mapDocumentCategory(value: string): SocietyDocument['category'] {
+    if (value === 'AGM_MINUTES') return 'AGM Minutes';
+    if (value === 'FINANCIAL_AUDIT') return 'Financial & Audit';
+    if (value === 'NOC_FORMS') return 'NOC Forms';
+    if (value === 'BYLAWS_RULES') return 'Bylaws & Rules';
+    return 'Guidelines';
+  }
+
+  private mapNotificationCategory(value: string): NotificationItem['category'] {
+    if (value === 'BILL') return 'Bill';
+    if (value === 'COMPLAINT') return 'Complaint';
+    if (value === 'VISITOR') return 'Visitor';
+    if (value === 'FACILITY') return 'Facility';
+    return 'Notice';
+  }
+
+  private mapFeedbackCategory(value: string): FeedbackSubmission['category'] {
+    if (value === 'MAINTENANCE') return 'Maintenance';
+    if (value === 'SECURITY') return 'Security';
+    if (value === 'CLEANLINESS') return 'Cleanliness';
+    if (value === 'AMENITIES') return 'Amenities';
+    if (value === 'MANAGEMENT') return 'Management';
+    return 'General Suggestion';
+  }
+
+  private parseId(value: string, prefix: string): number {
+    const match = new RegExp(`^${prefix}-(\\d+)$`).exec(value);
+    return match ? Number(match[1]) : NaN;
+  }
+
+  private parseTime(value: string): string {
+    const match = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(value.trim());
+    if (!match) return '';
+    let hour = Number(match[1]) % 12;
+    if (match[3].toUpperCase() === 'PM') hour += 12;
+    return `${String(hour).padStart(2, '0')}:${match[2]}:00`;
+  }
+
+  private timeToMinutes(value: string): number {
+    const [hour, minute] = value.split(':').map(Number);
+    return hour * 60 + minute;
+  }
+
+  // Live Database Sync
+  public syncFromBackend() {
+    const user = this.authService?.currentUser();
+    if (!user) return;
+
+    const societyId = user.societyId;
+    if (!user.userId || !user.residentId || !societyId) {
+      console.error('Resident data cannot be loaded because the account is missing user, resident, or society IDs.');
+      return;
+    }
+    const userFlat = user.flat?.trim().toUpperCase();
+    const userName = user.name.trim().toLowerCase();
+    const matchesUser = (record: any) =>
+      (userFlat && record.flatNumber?.trim().toUpperCase() === userFlat) ||
+      (record.residentName?.trim().toLowerCase() === userName) ||
+      (record.hostResidentName?.trim().toLowerCase() === userName);
+
+    // 1. Complaints
+    this.api.getComplaints(societyId, user.residentId).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          const filtered = (res.data || []).filter(matchesUser);
+          const mapped: Complaint[] = filtered.map((c: any) => ({
+            id: 'CMP-' + c.id,
+            title: c.title,
+            description: c.description || '',
+            category: this.mapComplaintCategory(c.category),
+            priority: this.mapPriority(c.priority),
+            status: this.mapComplaintStatus(c.status),
+            dateReported: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+            flat: c.flatNumber || user.flat || '',
+            assignedStaff: c.assignedStaffName ? { name: c.assignedStaffName, phone: '', role: 'Maintenance Technician' } : undefined
+          }));
+          this.complaints.set(mapped);
+        } else {
+          console.error('Unable to load resident complaints:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident complaints:', error)
+    });
+
+    // 2. Notices
+    this.api.getNotices(societyId).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          const mapped: Notice[] = (res.data || []).map((n: any) => ({
+            id: 'NOTICE-' + n.id,
+            title: n.title,
+            category: this.mapNoticeCategory(n.category),
+            priority: (n.priority === 'HIGH' ? 'High' : 'Normal') as any,
+            date: n.postedAt ? new Date(n.postedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+            issuedBy: n.authorName || '',
+            content: n.content || ''
+          }));
+          this.notices.set(mapped);
+        } else {
+          console.error('Unable to load resident notices:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident notices:', error)
+    });
+
+    // 3. Visitors
+    this.api.getVisitors(societyId).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          const filtered = (res.data || []).filter(matchesUser);
+          const mapped: Visitor[] = filtered.map((v: any) => ({
+            id: 'VIS-' + v.id,
+            name: v.name,
+            phone: v.phone || '',
+            purpose: this.mapVisitorPurpose(v.purpose),
+            date: v.expectedVisitAt ? new Date(v.expectedVisitAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+            time: v.expectedVisitAt ? new Date(v.expectedVisitAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
+            vehicleNumber: v.vehicleNumber || undefined,
+            entryPassCode: v.entryPassCode || '',
+            status: this.mapVisitorStatus(v.status),
+            flat: v.flatNumber || user.flat || '',
+            registeredAt: v.createdAt ? new Date(v.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
+          }));
+          this.visitors.set(mapped);
+        } else {
+          console.error('Unable to load resident visitors:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident visitors:', error)
+    });
+
+    // 4. Bills
+    this.api.getBills(societyId, user.residentId).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          const filtered = (res.data || []).filter(matchesUser);
+          const mapped: MaintenanceBill[] = filtered.map((b: any) => ({
+            id: 'BILL-' + b.id,
+            billNumber: b.billNumber || `BILL-${b.id}`,
+            month: [b.billingMonth, b.billingYear].filter(Boolean).join(' '),
+            dueDate: b.dueDate || '',
+            issuedDate: b.issuedDate || '',
+            baseAmount: Number(b.baseAmount) || 0,
+            sinkingFund: Number(b.sinkingFund) || 0,
+            parkingCharges: Number(b.parkingCharges) || 0,
+            waterCharges: Number(b.waterCharges) || 0,
+            penalty: Number(b.penaltyAmount) || 0,
+            totalAmount: Number(b.totalAmount) || 0,
+            status: this.mapBillStatus(b.status),
+            paidDate: b.paidDate,
+            paymentMode: b.paymentMode,
+            receiptNumber: b.receiptNumber
+          }));
+          this.bills.set(mapped);
+        } else {
+          console.error('Unable to load resident bills:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident bills:', error)
+    });
+
+    // 5. Bookings
+    this.api.getBookings(societyId, user.residentId).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          const filtered = (res.data || []).filter(matchesUser);
+          const mapped: FacilityBooking[] = filtered.map((b: any) => ({
+            id: 'BKG-' + b.id,
+            facilityName: b.facilityName,
+            date: b.bookingDate || '',
+            timeSlot: [b.startTime, b.endTime].filter(Boolean).join(' - '),
+            status: this.mapBookingStatus(b.status),
+            bookingFee: Number(b.bookingFee) || 0,
+            guestsCount: Number(b.guestsCount) || 0,
+            specialRequests: b.specialRequests || '',
+            createdAt: b.createdAt || ''
+          }));
+          this.bookings.set(mapped);
+        } else {
+          console.error('Unable to load resident bookings:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident bookings:', error)
+    });
+
+    this.api.getFacilities(societyId).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.facilities.set((res.data || []).map((facility: any) => ({
+            id: String(facility.id),
+            name: facility.name,
+            description: facility.description || '',
+            capacity: Number(facility.capacity) || 0,
+            pricePerHour: Number(facility.pricePerHour) || 0,
+            status: facility.status || '',
+            amenities: facility.amenities || '',
+            imageUrl: facility.imageUrl || undefined
+          })));
+        } else {
+          console.error('Unable to load society facilities:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load society facilities:', error)
+    });
+
+    this.api.getPayments(societyId, user.residentId).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.paymentHistory.set((res.data || []).filter(matchesUser).map((payment: any) => ({
+            id: `PAY-${payment.id}`,
+            receiptNumber: payment.receiptNumber || '',
+            billId: payment.billId ? `BILL-${payment.billId}` : '',
+            billMonth: [payment.billingMonth, payment.billingYear].filter(Boolean).join(' '),
+            amount: Number(payment.amount) || 0,
+            paymentDate: payment.paymentDate || '',
+            paymentMethod: payment.paymentMethod,
+            transactionId: payment.transactionId || '',
+            status: payment.status === 'SUCCESS' ? 'Success' : payment.status === 'FAILED' ? 'Failed' : 'Processing',
+            receiptUrl: payment.receiptUrl || undefined
+          })));
+        } else {
+          console.error('Unable to load resident payment history:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident payment history:', error)
+    });
+
+    this.api.getDocuments(societyId).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.documents.set((res.data || []).map((document: any) => ({
+            id: `DOC-${document.id}`,
+            title: document.title,
+            category: this.mapDocumentCategory(document.category),
+            fileSize: document.fileSize || '',
+            fileType: document.fileType === 'DOCX' ? 'DOCX' : 'PDF',
+            uploadedDate: document.createdAt ? new Date(document.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+            description: document.description || '',
+            fileUrl: document.fileUrl || undefined
+          })));
+        } else {
+          console.error('Unable to load society documents:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load society documents:', error)
+    });
+
+    this.api.getPolls(societyId, user.userId).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.polls.set((res.data || []).map((poll: any) => ({
+            id: `POLL-${poll.id}`,
+            title: poll.title,
+            description: poll.description || '',
+            category: poll.category || '',
+            endDate: poll.endDate || '',
+            totalVotes: Number(poll.totalVotes) || 0,
+            userVotedOptionId: poll.userVotedOptionId ? `OPT-${poll.userVotedOptionId}` : undefined,
+            status: poll.status === 'ACTIVE' ? 'Active' : 'Closed',
+            options: (poll.options || []).map((option: any) => ({
+              id: `OPT-${option.id}`,
+              text: option.optionText,
+              votes: Number(option.voteCount) || 0
+            }))
+          })));
+        } else {
+          console.error('Unable to load resident polls:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident polls:', error)
+    });
+
+    this.api.getNotifications(user.userId).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.notifications.set((res.data || []).map((notification: any) => ({
+            id: `NOTIF-${notification.id}`,
+            title: notification.title,
+            message: notification.message || '',
+            category: this.mapNotificationCategory(notification.category),
+            timestamp: notification.createdAt || '',
+            isRead: Boolean(notification.isRead),
+            linkTab: notification.linkTab
+          })));
+        } else {
+          console.error('Unable to load resident notifications:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident notifications:', error)
+    });
+
+    this.api.getSupportTickets(societyId).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.feedbacks.set((res.data || [])
+            .filter((ticket: any) => ticket.requesterId === user.userId)
+            .map((ticket: any) => ({
+              id: `FB-${ticket.id}`,
+              category: this.mapFeedbackCategory(ticket.category),
+              subject: ticket.subject,
+              message: ticket.messages?.[0]?.messageText || '',
+              rating: Number(/Rating: ([1-5])\/5/.exec(ticket.messages?.[0]?.messageText || '')?.[1]) || 0,
+              submittedDate: ticket.createdAt || '',
+              status: ticket.status === 'RESOLVED' ? 'Action Taken' : ticket.status === 'IN_PROGRESS' ? 'Acknowledged' : 'Under Review'
+            })));
+        } else {
+          console.error('Unable to load resident feedback:', res?.message);
+        }
+      },
+      error: error => console.error('Unable to load resident feedback:', error)
+    });
+  }
 
   // Actions:
 
@@ -446,105 +528,95 @@ export class ResidentService {
     category: Complaint['category'];
     description: string;
     priority: Complaint['priority'];
-  }) {
-    const newId = `CMP-2026-${Math.floor(100 + Math.random() * 900)}`;
-    const newComplaint: Complaint = {
-      id: newId,
+  }): Observable<ApiResponse<any>> {
+    const user = this.authService?.currentUser();
+    if (!user?.residentId || !user.societyId || !user.flat) {
+      return throwError(() => new Error('Your account is missing resident, society, or flat information.'));
+    }
+    return this.api.createComplaint({
       title: data.title,
-      category: data.category,
+      category: data.category.toUpperCase(),
       description: data.description,
-      priority: data.priority,
-      status: 'Reported',
-      dateReported: 'Just now',
-      flat: this.flatInfo().flatNumber
-    };
-
-    this.complaints.update(list => [newComplaint, ...list]);
-    this.addNotification({
-      title: 'Complaint Registered',
-      message: `Your complaint ${newId} has been logged and assigned for review.`,
-      category: 'Complaint',
-      linkTab: 'complaints'
-    });
+      priority: data.priority.toUpperCase(),
+      flatNumber: user.flat,
+      residentId: user.residentId,
+      residentName: user.name,
+      societyId: user.societyId,
+      status: 'OPEN'
+    }).pipe(tap(() => this.syncFromBackend()));
   }
 
   // Pay Maintenance Bill
-  payBill(billId: string, paymentMethod: PaymentRecord['paymentMethod']): PaymentRecord {
+  payBill(billId: string, paymentMethod: PaymentRecord['paymentMethod']): Observable<PaymentRecord> {
     const bill = this.bills().find(b => b.id === billId);
-    if (!bill) throw new Error('Bill not found');
-
-    const receiptNo = `RCP-2026-10-${Math.floor(1000 + Math.random() * 9000)}`;
+    const numericBillId = this.parseId(billId, 'BILL');
+    if (!bill || !Number.isInteger(numericBillId) || numericBillId < 1) {
+      return throwError(() => new Error('The selected bill is not available.'));
+    }
     const txnId = `TXN-${paymentMethod.toUpperCase().replace(/\s+/g, '')}-${Date.now().toString().slice(-8)}`;
 
-    const newRecord: PaymentRecord = {
-      id: `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
-      receiptNumber: receiptNo,
-      billId: bill.id,
-      billMonth: bill.month,
-      amount: bill.totalAmount,
-      paymentDate: 'Today, Just now',
-      paymentMethod: paymentMethod,
-      transactionId: txnId,
-      status: 'Success'
-    };
-
-    // Update bill status to paid
-    this.bills.update(list =>
-      list.map(b =>
-        b.id === billId
-          ? {
-              ...b,
-              status: 'Paid',
-              paidDate: 'Today',
-              paymentMode: paymentMethod,
-              receiptNumber: receiptNo
-            }
-          : b
-      )
+    return this.api.payBill(numericBillId, paymentMethod.toUpperCase(), txnId).pipe(
+      tap(response => {
+        if (!response.success || !response.data || response.data.status !== 'SUCCESS') {
+          throw new Error(response.message || 'Payment was not completed.');
+        }
+        this.syncFromBackend();
+      }),
+      map(response => {
+        const payment = response.data;
+        return {
+          id: `PAY-${payment.id}`,
+          receiptNumber: payment.receiptNumber || '',
+          billId,
+          billMonth: bill.month,
+          amount: Number(payment.amount) || 0,
+          paymentDate: payment.paymentDate || '',
+          paymentMethod,
+          transactionId: payment.transactionId || txnId,
+          status: payment.status === 'SUCCESS' ? 'Success' : payment.status === 'FAILED' ? 'Failed' : 'Processing',
+          receiptUrl: payment.receiptUrl || undefined
+        };
+      })
     );
-
-    // Add to payment history
-    this.paymentHistory.update(list => [newRecord, ...list]);
-
-    // Send notification
-    this.addNotification({
-      title: 'Maintenance Payment Successful',
-      message: `Payment of ₹${bill.totalAmount} for ${bill.month} received. Receipt #${receiptNo} generated.`,
-      category: 'Bill',
-      linkTab: 'bills'
-    });
-
-    return newRecord;
   }
 
   // Facility Booking
   bookFacility(data: {
+    facilityId: string;
     facilityName: FacilityBooking['facilityName'];
     date: string;
     timeSlot: string;
     guestsCount: number;
-    bookingFee: number;
     specialRequests?: string;
-  }) {
-    const newBooking: FacilityBooking = {
-      id: `BK-2026-${Math.floor(100 + Math.random() * 900)}`,
+  }): Observable<ApiResponse<any>> {
+    const user = this.authService?.currentUser();
+    const facilityId = Number(data.facilityId);
+    const facility = this.facilities().find(item => Number(item.id) === facilityId);
+    const [startTime, endTime] = data.timeSlot.split('-').map(time => this.parseTime(time.trim()));
+    const startMinutes = startTime ? this.timeToMinutes(startTime) : NaN;
+    const endMinutes = endTime ? this.timeToMinutes(endTime) : NaN;
+    if (!user?.residentId || !user.societyId || !user.flat || !facility || facility.status !== 'AVAILABLE' ||
+      !startTime || !endTime || endMinutes <= startMinutes || !data.date) {
+      return throwError(() => new Error('Your account, selected facility, date, or booking time is invalid.'));
+    }
+    return this.api.createBooking({
+      facilityId,
       facilityName: data.facilityName,
-      date: data.date,
-      timeSlot: data.timeSlot,
+      societyId: user.societyId,
+      residentId: user.residentId,
+      residentName: user.name,
+      flatNumber: user.flat,
+      bookingDate: data.date,
+      startTime,
+      endTime,
+      bookingFee: facility.pricePerHour * (endMinutes - startMinutes) / 60,
       guestsCount: data.guestsCount,
-      bookingFee: data.bookingFee,
       specialRequests: data.specialRequests,
-      status: 'Confirmed',
-      createdAt: 'Just now'
-    };
-
-    this.bookings.update(list => [newBooking, ...list]);
-    this.addNotification({
-      title: 'Facility Booked',
-      message: `Your reservation for ${data.facilityName} on ${data.date} is confirmed!`,
-      category: 'Facility',
-      linkTab: 'facilities'
-    });
+      status: 'PENDING_APPROVAL'
+    }).pipe(tap(response => {
+      if (!response.success) throw new Error(response.message || 'Booking could not be submitted.');
+      this.syncFromBackend();
+    }));
   }
 
   // Visitor Management
@@ -555,65 +627,57 @@ export class ResidentService {
     date: string;
     time: string;
     vehicleNumber?: string;
-  }) {
-    const passCode = `PASS-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newVisitor: Visitor = {
-      id: `VIS-${Math.floor(100 + Math.random() * 900)}`,
+  }): Observable<ApiResponse<any>> {
+    const user = this.authService?.currentUser();
+    if (!user?.residentId || !user.societyId || !user.flat ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(visitorData.date) || !/^\d{2}:\d{2}$/.test(visitorData.time)) {
+      return throwError(() => new Error('Your account or expected visit date/time is missing or invalid.'));
+    }
+    return this.api.createVisitor({
       name: visitorData.name,
       phone: visitorData.phone,
-      purpose: visitorData.purpose,
-      date: visitorData.date,
-      time: visitorData.time,
+      purpose: visitorData.purpose.toUpperCase().replace(/\s+/g, '_'),
       vehicleNumber: visitorData.vehicleNumber,
-      entryPassCode: passCode,
-      status: 'Expected',
-      flat: this.flatInfo().flatNumber,
-      registeredAt: 'Just now'
-    };
-
-    this.visitors.update(list => [newVisitor, ...list]);
-    this.addNotification({
-      title: 'Visitor Pre-Approved',
-      message: `${visitorData.name} pre-approved with Entry Pass ${passCode}.`,
-      category: 'Visitor',
-      linkTab: 'visitors'
-    });
+      flatNumber: user.flat,
+      hostResidentId: user.residentId,
+      hostResidentName: user.name,
+      expectedVisitAt: `${visitorData.date}T${visitorData.time}:00`,
+      status: 'EXPECTED'
+    }).pipe(tap(response => {
+      if (!response.success) throw new Error(response.message || 'Visitor registration could not be completed.');
+      this.syncFromBackend();
+    }));
   }
 
-  approveVisitorEntry(visitorId: string) {
-    this.visitors.update(list =>
-      list.map(v => (v.id === visitorId ? { ...v, status: 'Approved' } : v))
-    );
+  approveVisitorEntry(visitorId: string): Observable<ApiResponse<any>> {
+    return this.updateVisitorStatus(visitorId, 'APPROVED');
   }
 
-  denyVisitorEntry(visitorId: string) {
-    this.visitors.update(list =>
-      list.map(v => (v.id === visitorId ? { ...v, status: 'Denied' } : v))
-    );
+  denyVisitorEntry(visitorId: string): Observable<ApiResponse<any>> {
+    return this.updateVisitorStatus(visitorId, 'DENIED');
+  }
+
+  private updateVisitorStatus(visitorId: string, status: string): Observable<ApiResponse<any>> {
+    const id = this.parseId(visitorId, 'VIS');
+    if (!Number.isInteger(id) || id < 1) return throwError(() => new Error('The selected visitor record is invalid.'));
+    return this.api.updateVisitorStatus(id, status).pipe(tap(response => {
+      if (!response.success) throw new Error(response.message || 'Visitor status could not be updated.');
+      this.syncFromBackend();
+    }));
   }
 
   // Cast Poll Vote
-  castVote(pollId: string, optionId: string) {
-    this.polls.update(list =>
-      list.map(poll => {
-        if (poll.id !== pollId) return poll;
-        const currentVote = poll.userVotedOptionId;
-        return {
-          ...poll,
-          userVotedOptionId: optionId,
-          totalVotes: currentVote ? poll.totalVotes : poll.totalVotes + 1,
-          options: poll.options.map(opt => {
-            if (opt.id === optionId) {
-              return { ...opt, votes: opt.votes + 1 };
-            }
-            if (currentVote && opt.id === currentVote) {
-              return { ...opt, votes: Math.max(0, opt.votes - 1) };
-            }
-            return opt;
-          })
-        };
-      })
-    );
+  castVote(pollId: string, optionId: string): Observable<ApiResponse<any>> {
+    const user = this.authService?.currentUser();
+    const pollNumericId = this.parseId(pollId, 'POLL');
+    const optionNumericId = this.parseId(optionId, 'OPT');
+    if (!user?.userId || !Number.isInteger(pollNumericId) || !Number.isInteger(optionNumericId)) {
+      return throwError(() => new Error('The selected poll option or resident account is invalid.'));
+    }
+    return this.api.votePoll(pollNumericId, optionNumericId, user.userId).pipe(tap(response => {
+      if (!response.success) throw new Error(response.message || 'Your vote could not be recorded.');
+      this.syncFromBackend();
+    }));
   }
 
   // Submit Feedback
@@ -622,45 +686,58 @@ export class ResidentService {
     subject: string;
     message: string;
     rating: number;
-  }) {
-    const newFeedback: FeedbackSubmission = {
-      id: `FB-${Math.floor(10 + Math.random() * 90)}`,
-      category: data.category,
+  }): Observable<ApiResponse<any>> {
+    const user = this.authService?.currentUser();
+    if (!user?.userId || !user.societyId) {
+      return throwError(() => new Error('Your account is missing resident or society information.'));
+    }
+    return this.api.createSupportTicket({
+      requesterId: user.userId,
       subject: data.subject,
-      message: data.message,
-      rating: data.rating,
-      submittedDate: 'Today',
-      status: 'Under Review'
-    };
-
-    this.feedbacks.update(list => [newFeedback, ...list]);
-    this.addNotification({
-      title: 'Feedback Received',
-      message: 'Thank you for your feedback! The society management has been notified.',
-      category: 'Notice',
-      linkTab: 'feedback'
-    });
-  }
-
-  // Notifications
-  addNotification(item: Omit<NotificationItem, 'id' | 'timestamp' | 'isRead'>) {
-    const newNotif: NotificationItem = {
-      ...item,
-      id: `NOTIF-${Date.now()}`,
-      timestamp: 'Just now',
-      isRead: false
-    };
-    this.notifications.update(list => [newNotif, ...list]);
-  }
-
-  markNotificationRead(id: string) {
-    this.notifications.update(list =>
-      list.map(n => (n.id === id ? { ...n, isRead: true } : n))
+      category: data.category.toUpperCase().replace(/\s+/g, '_'),
+      priority: 'NORMAL',
+      societyId: user.societyId
+    }).pipe(
+      switchMap(response => {
+        if (!response.success || !response.data?.id) {
+          return throwError(() => new Error(response.message || 'Feedback could not be submitted.'));
+        }
+        return this.api.addSupportTicketMessage(Number(response.data.id), {
+          senderId: user.userId,
+          senderName: user.name,
+          messageText: `${data.message}\n\nRating: ${data.rating}/5`,
+          isStaff: false
+        });
+      }),
+      tap(response => {
+        if (!response.success) throw new Error(response.message || 'Feedback could not be submitted.');
+        this.syncFromBackend();
+      })
     );
   }
 
-  markAllNotificationsRead() {
-    this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
+  markNotificationRead(id: string) {
+    const notificationId = this.parseId(id, 'NOTIF');
+    if (!Number.isInteger(notificationId) || notificationId < 1) return;
+    this.api.markNotificationRead(notificationId).subscribe({
+      next: response => {
+        if (response.success) {
+          this.notifications.update(list => list.map(n => n.id === id ? { ...n, isRead: true } : n));
+        } else {
+          console.error('Unable to mark notification as read:', response.message);
+        }
+      },
+      error: error => console.error('Unable to mark notification as read:', error)
+    });
+  }
+
+  markAllNotificationsRead(): Observable<ApiResponse<void>> {
+    const user = this.authService?.currentUser();
+    if (!user?.userId) return throwError(() => new Error('No logged-in resident was found.'));
+    return this.api.markAllNotificationsRead(user.userId).pipe(tap(response => {
+      if (!response.success) throw new Error(response.message || 'Notifications could not be marked as read.');
+      this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
+    }));
   }
 
   // Update profile
@@ -668,14 +745,7 @@ export class ResidentService {
     emergencyName?: string;
     emergencyPhone?: string;
     emergencyRelation?: string;
-  }) {
-    this.flatInfo.update(current => ({
-      ...current,
-      emergencyContact: {
-        name: updated.emergencyName || current.emergencyContact.name,
-        phone: updated.emergencyPhone || current.emergencyContact.phone,
-        relationship: updated.emergencyRelation || current.emergencyContact.relationship
-      }
-    }));
+  }): void {
+    console.warn('Emergency contact changes are not persisted because the backend has no profile update endpoint.');
   }
 }

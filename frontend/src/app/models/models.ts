@@ -21,7 +21,7 @@ export interface Flat {
   flatNumber?: string;
   building: string;
   floor: number;
-  type: '1BHK' | '2BHK' | '3BHK' | '4BHK';
+  type: '1BHK' | '2BHK' | '3BHK' | '4BHK' | 'Penthouse' | string;
   status: 'Occupied' | 'Vacant' | 'Under Maintenance';
   resident?: string;
   area: number;
@@ -73,6 +73,7 @@ export interface MaintenanceBill {
 
 export interface Payment {
   id: string;
+  billId?: number;
   flatNumber: string;
   residentName: string;
   amount: number;
@@ -195,4 +196,17 @@ export interface NavItem {
   route: string;
   badge?: number;
   children?: NavItem[];
+}
+
+export interface SocietyDoc {
+  id: string;
+  title: string;
+  category: 'Legal' | 'AGM' | 'Financial' | 'Safety' | 'Forms' | string;
+  format: 'PDF' | 'DOCX' | 'XLSX' | string;
+  fileSize: string;
+  uploadedAt: string;
+  uploadedBy: string;
+  accessLevel: 'All Residents' | 'Committee Only' | 'Confidential' | string;
+  description: string;
+  downloadCount: number;
 }

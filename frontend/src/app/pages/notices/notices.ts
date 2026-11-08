@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import { Notice } from '../../models/models';
 
 @Component({
@@ -11,10 +12,11 @@ import { Notice } from '../../models/models';
   templateUrl: './notices.html',
   styleUrl: './notices.css'
 })
-export class NoticesPageComponent implements OnInit {
+export class NoticesPageComponent {
   public mockData = inject(MockDataService);
+  public authService = inject(AuthService, { optional: true });
 
-  public notices = signal<Notice[]>([]);
+  public notices = this.mockData.notices;
   public searchQuery = signal<string>('');
   public selectedType = signal<string>('ALL');
 
@@ -26,10 +28,6 @@ export class NoticesPageComponent implements OnInit {
     type: 'General' as 'General' | 'Urgent' | 'Maintenance' | 'Event',
     isPinned: false
   };
-
-  ngOnInit() {
-    this.notices.set(this.mockData.getNotices());
-  }
 
   public filteredNotices = computed(() => {
     let list = this.notices();
@@ -65,44 +63,25 @@ export class NoticesPageComponent implements OnInit {
 
   saveNotice() {
     if (!this.noticeForm.title || !this.noticeForm.content) return;
-    const newNot: Notice = {
-      id: `NOT-00${this.notices().length + 1}`,
+    this.mockData.addNotice({
       title: this.noticeForm.title,
       content: this.noticeForm.content,
       type: this.noticeForm.type,
-      postedBy: 'Rahul Verma (Secretary)',
-      postedAt: new Date().toISOString(),
       isPinned: this.noticeForm.isPinned
-    };
-
-    this.notices.update(prev => [newNot, ...prev]);
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Notice Published',
-      message: `"${newNot.title}" broadcasted to all residents.`
     });
     this.closeCreateModal();
   }
 
   togglePin(n: Notice) {
-    this.notices.update(prev =>
-      prev.map(item => item.id === n.id ? { ...item, isPinned: !item.isPinned } : item)
-    );
-    this.mockData.showToast({
-      type: 'info',
-      title: 'Pin Toggled',
-      message: `Notice #${n.id} ${n.isPinned ? 'unpinned from' : 'pinned to'} top of board.`
+    this.mockData.addNotice({
+      ...n,
+      isPinned: !n.isPinned
     });
   }
 
   deleteNotice(n: Notice) {
     if (confirm(`Delete notice "${n.title}"?`)) {
-      this.notices.update(prev => prev.filter(item => item.id !== n.id));
-      this.mockData.showToast({
-        type: 'info',
-        title: 'Notice Removed',
-        message: 'Announcement deleted.'
-      });
+      this.mockData.deleteNotice(n.id);
     }
   }
 }

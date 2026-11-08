@@ -47,6 +47,9 @@ public class Visitor {
     @Column(name = "check_out_time")
     private LocalDateTime checkOutTime;
 
+    @Column(name = "expected_visit_at")
+    private LocalDateTime expectedVisitAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -90,6 +93,9 @@ public class Visitor {
 
     public LocalDateTime getCheckOutTime() { return checkOutTime; }
     public void setCheckOutTime(LocalDateTime checkOutTime) { this.checkOutTime = checkOutTime; }
+
+    public LocalDateTime getExpectedVisitAt() { return expectedVisitAt; }
+    public void setExpectedVisitAt(LocalDateTime expectedVisitAt) { this.expectedVisitAt = expectedVisitAt; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

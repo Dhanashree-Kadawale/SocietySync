@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import { StatCard } from '../../models/models';
 import { MaintenanceChartComponent } from '../../components/maintenance-chart/maintenance-chart';
 import { ComplaintChartComponent } from '../../components/complaint-chart/complaint-chart';
@@ -26,7 +27,9 @@ import { FacilityBookingsComponent } from '../../components/facility-bookings/fa
   styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit {
-  statCards: StatCard[] = [];
+  get statCards(): StatCard[] {
+    return this.mockData.getStatCards();
+  }
   showCreateMenu = false;
   greeting = 'Welcome back';
 
@@ -39,45 +42,57 @@ export class DashboardComponent implements OnInit {
     { label: 'Add Resident', icon: '👤', action: 'resident' },
   ];
 
-  notices = [
-    {
-      day: '18',
-      month: 'OCT',
-      title: 'Scheduled Water Supply Pipeline Maintenance',
-      description: 'Water supply to Tower A and Tower B will experience low pressure between 10:00 AM and 01:00 PM due to preventive valve servicing on the terrace booster pumps.',
-      tags: [
-        { label: 'Maintenance', type: 'info' },
-        { label: 'High Priority', type: 'danger' }
-      ]
-    },
-    {
-      day: '29',
-      month: 'OCT',
-      title: 'Annual Diwali Celebration & Cultural Evening',
-      description: 'The society managing committee cordially invites all families to the Grand Diwali Celebration in the main clubhouse courtyard at 7:00 PM.',
-      tags: [
-        { label: 'Celebration', type: 'warning' },
-        { label: 'Society Event', type: 'success' }
-      ]
-    }
-  ];
+  get notices() {
+    const list = this.mockData.notices();
+    return list.map(n => {
+      const d = n.postedAt ? new Date(n.postedAt) : new Date();
+      return {
+        day: String(d.getDate()).padStart(2, '0'),
+        month: d.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+        title: n.title,
+        description: n.content,
+        tags: [
+          { label: n.type || 'Notice', type: n.type === 'Urgent' ? 'danger' : 'info' }
+        ]
+      };
+    });
+  }
 
-  societyDetails = [
-    { label: 'Flat & Tower:', value: 'A-204 (Tower A · Palm Grove)', badge: 'Owner Verified (3 Occupants)' },
-    { label: 'Society & Towers:', value: 'Green Heights (Towers A, B, C, D)', badge: null },
-    { label: 'Carpet Area:', value: '1,450 sq.ft (3 BHK Luxury Unit)', badge: null },
-    { label: 'Dedicated Parking:', value: 'B1-Slot-42 (Covered Basement)', badge: null },
-    { label: 'Primary Vehicle:', value: 'MH 12 AB 4589 (Honda City)', badge: null },
-    { label: 'Security & Staff:', value: 'Gate 1 (Intercom 4001) · 12 On Duty', badge: null },
-  ];
+  get userName(): string {
+    return this.authService.currentUser()?.name || 'Secretary Admin';
+  }
+
+  get userRole(): string {
+    return this.authService.currentUser()?.role || 'Secretary Admin';
+  }
+
+  get societyName(): string {
+    return this.authService.currentUser()?.societyName || 'Green Heights Co-op Society';
+  }
+
+  get userFlat(): string {
+    return this.authService.currentUser()?.flat || 'A-101';
+  }
+
+  get societyDetails() {
+    const user = this.authService.currentUser();
+    return [
+      { label: 'Flat & Tower:', value: `${user?.flat || 'A-101'} (Tower A · ${user?.societyName || 'Green Heights'})`, badge: 'Active Account' },
+      { label: 'Society & Towers:', value: `${user?.societyName || 'Green Heights'} (Tower A, B, C)`, badge: null },
+      { label: 'Primary Contact:', value: `${user?.email || 'admin@societysync.com'} · ${user?.phone || '+91 98000 00000'}`, badge: null },
+      { label: 'Dedicated Parking:', value: 'B1-Slot-42 (Covered Basement)', badge: null },
+      { label: 'Role & Permissions:', value: `${user?.role || 'Secretary Admin'} (Full Administrative Access)`, badge: null },
+      { label: 'Security & Staff:', value: 'Gate 1 (Intercom 4001) · 12 On Duty', badge: null },
+    ];
+  }
 
   constructor(
     public mockData: MockDataService,
+    public authService: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    this.statCards = this.mockData.getStatCards();
     const hour = new Date().getHours();
     if (hour < 12) this.greeting = 'Welcome home';
     else if (hour < 17) this.greeting = 'Welcome back';

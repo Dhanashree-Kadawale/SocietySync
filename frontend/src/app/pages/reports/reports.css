@@ -271,6 +271,23 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
+.poll-error {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid #f0c6c6;
+  border-radius: 8px;
+  background: #fff5f5;
+  color: #8d2b2b;
+}
+
+.empty-polls {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 32px 16px;
+  color: #687572;
+  text-align: center;
+}
+
 .poll-status-row {
   display: flex;
   align-items: center;
@@ -418,6 +435,16 @@
   color: #687572;
   border-top: 1px solid #E5E9E7;
   padding-top: 12px;
+}
+
+.poll-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.poll-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .hint {

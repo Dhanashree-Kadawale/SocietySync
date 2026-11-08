@@ -12,4 +12,5 @@ public interface ResidentRepository extends JpaRepository<Resident, Long> {
     List<Resident> findBySocietyId(Long societyId);
     Optional<Resident> findByEmail(String email);
     Optional<Resident> findByFlatId(Long flatId);
+    Optional<Resident> findByUserId(Long userId);
 }
