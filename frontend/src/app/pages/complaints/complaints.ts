@@ -11,11 +11,11 @@ import { Complaint, StaffMember } from '../../models/models';
   templateUrl: './complaints.html',
   styleUrl: './complaints.css'
 })
-export class ComplaintsPageComponent implements OnInit {
+export class ComplaintsPageComponent {
   public mockData = inject(MockDataService);
 
-  public complaints = signal<Complaint[]>([]);
-  public staffList = signal<StaffMember[]>([]);
+  public complaints = this.mockData.complaints;
+  public staffList = this.mockData.staffMembers;
 
   public searchQuery = signal<string>('');
   public selectedStatus = signal<string>('ALL');
@@ -43,11 +43,6 @@ export class ComplaintsPageComponent implements OnInit {
     assignedStaff: 'Mohan Lal',
     note: ''
   };
-
-  ngOnInit() {
-    this.complaints.set(this.mockData.getComplaints());
-    this.staffList.set(this.mockData.getStaffMembers());
-  }
 
   // Filtered list
   public filteredComplaints = computed(() => {
@@ -88,9 +83,7 @@ export class ComplaintsPageComponent implements OnInit {
 
   saveComplaint() {
     if (!this.complaintForm.title) return;
-    const newId = `CMP-0${this.complaints().length + 1}`;
-    const newCmp: Complaint = {
-      id: newId,
+    this.mockData.addComplaint({
       title: this.complaintForm.title,
       description: this.complaintForm.description,
       flatNumber: this.complaintForm.flatNumber,
@@ -98,15 +91,7 @@ export class ComplaintsPageComponent implements OnInit {
       residentName: this.complaintForm.residentName,
       category: this.complaintForm.category,
       priority: this.complaintForm.priority,
-      status: 'Open',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    this.complaints.update(prev => [newCmp, ...prev]);
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Complaint Registered',
-      message: `Ticket #${newId} registered and assigned to committee queue.`
+      status: 'Open'
     });
     this.closeCreateModal();
   }
@@ -124,26 +109,12 @@ export class ComplaintsPageComponent implements OnInit {
   confirmAssign() {
     const c = this.selectedComplaint();
     if (!c) return;
-    this.complaints.update(prev =>
-      prev.map(item => item.id === c.id ? { ...item, assignedStaff: this.assignForm.assignedStaff, status: 'In Progress' } : item)
-    );
-    this.mockData.showToast({
-      type: 'info',
-      title: 'Staff Assigned',
-      message: `Ticket #${c.id} assigned to ${this.assignForm.assignedStaff}.`
-    });
+    this.mockData.updateComplaint(c.id, { assignedStaff: this.assignForm.assignedStaff, status: 'In Progress' });
     this.closeAssignModal();
   }
 
   updateStatus(c: Complaint, newStatus: 'Open' | 'In Progress' | 'Resolved' | 'Closed') {
-    this.complaints.update(prev =>
-      prev.map(item => item.id === c.id ? { ...item, status: newStatus, updatedAt: new Date().toISOString() } : item)
-    );
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Status Updated',
-      message: `Ticket #${c.id} marked as ${newStatus}.`
-    });
+    this.mockData.updateComplaint(c.id, { status: newStatus });
   }
 
   viewDetails(c: Complaint) {

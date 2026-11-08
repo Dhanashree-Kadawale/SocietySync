@@ -14,7 +14,7 @@
       <span class="brand-title">SocietySync</span>
     </a>
     <div class="topbar-actions">
-      <a routerLink="/login" class="back-login-link">Already registered? <strong>Sign In →</strong></a>
+      <a (click)="goToLogin()" class="back-login-link" style="cursor: pointer;">Already registered? <strong>Sign In →</strong></a>
     </div>
   </header>
 
@@ -396,11 +396,14 @@
             </div>
           }
 
-          <div class="success-actions">
-            <button type="button" class="register-submit-btn" (click)="goToLogin()">
-              Go to Sign In →
+          <div class="success-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button type="button" class="register-submit-btn" style="flex: 1;" (click)="enterDashboard()">
+              Open My Portal Directly →
             </button>
-            <a routerLink="/" class="back-home-btn">Return to Home</a>
+            <button type="button" class="register-submit-btn" style="flex: 1; background: #17453A;" (click)="goToLogin()">
+              Sign In with Password →
+            </button>
+            <a routerLink="/" class="back-home-btn" style="width: 100%; text-align: center;">Return to Home</a>
           </div>
         </div>
       }

@@ -45,6 +45,36 @@ export class Topbar implements OnInit {
     return found ? found.label : (this.breadcrumb || 'Dashboard');
   }
 
+  get userInitials(): string {
+    const name = this.authService.currentUser()?.name || 'Admin';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  get userName(): string {
+    return this.authService.currentUser()?.name || 'Secretary Admin';
+  }
+
+  get userShortName(): string {
+    const parts = (this.authService.currentUser()?.name || 'Secretary').trim().split(/\s+/);
+    return parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : parts[0];
+  }
+
+  get userEmail(): string {
+    return this.authService.currentUser()?.email || 'secretary@societysync.com';
+  }
+
+  get userRole(): string {
+    return this.authService.currentUser()?.role || 'Secretary Admin';
+  }
+
+  get societyName(): string {
+    return this.authService.currentUser()?.societyName || 'SocietySync Community';
+  }
+
   ngOnInit() {
     const now = new Date();
     this.currentDate = now.toLocaleDateString('en-IN', {

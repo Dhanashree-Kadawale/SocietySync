@@ -25,9 +25,34 @@ export class Sidebar implements OnInit {
 
   constructor(
     private mockData: MockDataService,
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) { }
+
+  get userInitials(): string {
+    const name = this.authService.currentUser()?.name || 'Admin';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  get userName(): string {
+    return this.authService.currentUser()?.name || 'Secretary Admin';
+  }
+
+  get userRole(): string {
+    return this.authService.currentUser()?.role || 'Secretary';
+  }
+
+  get societyName(): string {
+    return this.authService.currentUser()?.societyName || 'SocietySync Community';
+  }
+
+  get userFlat(): string {
+    return this.authService.currentUser()?.flat || 'Tower A · Office';
+  }
 
   ngOnInit() {
     this.mainServices = this.mockData.getMainNavItems();

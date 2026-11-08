@@ -1,12 +1,16 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { Subscription, timer } from 'rxjs';
 
 export interface SocietyPoll {
   id: string;
   question: string;
   description: string;
+  endDateValue: string;
   targetAudience: 'All Residents' | 'Flat Owners Only';
   status: 'Active' | 'Closed';
   endDate: string;
@@ -37,123 +41,83 @@ export interface SocietyReport {
   templateUrl: './reports.html',
   styleUrl: './reports.css'
 })
-export class ReportsPageComponent implements OnInit {
+export class ReportsPageComponent implements OnInit, OnDestroy {
   public mockData = inject(MockDataService);
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
+  private pollRefreshSubscription?: Subscription;
 
   public activeTab = signal<'polls' | 'reports'>('polls');
 
-  // Polls Data
-  public polls = signal<SocietyPoll[]>([
-    {
-      id: 'POL-001',
-      question: 'Install 50kW Rooftop Solar Power System on Towers A & B',
-      description: 'Capital cost of ₹22 Lakhs to be funded 50% from Sinking Reserve and 50% from State Green Subsidy. Expected electricity savings: ₹1.4 Lakhs/month.',
-      targetAudience: 'Flat Owners Only',
-      status: 'Active',
-      endDate: '25 Oct 2026',
-      totalVotes: 148,
-      options: [
-        { id: 'opt1', text: 'Yes, proceed with Solar Vendor Tender', votes: 118 },
-        { id: 'opt2', text: 'No, postpone till next financial year', votes: 22 },
-        { id: 'opt3', text: 'Need more technical clarification in AGM', votes: 8 }
-      ]
-    },
-    {
-      id: 'POL-002',
-      question: 'Diwali 2026 Grand Celebration & Community Dinner Timings',
-      description: 'Managing committee is finalizing catering and fireworks safety guidelines for the 29th October celebration in the central courtyard.',
-      targetAudience: 'All Residents',
-      status: 'Active',
-      endDate: '22 Oct 2026',
-      totalVotes: 112,
-      options: [
-        { id: 'opt1', text: 'Evening Event (07:00 PM – 10:30 PM)', votes: 82 },
-        { id: 'opt2', text: 'Afternoon Lunch (12:30 PM – 03:30 PM)', votes: 24 },
-        { id: 'opt3', text: 'Split 2-Day Celebrations', votes: 6 }
-      ]
-    },
-    {
-      id: 'POL-003',
-      question: 'Dedicated Electric Vehicle (EV) Charging Station Installation in B1',
-      description: 'Proposal to partner with Tata Power to install 8 fast AC chargers with RFID metered payment billing.',
-      targetAudience: 'All Residents',
-      status: 'Closed',
-      endDate: '10 Oct 2026',
-      totalVotes: 194,
-      options: [
-        { id: 'opt1', text: 'In Favor of EV Charging Slots', votes: 164 },
-        { id: 'opt2', text: 'Against / Prefer individual metering', votes: 21 },
-        { id: 'opt3', text: 'Neutral / No vehicle', votes: 9 }
-      ]
-    },
-    {
-      id: 'POL-004',
-      question: 'Replace Children Play Area Grass with High-Density Rubberized Tiles',
-      description: 'Prevent injuries from falls around jungle gym and swing sets. Estimated budget ₹1.85 Lakhs.',
-      targetAudience: 'All Residents',
-      status: 'Closed',
-      endDate: '30 Sep 2026',
-      totalVotes: 172,
-      options: [
-        { id: 'opt1', text: 'Approve Rubberized Flooring', votes: 151 },
-        { id: 'opt2', text: 'Keep Natural Grass Lawn', votes: 21 }
-      ]
-    }
-  ]);
+  public polls = signal<SocietyPoll[]>([]);
+  public pollLoadError = signal<string | null>(null);
+  public canManagePolls = computed(() => {
+    const user = this.auth.currentUser();
+    return !!user?.societyId && (user.role === 'Secretary Admin' || user.role === 'Super Admin');
+  });
 
-  // Reports Data
-  public reports = signal<SocietyReport[]>([
-    {
-      id: 'REP-001',
-      title: 'October 2026 Maintenance Collection & Arrears Ledger',
-      category: 'Financial',
-      period: '01 Oct – 17 Oct 2026',
-      generatedOn: '17 Oct 2026',
-      fileSize: '2.4 MB',
-      format: 'PDF',
-      summary: 'Flat-wise bill collection status, ₹18.4L collected, 8 overdue defaulters, and penalty surcharge calculations.'
-    },
-    {
-      id: 'REP-002',
-      title: 'FY 2025-26 Statutory Balance Sheet & Income/Expenditure Account',
-      category: 'Financial',
-      period: 'Apr 2025 – Mar 2026',
-      generatedOn: '15 Aug 2026',
-      fileSize: '4.8 MB',
-      format: 'PDF',
-      summary: 'Audited annual statements by Sunil Joshi & Associates CA. Unanimously adopted in the AGM.'
-    },
-    {
-      id: 'REP-003',
-      title: 'Annual Society Occupancy & Tenant Police Verification Audit',
-      category: 'Occupancy',
-      period: 'Year 2026',
-      generatedOn: '01 Oct 2026',
-      fileSize: '1.2 MB',
-      format: 'XLSX',
-      summary: '240 total units: 198 owner occupied, 38 tenants verified, 4 vacant. 100% police verification compliance.'
-    },
-    {
-      id: 'REP-004',
-      title: 'Q3 Complaint Resolution SLA & Maintenance Turnaround Report',
-      category: 'Maintenance',
-      period: 'July – Sept 2026',
-      generatedOn: '05 Oct 2026',
-      fileSize: '1.9 MB',
-      format: 'PDF',
-      summary: '94.2% complaints resolved within 24 hours. Top categories: Electrical (38%), Plumbing (29%), Housekeeping (21%).'
-    },
-    {
-      id: 'REP-005',
-      title: 'Perimeter Security, Visitor Traffic & Incident Register Q3',
-      category: 'Security',
-      period: 'July – Sept 2026',
-      generatedOn: '02 Oct 2026',
-      fileSize: '3.1 MB',
-      format: 'PDF',
-      summary: '14,820 guest passes issued, 0 security breaches, 100% delivery verification through Gate 1.'
-    }
-  ]);
+  // Reports Data (100% Live Computed from DB State)
+  public reports = computed<SocietyReport[]>(() => {
+    const totalCollected = this.mockData.payments().reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+    const totalFlats = this.mockData.flats().length;
+    const occupiedFlats = this.mockData.flats().filter(f => f.status === 'Occupied').length;
+    const openComplaints = this.mockData.complaints().filter(c => c.status === 'Open').length;
+    const resolvedComplaints = this.mockData.complaints().filter(c => c.status === 'Resolved').length;
+    const totalVisitors = this.mockData.visitors().length;
+
+    return [
+      {
+        id: 'REP-001',
+        title: 'Maintenance Collection & Arrears Ledger',
+        category: 'Financial',
+        period: 'Current Period',
+        generatedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        fileSize: '2.4 MB',
+        format: 'PDF',
+        summary: `Flat-wise collection status: ₹${totalCollected.toLocaleString('en-IN')} collected, ${this.mockData.bills().filter(b => b.status === 'Pending').length} pending bills.`
+      },
+      {
+        id: 'REP-002',
+        title: 'Statutory Financial Audit Report & Expenditure Ledger',
+        category: 'Financial',
+        period: 'FY 2025-26',
+        generatedOn: '15 Aug 2026',
+        fileSize: '4.8 MB',
+        format: 'PDF',
+        summary: 'Itemized vendor disbursements, verified payment records, and sinking fund reserve.'
+      },
+      {
+        id: 'REP-003',
+        title: 'Society Occupancy & Resident Registry Audit',
+        category: 'Occupancy',
+        period: 'Current Year',
+        generatedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        fileSize: '1.2 MB',
+        format: 'XLSX',
+        summary: `${totalFlats} registered units: ${occupiedFlats} occupied, ${totalFlats - occupiedFlats} vacant/maintenance. ${this.mockData.residents().length} verified residents.`
+      },
+      {
+        id: 'REP-004',
+        title: 'Complaint Resolution SLA & Maintenance Turnaround Report',
+        category: 'Maintenance',
+        period: 'All-Time',
+        generatedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        fileSize: '1.9 MB',
+        format: 'PDF',
+        summary: `${resolvedComplaints} resolved complaints, ${openComplaints} in queue across all residential blocks.`
+      },
+      {
+        id: 'REP-005',
+        title: 'Perimeter Security, Visitor Traffic & Incident Register',
+        category: 'Security',
+        period: 'Current Month',
+        generatedOn: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        fileSize: '3.1 MB',
+        format: 'PDF',
+        summary: `${totalVisitors} verified visitor passes issued at estate gates with zero security violations.`
+      }
+    ];
+  });
 
   // Filter
   public pollFilter = signal<'ALL' | 'Active' | 'Closed'>('ALL');
@@ -165,13 +129,81 @@ export class ReportsPageComponent implements OnInit {
     question: '',
     description: '',
     targetAudience: 'All Residents',
-    endDate: '31 Oct 2026',
+    endDate: this.defaultDeadline(),
     opt1: '',
     opt2: '',
     opt3: ''
   };
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.pollRefreshSubscription = timer(0, 10_000).subscribe(() => this.loadPolls());
+  }
+
+  ngOnDestroy() {
+    this.pollRefreshSubscription?.unsubscribe();
+  }
+
+  private getPollContext() {
+    const user = this.auth.currentUser();
+    const userId = user?.userId ?? Number(user?.id.match(/^USR-[A-Z]+-(\d+)$/)?.[1]);
+    if (!user?.societyId || !Number.isInteger(userId) || userId <= 0) {
+      throw new Error('Your account is not linked to a society. Sign in again or contact your society administrator.');
+    }
+    return { userId, societyId: user.societyId };
+  }
+
+  private loadPolls() {
+    let context: ReturnType<ReportsPageComponent['getPollContext']>;
+    try {
+      context = this.getPollContext();
+    } catch (error) {
+      this.polls.set([]);
+      this.pollLoadError.set(error instanceof Error ? error.message : 'Unable to identify your society.');
+      return;
+    }
+
+    this.api.getPolls(context.societyId, context.userId).subscribe({
+      next: response => {
+        if (!response?.success || !Array.isArray(response.data)) {
+          this.pollLoadError.set(response?.message || 'The server returned an invalid poll response.');
+          return;
+        }
+        this.polls.set(response.data.map(poll => this.mapPoll(poll)));
+        this.pollLoadError.set(null);
+      },
+      error: error => {
+        this.pollLoadError.set(error?.error?.message || 'Unable to load polls from the server.');
+      }
+    });
+  }
+
+  private mapPoll(poll: any): SocietyPoll {
+    const deadline = new Date(poll.endDate);
+    return {
+      id: String(poll.id),
+      question: poll.title,
+      description: poll.description || '',
+      endDateValue: Number.isNaN(deadline.getTime()) ? '' : deadline.toISOString().slice(0, 10),
+      targetAudience: poll.category === 'Flat Owners Only' ? 'Flat Owners Only' : 'All Residents',
+      status: poll.status === 'ACTIVE' && deadline.getTime() > Date.now() ? 'Active' : 'Closed',
+      endDate: Number.isNaN(deadline.getTime())
+        ? 'Unknown'
+        : deadline.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      totalVotes: Number(poll.totalVotes) || 0,
+      options: (poll.options || []).map((option: any) => ({
+        id: String(option.id),
+        text: option.optionText,
+        votes: Number(option.voteCount) || 0,
+        userVoted: String(option.id) === String(poll.userVotedOptionId)
+      }))
+    };
+  }
+
+  private defaultDeadline(): string {
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + 7);
+    return deadline.toISOString().slice(0, 10);
+  }
 
   public filteredPolls = computed(() => {
     const f = this.pollFilter();
@@ -214,23 +246,37 @@ export class ReportsPageComponent implements OnInit {
       return;
     }
 
-    opt.votes++;
-    opt.userVoted = true;
-    poll.totalVotes++;
-
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Vote Cast Successfully',
-      message: `Your response "${opt.text}" has been tabulated.`
+    let context: ReturnType<ReportsPageComponent['getPollContext']>;
+    try {
+      context = this.getPollContext();
+    } catch (error) {
+      this.showOperationError(error);
+      return;
+    }
+    this.api.votePoll(Number(poll.id), Number(optId), context.userId).subscribe({
+      next: response => {
+        if (!response?.success) {
+          this.mockData.showToast({ type: 'error', title: 'Vote Failed', message: response?.message || 'Your vote was not saved.' });
+          return;
+        }
+        this.loadPolls();
+        this.mockData.showToast({
+          type: 'success',
+          title: 'Vote Cast Successfully',
+          message: `Your response "${opt.text}" has been saved.`
+        });
+      },
+      error: error => this.showOperationError(error, 'Vote Failed')
     });
   }
 
   openNewPollModal() {
+    this.editingPollId.set(null);
     this.newPoll = {
       question: '',
       description: '',
       targetAudience: 'All Residents',
-      endDate: '05 Nov 2026',
+      endDate: this.defaultDeadline(),
       opt1: 'Yes, I Agree',
       opt2: 'No, I Disagree',
       opt3: 'Need More Discussion'
@@ -240,6 +286,23 @@ export class ReportsPageComponent implements OnInit {
 
   closeNewPollModal() {
     this.showCreatePollModal.set(false);
+  }
+
+  public editingPollId = signal<number | null>(null);
+
+  openEditPollModal(poll: SocietyPoll) {
+    if (poll.totalVotes > 0) return;
+    this.editingPollId.set(Number(poll.id));
+    this.newPoll = {
+      question: poll.question,
+      description: poll.description,
+      targetAudience: poll.targetAudience,
+      endDate: poll.endDateValue,
+      opt1: poll.options[0]?.text || '',
+      opt2: poll.options[1]?.text || '',
+      opt3: poll.options[2]?.text || ''
+    };
+    this.showCreatePollModal.set(true);
   }
 
   submitPoll() {
@@ -252,32 +315,76 @@ export class ReportsPageComponent implements OnInit {
       return;
     }
 
-    const options = [
-      { id: 'opt1', text: this.newPoll.opt1, votes: 1, userVoted: true },
-      { id: 'opt2', text: this.newPoll.opt2, votes: 0 }
-    ];
-
-    if (this.newPoll.opt3?.trim()) {
-      options.push({ id: 'opt3', text: this.newPoll.opt3.trim(), votes: 0 });
+    let context: ReturnType<ReportsPageComponent['getPollContext']>;
+    try {
+      context = this.getPollContext();
+    } catch (error) {
+      this.showOperationError(error);
+      return;
     }
-
-    const created: SocietyPoll = {
-      id: 'POL-0' + (this.polls().length + 1),
-      question: this.newPoll.question,
-      description: this.newPoll.description || 'Society community poll posted by Secretary.',
-      targetAudience: this.newPoll.targetAudience,
-      status: 'Active',
-      endDate: this.newPoll.endDate,
-      totalVotes: 1,
+    const options = [this.newPoll.opt1, this.newPoll.opt2, this.newPoll.opt3]
+      .map((option: string) => option?.trim())
+      .filter((option: string) => !!option)
+      .map((optionText: string) => ({ optionText }));
+    const payload = {
+      societyId: context.societyId,
+      createdById: context.userId,
+      title: this.newPoll.question.trim(),
+      description: this.newPoll.description?.trim() || '',
+      category: this.newPoll.targetAudience,
+      endDate: `${this.newPoll.endDate}T23:59:59`,
       options
     };
+    const editingId = this.editingPollId();
+    const request = editingId === null
+      ? this.api.createPoll(payload)
+      : this.api.updatePoll(editingId, payload);
 
-    this.polls.update(list => [created, ...list]);
-    this.closeNewPollModal();
+    request.subscribe({
+      next: response => {
+        if (!response?.success) {
+          this.mockData.showToast({ type: 'error', title: 'Poll Not Saved', message: response?.message || 'The poll was not saved.' });
+          return;
+        }
+        this.closeNewPollModal();
+        this.loadPolls();
+        this.mockData.showToast({
+          type: 'success',
+          title: editingId === null ? 'Poll Published' : 'Poll Updated',
+          message: editingId === null ? 'The poll is now shared with your society.' : 'Your poll changes were saved.'
+        });
+      },
+      error: error => this.showOperationError(error, 'Poll Not Saved')
+    });
+  }
+
+  deletePoll(poll: SocietyPoll) {
+    if (!confirm(`Delete the poll "${poll.question}"? This also removes its votes.`)) return;
+    let context: ReturnType<ReportsPageComponent['getPollContext']>;
+    try {
+      context = this.getPollContext();
+    } catch (error) {
+      this.showOperationError(error);
+      return;
+    }
+    this.api.deletePoll(Number(poll.id), context.societyId).subscribe({
+      next: response => {
+        if (!response?.success) {
+          this.mockData.showToast({ type: 'error', title: 'Poll Not Deleted', message: response?.message || 'The poll was not deleted.' });
+          return;
+        }
+        this.loadPolls();
+        this.mockData.showToast({ type: 'success', title: 'Poll Deleted', message: 'The poll was removed for all society members.' });
+      },
+      error: error => this.showOperationError(error, 'Poll Not Deleted')
+    });
+  }
+
+  private showOperationError(error: any, title = 'Poll Operation Failed') {
     this.mockData.showToast({
-      type: 'success',
-      title: 'Poll Published',
-      message: `"${created.question}" is now live for voting.`
+      type: 'error',
+      title,
+      message: error?.error?.message || error?.message || 'The server could not complete this poll operation.'
     });
   }
 

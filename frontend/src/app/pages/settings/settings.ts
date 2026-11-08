@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 
 export interface CommitteeMember {
   id: string;
@@ -22,6 +23,7 @@ export interface CommitteeMember {
 })
 export class SettingsPageComponent implements OnInit {
   public mockData = inject(MockDataService);
+  public authService = inject(AuthService, { optional: true });
 
   public activeTab = signal<'profile' | 'billing' | 'bank' | 'committee'>('profile');
 
@@ -125,7 +127,35 @@ export class SettingsPageComponent implements OnInit {
     termEnd: 'September 2028'
   };
 
-  ngOnInit() {}
+  ngOnInit() {
+    const user = this.authService?.currentUser();
+    if (user) {
+      if (user.societyName) {
+        this.societyProfile.name = user.societyName;
+      }
+      if (user.email) {
+        this.societyProfile.societyEmail = user.email;
+      }
+      if (user.phone) {
+        this.societyProfile.secretaryPhone = user.phone;
+      }
+
+      this.committeeMembers.update(members =>
+        members.map(m => {
+          if (m.designation === 'Secretary') {
+            return {
+              ...m,
+              name: user.name || m.name,
+              email: user.email || m.email,
+              phone: user.phone || m.phone,
+              flatNumber: (user.flat || 'A-101') + ' (Tower A)'
+            };
+          }
+          return m;
+        })
+      );
+    }
+  }
 
   saveProfile() {
     this.mockData.showToast({

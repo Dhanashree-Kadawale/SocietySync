@@ -20,10 +20,10 @@
 
     <!-- Staff Badge -->
     <div class="staff-badge">
-      <div class="staff-avatar-badge">RS</div>
+      <div class="staff-avatar-badge">{{ userInitials }}</div>
       <div class="staff-meta">
-        <strong>{{ maintenanceService.staffProfile().name }}</strong>
-        <small>{{ maintenanceService.staffProfile().role }}</small>
+        <strong>{{ userName }}</strong>
+        <small>{{ userRole }}</small>
       </div>
       <span class="staff-on-duty">On Duty</span>
     </div>
@@ -143,8 +143,8 @@
 
         <!-- Profile Chip -->
         <div class="topbar-staff-chip">
-          <div class="staff-avatar-sm">RS</div>
-          <span class="staff-name-sm">Ramesh Shinde (Lead)</span>
+          <div class="staff-avatar-sm">{{ userInitials }}</div>
+          <span class="staff-name-sm">{{ userName }}</span>
         </div>
       </div>
     </header>
@@ -157,8 +157,8 @@
         <!-- Welcome Banner -->
         <section class="staff-welcome-card">
           <div class="welcome-text-col">
-            <span class="duty-tag">ON-DUTY SHIFT · LEAD MAINTENANCE</span>
-            <h1>Good day, Ramesh Shinde 🔧</h1>
+            <span class="duty-tag">ON-DUTY SHIFT · {{ (societyName | uppercase) }}</span>
+            <h1>Good day, {{ userName }} 🔧</h1>
             <p>You have <strong>{{ filteredAssignedTasks().length }} active tasks</strong> today. Review urgent tickets, record work notes, and manage repairs.</p>
           </div>
           <div class="welcome-actions-col">

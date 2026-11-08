@@ -12,8 +12,6 @@ import { FacilityBooking } from '../../models/models';
   styleUrl: './facility-bookings.css'
 })
 export class FacilityBookingsComponent implements OnInit {
-  bookings: FacilityBooking[] = [];
-
   facilityEmojis: Record<string, string> = {
     'Clubhouse': '🏛️',
     'Swimming Pool': '🏊',
@@ -31,7 +29,7 @@ export class FacilityBookingsComponent implements OnInit {
   };
 
   constructor(
-    private mockData: MockDataService,
+    public mockData: MockDataService,
     private router: Router
   ) {}
 
@@ -39,8 +37,10 @@ export class FacilityBookingsComponent implements OnInit {
     this.router.navigate([route]);
   }
 
-  ngOnInit() {
-    this.bookings = this.mockData.getFacilityBookings();
+  ngOnInit() {}
+
+  get bookings(): FacilityBooking[] {
+    return this.mockData.bookings();
   }
 
   getStatusClass(status: string): string {
@@ -57,11 +57,6 @@ export class FacilityBookingsComponent implements OnInit {
   }
 
   confirmBooking(booking: FacilityBooking) {
-    booking.status = 'Confirmed';
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Booking Confirmed',
-      message: `${booking.facilityName} booking by ${booking.residentName} confirmed`,
-    });
+    this.mockData.updateBookingStatus(booking.id, 'Confirmed');
   }
 }

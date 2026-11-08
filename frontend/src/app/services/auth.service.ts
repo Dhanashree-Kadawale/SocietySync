@@ -1,6 +1,8 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
+import { firstValueFrom, BehaviorSubject } from 'rxjs';
 import { User, LoginRequest, UserRole } from '../models/user.model';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +14,7 @@ export class AuthService {
 
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUserSignal());
+  readonly authStateChanged$ = new BehaviorSubject<User | null>(this.getStoredUser());
 
   // Demo user fixtures for 4 roles
   readonly demoProfiles: Record<UserRole, { user: User; defaultPass: string }> = {
@@ -69,7 +72,13 @@ export class AuthService {
     }
   };
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private apiService: ApiService) {
+    const storedUser = this.currentUserSignal();
+    const missingResidentId = storedUser?.role === 'Resident' && !storedUser.residentId;
+    if (storedUser && (!storedUser.userId || !storedUser.societyId || missingResidentId)) {
+      this.refreshStoredUser(storedUser);
+    }
+  }
 
   private getStoredUser(): User | null {
     try {
@@ -80,34 +89,117 @@ export class AuthService {
     }
   }
 
-  login(credentials: LoginRequest): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const role = credentials.role || 'Resident';
-        const template = this.demoProfiles[role].user;
+  private refreshStoredUser(storedUser: User) {
+    const identity = storedUser.email || storedUser.phone;
+    if (!identity) return;
 
+    this.apiService.getMe(identity).subscribe({
+      next: response => {
+        if (!response?.success || !response.data) {
+          console.error('Unable to refresh the stored SocietySync account.', response?.message);
+          return;
+        }
+
+        const account = response.data;
         const user: User = {
-          ...template,
-          email: credentials.identity.includes('@') ? credentials.identity : template.email,
-          phone: !credentials.identity.includes('@') ? credentials.identity : template.phone,
-          role: role
+          ...storedUser,
+          id: account.id || storedUser.id,
+          userId: account.userId,
+          residentId: account.residentId,
+          societyId: account.societyId,
+          name: account.name || storedUser.name,
+          flat: account.flat || '',
+          role: (account.role || storedUser.role) as UserRole,
+          societyName: account.societyName || storedUser.societyName,
+          token: account.token
+        };
+        this.currentUserSignal.set(user);
+        this.authStateChanged$.next(user);
+        const storage = localStorage.getItem(this.STORAGE_KEY) ? localStorage : sessionStorage;
+        storage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+      },
+      error: error => console.error('Unable to refresh the stored SocietySync account.', error)
+    });
+  }
+
+  async login(credentials: LoginRequest): Promise<boolean> {
+    const role = credentials.role || 'Resident';
+    try {
+      const res = await firstValueFrom(this.apiService.login({
+        identity: credentials.identity.trim(),
+        password: credentials.password,
+        role: role,
+        rememberMe: credentials.rememberMe
+      }));
+
+      if (res && res.success && res.data) {
+        const u = res.data;
+        const user: User = {
+          id: u.id || ('USR-' + u.userId),
+          userId: u.userId,
+          residentId: u.residentId,
+          societyId: u.societyId,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || '',
+          flat: u.flat || '',
+          role: (u.role || role) as UserRole,
+          societyName: u.societyName || '',
+          token: u.token
         };
 
         this.currentUserSignal.set(user);
-
+        this.authStateChanged$.next(user);
         if (credentials.rememberMe) {
           localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
         } else {
+          localStorage.removeItem(this.STORAGE_KEY);
           sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
         }
+        return true;
+      } else {
+        throw new Error(res?.message || 'Invalid email/phone or password');
+      }
+    } catch (err: any) {
+      const msg = err?.error?.message || err?.message || 'Authentication failed. Please verify credentials.';
+      throw new Error(msg);
+    }
+  }
 
-        resolve(true);
-      }, 500);
-    });
+  async register(data: any): Promise<boolean> {
+    try {
+      const res = await firstValueFrom(this.apiService.register(data));
+      if (res && res.success && res.data) {
+        const u = res.data;
+        const user: User = {
+          id: u.id || ('USR-' + u.userId),
+          userId: u.userId,
+          residentId: u.residentId,
+          societyId: u.societyId,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          flat: u.flat || '',
+          role: (u.role || 'Resident') as UserRole,
+          societyName: u.societyName || '',
+          token: u.token
+        };
+        this.currentUserSignal.set(user);
+        this.authStateChanged$.next(user);
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(user));
+        return true;
+      } else {
+        throw new Error(res?.message || 'Registration failed');
+      }
+    } catch (err: any) {
+      const msg = err?.error?.message || err?.message || 'Registration failed. Please check your details.';
+      throw new Error(msg);
+    }
   }
 
   logout() {
     this.currentUserSignal.set(null);
+    this.authStateChanged$.next(null);
     localStorage.removeItem(this.STORAGE_KEY);
     sessionStorage.removeItem(this.STORAGE_KEY);
     this.router.navigate(['/login']);

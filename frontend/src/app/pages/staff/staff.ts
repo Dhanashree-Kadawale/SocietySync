@@ -29,128 +29,23 @@ export interface DetailedStaff {
 export class StaffPageComponent implements OnInit {
   public mockData = inject(MockDataService);
 
-  public staffList = signal<DetailedStaff[]>([
-    {
-      id: 'STF-001',
-      name: 'Ramesh Kumar',
-      role: 'Head Security Guard',
-      department: 'Security',
-      phone: '+91 99001 12345',
-      shift: '07:00 AM - 03:00 PM (Morning)',
-      status: 'On Duty',
-      salary: 19500,
-      assignedArea: 'Main Gate 1 & Perimeter',
-      emergencyContact: '+91 98221 00001 (Brother)',
+  public staffList = computed<DetailedStaff[]>(() => {
+    return this.mockData.staffMembers().map((s, idx) => ({
+      id: s.id.startsWith('STF') ? s.id : ('STF-00' + (s.id.replace(/\D/g, '') || (idx + 1))),
+      name: s.name,
+      role: s.role,
+      department: (s.department || 'Maintenance') as any,
+      phone: s.phone,
+      shift: '08:00 AM - 04:00 PM (Day)',
+      status: (s.status === 'Active' ? 'On Duty' : 'On Leave') as any,
+      salary: 18000 + (idx * 1500),
+      assignedArea: 'Tower A & Common Areas',
+      emergencyContact: '+91 98221 0000' + (idx + 1),
       idVerified: true,
       rating: 4.8,
-      activeTasks: 3
-    },
-    {
-      id: 'STF-002',
-      name: 'Sunita Devi',
-      role: 'Housekeeping Supervisor',
-      department: 'Housekeeping',
-      phone: '+91 99002 23456',
-      shift: '08:00 AM - 04:00 PM (Day)',
-      status: 'On Duty',
-      salary: 17000,
-      assignedArea: 'Tower A & Tower B Corridors',
-      emergencyContact: '+91 98221 00002 (Spouse)',
-      idVerified: true,
-      rating: 4.9,
       activeTasks: 2
-    },
-    {
-      id: 'STF-003',
-      name: 'Mohan Lal',
-      role: 'Chief Plumber & Water Specialist',
-      department: 'Maintenance',
-      phone: '+91 99003 34567',
-      shift: '09:00 AM - 06:00 PM (General)',
-      status: 'On Duty',
-      salary: 22000,
-      assignedArea: 'Pumping Station & All Towers',
-      emergencyContact: '+91 98221 00003 (Son)',
-      idVerified: true,
-      rating: 4.7,
-      activeTasks: 4
-    },
-    {
-      id: 'STF-004',
-      name: 'Asha Rani',
-      role: 'Head Landscaper & Gardener',
-      department: 'Landscaping',
-      phone: '+91 99004 45678',
-      shift: '07:00 AM - 02:00 PM (Morning)',
-      status: 'On Leave',
-      salary: 15500,
-      assignedArea: 'Central Park & Clubhouse Gardens',
-      emergencyContact: '+91 98221 00004 (Spouse)',
-      idVerified: true,
-      rating: 4.6,
-      activeTasks: 0
-    },
-    {
-      id: 'STF-005',
-      name: 'Deepak Yadav',
-      role: 'Senior Electrician & DG Operator',
-      department: 'Maintenance',
-      phone: '+91 99005 56789',
-      shift: '10:00 AM - 07:00 PM (Evening)',
-      status: 'On Duty',
-      salary: 23500,
-      assignedArea: 'Substation, Transformers & DG Sets',
-      emergencyContact: '+91 98221 00005 (Father)',
-      idVerified: true,
-      rating: 4.9,
-      activeTasks: 5
-    },
-    {
-      id: 'STF-006',
-      name: 'Priti Sharma',
-      role: 'Society Admin & Accounts Clerk',
-      department: 'Administration',
-      phone: '+91 99006 67890',
-      shift: '10:00 AM - 06:00 PM (Office)',
-      status: 'On Duty',
-      salary: 26000,
-      assignedArea: 'Society Office & Reception',
-      emergencyContact: '+91 98221 00006 (Spouse)',
-      idVerified: true,
-      rating: 5.0,
-      activeTasks: 1
-    },
-    {
-      id: 'STF-007',
-      name: 'Vikram Jadhav',
-      role: 'Night Security Guard',
-      department: 'Security',
-      phone: '+91 99007 78901',
-      shift: '11:00 PM - 07:00 AM (Night)',
-      status: 'Off Duty',
-      salary: 19000,
-      assignedArea: 'Basement Parking & Gate 2',
-      emergencyContact: '+91 98221 00007 (Brother)',
-      idVerified: true,
-      rating: 4.7,
-      activeTasks: 1
-    },
-    {
-      id: 'STF-008',
-      name: 'Kailash Chander',
-      role: 'Waste & Garbage Collector',
-      department: 'Housekeeping',
-      phone: '+91 99008 89012',
-      shift: '06:30 AM - 02:30 PM (Morning)',
-      status: 'On Duty',
-      salary: 15000,
-      assignedArea: 'Tower C & Tower D Corridors',
-      emergencyContact: '+91 98221 00008 (Father)',
-      idVerified: true,
-      rating: 4.5,
-      activeTasks: 1
-    }
-  ]);
+    }));
+  });
 
   // Filters
   public selectedDept = signal<string>('ALL');
@@ -243,29 +138,14 @@ export class StaffPageComponent implements OnInit {
       return;
     }
 
-    const newStaff: DetailedStaff = {
-      id: 'STF-0' + (this.staffList().length + 1),
+    this.mockData.addStaff({
       name: this.staffForm.name,
       role: this.staffForm.role,
       department: this.staffForm.department,
       phone: this.staffForm.phone,
-      shift: this.staffForm.shift,
-      status: 'On Duty',
-      salary: Number(this.staffForm.salary) || 18000,
-      assignedArea: this.staffForm.assignedArea || 'General Society Premises',
-      emergencyContact: this.staffForm.emergencyContact || 'Not specified',
-      idVerified: this.staffForm.idVerified,
-      rating: 5.0,
-      activeTasks: 0
-    };
-
-    this.staffList.update(list => [newStaff, ...list]);
-    this.closeAddStaffModal();
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Staff Member Onboarded',
-      message: `${newStaff.name} registered under ${newStaff.department} department.`
+      status: 'Active'
     });
+    this.closeAddStaffModal();
   }
 
   toggleDutyStatus(staff: DetailedStaff, event?: Event) {

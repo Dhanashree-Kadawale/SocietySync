@@ -130,7 +130,7 @@
             </button>
           </div>
 
-          <!-- Options Row: Remember Me & Forgot Password -->
+          <!-- Options Row: Remember Me & Forgot Password & Demo Helper -->
           <div class="form-row-options">
             <label class="remember-checkbox-label">
               <input
@@ -141,9 +141,14 @@
               <span>Remember Me</span>
             </label>
 
-            <a href="#forgot" (click)="openForgotPassword($event)" class="forgot-link">
-              Forgot Password?
-            </a>
+            <div class="options-right">
+              <button type="button" (click)="fillDemoAccount()" class="demo-fill-btn" title="Quickly autofill test credentials for this role">
+                ⚡ Fill Demo
+              </button>
+              <a href="#forgot" (click)="openForgotPassword($event)" class="forgot-link">
+                Forgot Password?
+              </a>
+            </div>
           </div>
 
           <!-- Submit Button -->

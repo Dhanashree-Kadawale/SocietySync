@@ -10,4 +10,5 @@ import java.util.List;
 public interface PollRepository extends JpaRepository<Poll, Long> {
     List<Poll> findBySocietyId(Long societyId);
     List<Poll> findBySocietyIdAndStatus(Long societyId, String status);
+    java.util.Optional<Poll> findByIdAndSocietyId(Long id, Long societyId);
 }

@@ -65,20 +65,20 @@
       </div>
     </div>
 
-    <!-- Profile Badge matching screenshot: (Circle PS Priya S.) -->
+    <!-- Profile Badge -->
     <div class="topbar-action-wrap">
       <button class="profile-pill-btn" (click)="toggleProfileMenu($event)" [class.active]="showProfileMenu">
-        <div class="profile-avatar">RV</div>
-        <span class="profile-name hide-mobile">Rahul V.</span>
+        <div class="profile-avatar">{{ userInitials }}</div>
+        <span class="profile-name hide-mobile">{{ userShortName }}</span>
       </button>
 
       <!-- Profile Dropdown -->
       <div class="dropdown profile-dropdown" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
         <div class="profile-dropdown-header">
-          <div class="pd-avatar">RV</div>
+          <div class="pd-avatar">{{ userInitials }}</div>
           <div>
-            <p class="pd-name">Rahul Verma</p>
-            <p class="pd-email">secretary&#64;greenwoodheights.org</p>
+            <p class="pd-name">{{ userName }}</p>
+            <p class="pd-email">{{ userEmail }}</p>
           </div>
         </div>
         <div class="dropdown-divider"></div>

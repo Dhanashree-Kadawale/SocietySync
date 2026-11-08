@@ -11,5 +11,8 @@ import java.util.Optional;
 public interface FlatRepository extends JpaRepository<Flat, Long> {
     List<Flat> findBySocietyId(Long societyId);
     List<Flat> findByBuildingId(Long buildingId);
+    List<Flat> findBySocietyIdAndBuildingId(Long societyId, Long buildingId);
     Optional<Flat> findByBuildingIdAndFlatNumber(Long buildingId, String flatNumber);
+    long countByBuildingId(Long buildingId);
+    long countBySocietyIdAndStatus(Long societyId, String status);
 }

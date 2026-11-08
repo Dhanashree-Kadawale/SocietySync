@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface VisitorRepository extends JpaRepository<Visitor, Long> {
     List<Visitor> findBySocietyId(Long societyId);
+    List<Visitor> findBySocietyIdAndStatus(Long societyId, String status);
     List<Visitor> findByFlatId(Long flatId);
     Optional<Visitor> findByEntryPassCode(String entryPassCode);
 }

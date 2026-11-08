@@ -24,7 +24,7 @@
         </button>
       </div>
 
-      <button class="btn btn-primary" *ngIf="activeTab() === 'polls'" (click)="openNewPollModal()">
+      <button class="btn btn-primary" *ngIf="activeTab() === 'polls' && canManagePolls()" (click)="openNewPollModal()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
@@ -118,6 +118,7 @@
 
   <!-- TAB 1: COMMUNITY POLLS -->
   <div class="tab-pane" *ngIf="activeTab() === 'polls'">
+    <p class="poll-error" *ngIf="pollLoadError()">{{ pollLoadError() }}</p>
     <!-- Filter Pills -->
     <div class="filter-strip">
       <button class="pill-btn" [class.active]="pollFilter() === 'ALL'" (click)="pollFilter.set('ALL')">
@@ -133,6 +134,9 @@
 
     <!-- Polls Grid -->
     <div class="polls-grid">
+      <p class="empty-polls" *ngIf="!pollLoadError() && filteredPolls().length === 0">
+        No polls have been created for your society yet.
+      </p>
       <div class="poll-card" *ngFor="let poll of filteredPolls()">
         <div class="poll-header">
           <div class="poll-status-row">
@@ -173,6 +177,12 @@
             <strong>{{ poll.totalVotes }}</strong> total resident votes recorded
           </span>
           <span class="hint" *ngIf="poll.status === 'Active'">Click any option to cast your vote</span>
+          <div class="poll-actions" *ngIf="canManagePolls()">
+            <button class="btn btn-outline btn-sm" (click)="openEditPollModal(poll)" [disabled]="poll.totalVotes > 0">
+              Edit
+            </button>
+            <button class="btn btn-outline btn-sm" (click)="deletePoll(poll)">Delete</button>
+          </div>
         </div>
       </div>
     </div>
@@ -267,8 +277,8 @@
             </svg>
           </div>
           <div>
-            <h3>Create Community Referendum / Poll</h3>
-            <p>Publish an official society poll for democratic voting</p>
+            <h3>{{ editingPollId() === null ? 'Create Community Referendum / Poll' : 'Edit Community Poll' }}</h3>
+            <p>Poll changes are shared with members of your society</p>
           </div>
         </div>
         <button class="close-btn" (click)="closeNewPollModal()">&times;</button>
@@ -305,7 +315,7 @@
           </div>
           <div class="form-group half">
             <label>Voting Deadline</label>
-            <input type="text" class="form-control" [(ngModel)]="newPoll.endDate" />
+            <input type="date" class="form-control" [(ngModel)]="newPoll.endDate" />
           </div>
         </div>
 
@@ -327,7 +337,9 @@
 
       <div class="modal-footer">
         <button class="btn btn-outline" (click)="closeNewPollModal()">Cancel</button>
-        <button class="btn btn-primary" (click)="submitPoll()">Publish Referendum</button>
+        <button class="btn btn-primary" (click)="submitPoll()">
+          {{ editingPollId() === null ? 'Publish Referendum' : 'Save Changes' }}
+        </button>
       </div>
     </div>
   </div>

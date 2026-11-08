@@ -96,6 +96,27 @@ export class StaffDashboardComponent {
     private router: Router
   ) {}
 
+  get userInitials(): string {
+    const name = this.authService.currentUser()?.name || this.maintenanceService.staffProfile().name;
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  get userName(): string {
+    return this.authService.currentUser()?.name || this.maintenanceService.staffProfile().name;
+  }
+
+  get userRole(): string {
+    return this.authService.currentUser()?.role || this.maintenanceService.staffProfile().role;
+  }
+
+  get societyName(): string {
+    return this.authService.currentUser()?.societyName || this.maintenanceService.staffProfile().societyName;
+  }
+
   setTab(tab: string): void {
     const validTabs: StaffTab[] = ['dashboard', 'assigned', 'history', 'materials', 'delays'];
     if (validTabs.includes(tab as StaffTab)) {

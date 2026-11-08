@@ -12,8 +12,6 @@ import { Activity } from '../../models/models';
   styleUrl: './activity-feed.css'
 })
 export class ActivityFeedComponent implements OnInit {
-  activities: Activity[] = [];
-
   constructor(
     private mockData: MockDataService,
     private router: Router
@@ -23,8 +21,10 @@ export class ActivityFeedComponent implements OnInit {
     this.router.navigate([route]);
   }
 
-  ngOnInit() {
-    this.activities = this.mockData.getActivities();
+  ngOnInit() {}
+
+  get activities(): Activity[] {
+    return this.mockData.getActivities();
   }
 
   formatTime(timestamp: string): string {

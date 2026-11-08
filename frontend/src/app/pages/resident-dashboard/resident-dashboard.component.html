@@ -147,16 +147,16 @@
       <div class="emergency-contact-box">
         <div class="emergency-header">
           <span class="emergency-icon">🚨</span>
-          <strong>Security Gate 1</strong>
+          <strong>Emergency Contact</strong>
         </div>
-        <p class="emergency-phone">Intercom: <strong>4001</strong> · Mobile: <strong>+91 98220 99111</strong></p>
+        <p class="emergency-phone">{{ residentService.flatInfo().emergencyContact.phone || 'Not configured' }}</p>
       </div>
 
       <div class="resident-user-chip">
-        <div class="user-avatar">PS</div>
+        <div class="user-avatar">{{ userInitials }}</div>
         <div class="user-details">
-          <strong>Priya Sharma</strong>
-          <small>Flat A-204 · Resident</small>
+          <strong>{{ userName }}</strong>
+          <small>Flat {{ userFlat }} · Resident</small>
         </div>
         <button type="button" class="sign-out-btn" (click)="logout()" title="Sign Out">
           ⇥
@@ -170,7 +170,7 @@
     <!-- Topbar -->
     <header class="portal-topbar">
       <div class="topbar-left">
-        <span class="society-title">Greenwood Heights</span>
+        <span class="society-title">{{ societyName }}</span>
         <span class="breadcrumb-separator">/</span>
         <strong class="topbar-current-tab">
           @if (activeTab() === 'overview') { Resident Dashboard }
@@ -194,7 +194,7 @@
         </button>
 
         @if (residentService.unpaidBillCount() > 0) {
-          <button type="button" class="topbar-action-btn highlight-btn" (click)="openPayModal(residentService.bills()[0])">
+          <button type="button" class="topbar-action-btn highlight-btn" (click)="openPayModal(nearestUnpaidBill!)">
             <span>💳</span> Pay ₹{{ residentService.totalDueAmount() }}
           </button>
         }
@@ -219,8 +219,8 @@
 
         <!-- Profile Chip -->
         <div class="topbar-user" (click)="setTab('profile')">
-          <div class="user-avatar-sm">PS</div>
-          <span class="user-name-sm">Priya S.</span>
+          <div class="user-avatar-sm">{{ userInitials }}</div>
+          <span class="user-name-sm">{{ userShortName }}</span>
         </div>
       </div>
     </header>
@@ -233,8 +233,8 @@
         <!-- Welcome Banner -->
         <section class="overview-welcome-card">
           <div class="welcome-text-col">
-            <span class="date-tag">Saturday, 17 October 2026 · Flat A-204</span>
-            <h1>Welcome home, Priya Sharma! 🌿</h1>
+            <span class="date-tag">Today · Flat {{ userFlat }}</span>
+            <h1>Welcome home, {{ userName }}! 🌿</h1>
             <p>Access your society services, clear dues, register complaints, and book amenities with ease.</p>
           </div>
           <div class="welcome-actions-col">
@@ -257,15 +257,17 @@
             </div>
             <div class="kpi-value-row">
               <h2>₹{{ residentService.totalDueAmount() }}</h2>
-              @if (residentService.unpaidBillCount() > 0) {
-                <span class="status-tag unpaid">Due 25 Oct</span>
-              } @else {
+              @if (nearestUnpaidBill; as bill) {
+                <span class="status-tag unpaid">Due {{ bill.dueDate | date:'mediumDate' }}</span>
+              } @else if (residentService.bills().length > 0) {
                 <span class="status-tag paid">All Paid</span>
+              } @else {
+                <span class="status-tag">No bills</span>
               }
             </div>
-            <p class="kpi-subtext">October 2026 bill generated</p>
+            <p class="kpi-subtext">{{ residentService.unpaidBillCount() }} unpaid or overdue bill(s)</p>
             @if (residentService.unpaidBillCount() > 0) {
-              <button type="button" class="kpi-action-btn" (click)="openPayModal(residentService.bills()[0])">
+              <button type="button" class="kpi-action-btn" (click)="openPayModal(nearestUnpaidBill!)">
                 Pay Now →
               </button>
             } @else {
@@ -283,9 +285,9 @@
             </div>
             <div class="kpi-value-row">
               <h2>{{ residentService.activeComplaintCount() }}</h2>
-              <span class="status-tag in-progress">In Progress</span>
+              <span class="status-tag in-progress">{{ activeComplaint?.status || 'No active issues' }}</span>
             </div>
-            <p class="kpi-subtext">Plumber assigned for master shower</p>
+            <p class="kpi-subtext">{{ activeComplaint?.title || 'No active complaints' }}</p>
             <button type="button" class="kpi-action-btn" (click)="setTab('complaints')">
               Track Complaints →
             </button>
@@ -299,9 +301,9 @@
             </div>
             <div class="kpi-value-row">
               <h2>{{ residentService.upcomingBookingCount() }}</h2>
-              <span class="status-tag confirmed">Confirmed</span>
+              <span class="status-tag confirmed">{{ upcomingBooking?.status || 'No bookings' }}</span>
             </div>
-            <p class="kpi-subtext">Clubhouse on 24 Oct (5 PM - 9 PM)</p>
+            <p class="kpi-subtext">{{ upcomingBooking ? upcomingBooking.facilityName + ' · ' + upcomingBooking.date + ' · ' + upcomingBooking.timeSlot : 'No upcoming bookings' }}</p>
             <button type="button" class="kpi-action-btn" (click)="setTab('facilities')">
               Manage Bookings →
             </button>
@@ -314,10 +316,10 @@
               <span class="kpi-icon-pill">👥</span>
             </div>
             <div class="kpi-value-row">
-              <h2>1 Expected</h2>
-              <span class="status-tag pass">PASS-8941</span>
+              <h2>{{ expectedVisitors.length }} Expected</h2>
+              <span class="status-tag pass">{{ expectedVisitors[0]?.entryPassCode || 'No active pass' }}</span>
             </div>
-            <p class="kpi-subtext">Sunil Verma · Guest (18 Oct)</p>
+            <p class="kpi-subtext">{{ expectedVisitors[0] ? expectedVisitors[0].name + ' · ' + expectedVisitors[0].purpose + ' (' + expectedVisitors[0].date + ')' : 'No expected visitors' }}</p>
             <button type="button" class="kpi-action-btn" (click)="setTab('visitors')">
               Gate Management →
             </button>
@@ -353,6 +355,8 @@
                     <p>{{ notice.content }}</p>
                   </div>
                 </div>
+              } @empty {
+                <p class="empty-state">No society notices available.</p>
               }
             </div>
           </div>
@@ -370,23 +374,23 @@
             <div class="flat-summary-table">
               <div class="summary-row">
                 <span>Flat & Tower:</span>
-                <strong>{{ residentService.flatInfo().flatNumber }} ({{ residentService.flatInfo().wing }})</strong>
+                <strong>{{ residentService.flatInfo().flatNumber || '—' }} ({{ residentService.flatInfo().wing || '—' }})</strong>
               </div>
               <div class="summary-row">
                 <span>Carpet Area:</span>
-                <strong>{{ residentService.flatInfo().carpetAreaSqFt }} sq.ft ({{ residentService.flatInfo().bhkType }})</strong>
+                <strong>{{ residentService.flatInfo().carpetAreaSqFt || '—' }} sq.ft ({{ residentService.flatInfo().bhkType || '—' }})</strong>
               </div>
               <div class="summary-row">
                 <span>Dedicated Parking:</span>
-                <strong>{{ residentService.flatInfo().parkingSlot }}</strong>
+                <strong>{{ residentService.flatInfo().parkingSlot || '—' }}</strong>
               </div>
               <div class="summary-row">
                 <span>Primary Vehicle:</span>
-                <strong>MH 12 AB 4589 (Honda City)</strong>
+                <strong>{{ residentService.flatInfo().vehicles[0]?.registrationNumber || '—' }} {{ residentService.flatInfo().vehicles[0]?.model || '' }}</strong>
               </div>
               <div class="summary-row">
                 <span>Occupancy Status:</span>
-                <strong class="green-text">Owner Verified (3 Occupants)</strong>
+                <strong class="green-text">{{ residentService.flatInfo().ownershipType || '—' }} · {{ residentService.flatInfo().occupancyCount || '—' }} occupants</strong>
               </div>
             </div>
 
@@ -396,7 +400,7 @@
                 <span>🛠️</span>
                 <small>Report Issue</small>
               </button>
-              <button type="button" class="shortcut-tile" (click)="openBookingModal('Clubhouse')">
+              <button type="button" class="shortcut-tile" (click)="openBookingModal()">
                 <span>🎉</span>
                 <small>Book Hall</small>
               </button>
@@ -426,11 +430,11 @@
         <section class="section-container">
           <div class="section-title-row">
             <div>
-              <h2>Maintenance Bills & Online Payments</h2>
-              <p>Review monthly dues, breakdown charges, and pay online through secure gateway.</p>
+                <h2>Maintenance Bills & Payment Records</h2>
+                <p>Review dues and record bill payments. An external payment gateway is not configured.</p>
             </div>
-            @if (residentService.unpaidBillCount() > 0) {
-              <button type="button" class="primary-action-btn" (click)="openPayModal(residentService.bills()[0])">
+            @if (nearestUnpaidBill; as bill) {
+              <button type="button" class="primary-action-btn" (click)="openPayModal(bill)">
                 💳 Pay Outstanding (₹{{ residentService.totalDueAmount() }})
               </button>
             }
@@ -478,18 +482,20 @@
                 <div class="bill-card-footer">
                   @if (bill.status === 'Unpaid') {
                     <button type="button" class="primary-action-btn" (click)="openPayModal(bill)">
-                      Pay Online Now (₹{{ bill.totalAmount }})
+                      Record Payment (₹{{ bill.totalAmount }})
                     </button>
                   } @else {
                     <div class="paid-info-row">
                       <span>Paid on {{ bill.paidDate }} via {{ bill.paymentMode }}</span>
-                      <button type="button" class="receipt-btn" (click)="showToast('Receipt #' + bill.receiptNumber + ' ready for download.')">
+                      <button type="button" class="receipt-btn" (click)="downloadBillReceipt(bill)">
                         Download Receipt
                       </button>
                     </div>
                   }
                 </div>
               </div>
+            } @empty {
+              <p class="empty-state">No maintenance bills are available for this account.</p>
             }
           </div>
 
@@ -532,6 +538,9 @@
                         </button>
                       </td>
                     </tr>
+                  }
+                  @empty {
+                    <tr><td colspan="8" class="empty-state">No payment records are available.</td></tr>
                   }
                 </tbody>
               </table>
@@ -627,6 +636,8 @@
                   </div>
                 }
               </div>
+            } @empty {
+              <p class="empty-state">No complaints have been reported for this account.</p>
             }
           </div>
         </section>
@@ -655,39 +666,39 @@
               <div class="meta-field-list">
                 <div class="meta-field">
                   <span>Society Name:</span>
-                  <strong>Greenwood Heights Residential Complex</strong>
+                  <strong>{{ societyName || '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Building / Wing:</span>
-                  <strong>{{ residentService.flatInfo().wing }}</strong>
+                  <strong>{{ residentService.flatInfo().wing || '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Flat Number:</span>
-                  <strong class="highlight-code">{{ residentService.flatInfo().flatNumber }}</strong>
+                  <strong class="highlight-code">{{ residentService.flatInfo().flatNumber || '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Floor:</span>
-                  <strong>{{ residentService.flatInfo().floor }}nd Floor</strong>
+                  <strong>{{ residentService.flatInfo().floor ? residentService.flatInfo().floor + ' Floor' : '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Apartment Configuration:</span>
-                  <strong>{{ residentService.flatInfo().bhkType }}</strong>
+                  <strong>{{ residentService.flatInfo().bhkType || '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Carpet Area:</span>
-                  <strong>{{ residentService.flatInfo().carpetAreaSqFt }} Sq. Ft.</strong>
+                  <strong>{{ residentService.flatInfo().carpetAreaSqFt || '—' }} Sq. Ft.</strong>
                 </div>
                 <div class="meta-field">
                   <span>Ownership Type:</span>
-                  <strong class="green-text">{{ residentService.flatInfo().ownershipType }}</strong>
+                  <strong class="green-text">{{ residentService.flatInfo().ownershipType || '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Resident Since:</span>
-                  <strong>{{ residentService.flatInfo().residentSince }}</strong>
+                  <strong>{{ residentService.flatInfo().residentSince || '—' }}</strong>
                 </div>
                 <div class="meta-field">
                   <span>Registered Occupants:</span>
-                  <strong>{{ residentService.flatInfo().occupancyCount }} Persons</strong>
+                  <strong>{{ residentService.flatInfo().occupancyCount || '—' }} Persons</strong>
                 </div>
               </div>
             </div>
@@ -700,7 +711,7 @@
               </div>
               <div class="parking-slot-badge">
                 <span>Allotted Slot:</span>
-                <strong>{{ residentService.flatInfo().parkingSlot }}</strong>
+                <strong>{{ residentService.flatInfo().parkingSlot || '—' }}</strong>
               </div>
 
               <div class="vehicle-list">
@@ -714,16 +725,18 @@
                       <span class="plate-number">{{ v.registrationNumber }}</span>
                       <small>Designated: {{ v.slot }}</small>
                     </div>
-                    <span class="verified-rfid-tag">RFID Tag Active</span>
+                    <span class="verified-rfid-tag">Registered vehicle</span>
                   </div>
+                } @empty {
+                  <p class="empty-state">No vehicle details are available.</p>
                 }
               </div>
 
               <!-- Emergency Contact Info -->
               <div class="emergency-box-flat">
                 <h4>Registered Emergency Contact</h4>
-                <p><strong>{{ residentService.flatInfo().emergencyContact.name }}</strong> ({{ residentService.flatInfo().emergencyContact.relationship }})</p>
-                <p>Phone: {{ residentService.flatInfo().emergencyContact.phone }}</p>
+                <p><strong>{{ residentService.flatInfo().emergencyContact.name || 'Not configured' }}</strong> ({{ residentService.flatInfo().emergencyContact.relationship || '—' }})</p>
+                <p>Phone: {{ residentService.flatInfo().emergencyContact.phone || '—' }}</p>
               </div>
             </div>
           </div>
@@ -738,98 +751,38 @@
               <h2>Amenities & Facility Booking</h2>
               <p>Reserve society amenities, clubhouse, community hall, tennis court, and banquet deck.</p>
             </div>
-            <button type="button" class="primary-action-btn" (click)="openBookingModal('Clubhouse')">
+            <button type="button" class="primary-action-btn" (click)="openBookingModal()">
               ＋ New Reservation
             </button>
           </div>
 
           <!-- Facilities Cards Grid -->
           <div class="amenities-grid">
-            <!-- Facility 1: Clubhouse -->
-            <div class="amenity-card">
-              <div class="amenity-badge">₹1,500 / slot</div>
-              <h3>Clubhouse Hall</h3>
-              <p>Air-conditioned multipurpose clubhouse with projector, audio setup, and seating for 50 guests.</p>
-              <ul class="amenity-specs">
-                <li>✦ Capacity: 50 Persons</li>
-                <li>✦ Timings: 09:00 AM - 10:00 PM</li>
-                <li>✦ Amenities: AC, Sound System, Projector</li>
-              </ul>
-              <button type="button" class="book-amenity-btn" (click)="openBookingModal('Clubhouse')">
-                Book Clubhouse
-              </button>
-            </div>
-
-            <!-- Facility 2: Community Hall -->
-            <div class="amenity-card">
-              <div class="amenity-badge">₹3,000 / day</div>
-              <h3>Grand Community Hall</h3>
-              <p>Spacious banquet hall suitable for weddings, family receptions, religious pooja, and parties.</p>
-              <ul class="amenity-specs">
-                <li>✦ Capacity: 150 Persons</li>
-                <li>✦ Full day / Half day slots</li>
-                <li>✦ Attached catering pantry & green rooms</li>
-              </ul>
-              <button type="button" class="book-amenity-btn" (click)="openBookingModal('Community Hall')">
-                Book Community Hall
-              </button>
-            </div>
-
-            <!-- Facility 3: Swimming Pool -->
-            <div class="amenity-card">
-              <div class="amenity-badge free">Free for Residents</div>
-              <h3>Swimming Pool</h3>
-              <p>Temperature-controlled lap pool and kids paddling pool with certified lifeguard on duty.</p>
-              <ul class="amenity-specs">
-                <li>✦ Timings: 06:00 AM - 09:30 AM & 04:30 PM - 08:30 PM</li>
-                <li>✦ Closed on Mondays for filtration</li>
-              </ul>
-              <button type="button" class="book-amenity-btn secondary" (click)="openBookingModal('Swimming Pool')">
-                Reserve Slot
-              </button>
-            </div>
-
-            <!-- Facility 4: Tennis Court -->
-            <div class="amenity-card">
-              <div class="amenity-badge free">Free for Residents</div>
-              <h3>Floodlit Tennis Court</h3>
-              <p>Synthetic all-weather surface with LED night floodlights and racquets available on deposit.</p>
-              <ul class="amenity-specs">
-                <li>✦ 1-hour bookable slots</li>
-                <li>✦ 06:00 AM - 09:00 PM</li>
-              </ul>
-              <button type="button" class="book-amenity-btn secondary" (click)="openBookingModal('Tennis Court')">
-                Reserve Court
-              </button>
-            </div>
-
-            <!-- Facility 5: Gymnasium -->
-            <div class="amenity-card">
-              <div class="amenity-badge free">Free for Residents</div>
-              <h3>Fitness Center & Gym</h3>
-              <p>Equipped with commercial treadmills, ellipticals, free weights, and stretching zone.</p>
-              <ul class="amenity-specs">
-                <li>✦ Open daily 05:30 AM - 10:30 PM</li>
-                <li>✦ Biometric access</li>
-              </ul>
-              <button type="button" class="book-amenity-btn secondary" (click)="openBookingModal('Gymnasium')">
-                Reserve Pass
-              </button>
-            </div>
-
-            <!-- Facility 6: Barbeque Deck -->
-            <div class="amenity-card">
-              <div class="amenity-badge">₹800 / evening</div>
-              <h3>Barbeque Deck & Lawn</h3>
-              <p>Outdoor open-air grill deck overlooking central fountains, perfect for family cookouts.</p>
-              <ul class="amenity-specs">
-                <li>✦ Capacity: 20 Persons</li>
-                <li>✦ 06:00 PM - 10:30 PM</li>
-              </ul>
-              <button type="button" class="book-amenity-btn" (click)="openBookingModal('Barbeque Deck')">
-                Book BBQ Deck
-              </button>
-            </div>
+            @for (facility of residentService.facilities(); track facility.id) {
+              <div class="amenity-card">
+                <div class="amenity-badge" [class.free]="facility.pricePerHour === 0">
+                  {{ facility.pricePerHour === 0 ? 'Free' : ('₹' + facility.pricePerHour + ' / hour') }}
+                </div>
+                <h3>{{ facility.name }}</h3>
+                <p>{{ facility.description }}</p>
+                <ul class="amenity-specs">
+                  @if (facility.capacity > 0) {
+                    <li>✦ Capacity: {{ facility.capacity }} persons</li>
+                  }
+                  @if (facility.amenities) {
+                    <li>✦ Amenities: {{ facility.amenities }}</li>
+                  }
+                  <li>✦ Status: {{ facility.status }}</li>
+                </ul>
+                <button type="button" class="book-amenity-btn"
+                        [disabled]="facility.status !== 'AVAILABLE'"
+                        (click)="openBookingModal(facility.id)">
+                  {{ facility.status === 'AVAILABLE' ? 'Book ' + facility.name : 'Unavailable' }}
+                </button>
+              </div>
+            } @empty {
+              <p class="empty-state">No society facilities are available.</p>
+            }
           </div>
 
           <!-- My Bookings Table -->
@@ -1000,7 +953,7 @@
                   <p>{{ doc.description }}</p>
                   <div class="doc-footer-row">
                     <small>Size: {{ doc.fileSize }} · Updated {{ doc.uploadedDate }}</small>
-                    <button type="button" class="download-doc-btn" (click)="showToast('Downloading ' + doc.title + '...')">
+                    <button type="button" class="download-doc-btn" [disabled]="!doc.fileUrl" (click)="downloadDocument(doc)">
                       ⬇ Download File
                     </button>
                   </div>
@@ -1136,13 +1089,13 @@
           <div class="profile-layout-grid">
             <!-- Left: Identity Card -->
             <div class="profile-avatar-card">
-              <div class="profile-avatar-large">PS</div>
-              <h3>Priya Sharma</h3>
+              <div class="profile-avatar-large">{{ userInitials }}</div>
+              <h3>{{ userName }}</h3>
               <p class="profile-role-badge">Flat Owner & Resident</p>
               <div class="profile-quick-stats">
-                <div><span>Flat</span><strong>A-204</strong></div>
+                <div><span>Flat</span><strong>{{ userFlat }}</strong></div>
                 <div><span>Tower</span><strong>Tower A</strong></div>
-                <div><span>Member</span><strong>Since 2022</strong></div>
+                <div><span>Status</span><strong>Active</strong></div>
               </div>
               <button type="button" class="secondary-action-btn w-100 mt-15" (click)="showToast('Verification badge confirmed by society secretary.')">
                 ✓ Verified Resident
@@ -1156,23 +1109,23 @@
                 <div class="form-row-2">
                   <div class="form-field">
                     <label>Full Legal Name</label>
-                    <input type="text" value="Priya Sharma" disabled class="input-disabled" />
+                    <input type="text" [value]="userName" disabled class="input-disabled" />
                     <small class="field-hint">Name changes require society secretary approval</small>
                   </div>
                   <div class="form-field">
                     <label>Registered Flat Number</label>
-                    <input type="text" [value]="residentService.flatInfo().flatNumber" disabled class="input-disabled" />
+                    <input type="text" [value]="userFlat" disabled class="input-disabled" />
                   </div>
                 </div>
 
                 <div class="form-row-2">
                   <div class="form-field">
                     <label>Registered Email Address</label>
-                    <input type="email" value="priya.sharma@greenwood.com" disabled class="input-disabled" />
+                    <input type="email" [value]="userEmail" disabled class="input-disabled" />
                   </div>
                   <div class="form-field">
                     <label>Registered Mobile Number</label>
-                    <input type="tel" value="+91 98765 12340" disabled class="input-disabled" />
+                    <input type="tel" [value]="userPhone" disabled class="input-disabled" />
                   </div>
                 </div>
 
@@ -1332,7 +1285,7 @@
                 <span class="btn-spinner"></span>
                 <span>Connecting to Gateway...</span>
               } @else {
-                <span>Authorize & Pay ₹{{ selectedBillForPayment()?.totalAmount }}</span>
+                <span>Record Payment ₹{{ selectedBillForPayment()?.totalAmount }}</span>
               }
             </button>
           } @else {
@@ -1340,7 +1293,7 @@
             <div class="payment-success-screen">
               <div class="success-icon-badge">✓</div>
               <h3>Payment Completed Successfully!</h3>
-              <p>Your maintenance dues for <strong>{{ selectedBillForPayment()?.month }}</strong> have been settled.</p>
+              <p>A payment record for <strong>{{ selectedBillForPayment()?.month }}</strong> was saved and the bill was marked paid. No external funds were processed.</p>
 
               @if (selectedReceipt()) {
                 <div class="receipt-preview-box">
@@ -1452,13 +1405,12 @@
           <form (ngSubmit)="submitBooking()">
             <div class="form-field">
               <label>Select Facility *</label>
-              <select [(ngModel)]="newBooking.facilityName" name="facilityName" class="form-control">
-                <option value="Clubhouse">Clubhouse (₹1,500)</option>
-                <option value="Community Hall">Community Hall (₹3,000)</option>
-                <option value="Swimming Pool">Swimming Pool (Free)</option>
-                <option value="Tennis Court">Tennis Court (Free)</option>
-                <option value="Gymnasium">Gymnasium (Free)</option>
-                <option value="Barbeque Deck">Barbeque Deck (₹800)</option>
+              <select [(ngModel)]="newBooking.facilityId" name="facilityId" class="form-control" required>
+                @for (facility of residentService.facilities(); track facility.id) {
+                  <option [value]="facility.id" [disabled]="facility.status !== 'AVAILABLE'">
+                    {{ facility.name }} · {{ facility.pricePerHour === 0 ? 'Free' : ('₹' + facility.pricePerHour + '/hour') }}
+                  </option>
+                }
               </select>
             </div>
 
@@ -1473,7 +1425,7 @@
                   <option value="06:00 AM - 09:00 AM">Morning: 06:00 AM - 09:00 AM</option>
                   <option value="10:00 AM - 02:00 PM">Noon: 10:00 AM - 02:00 PM</option>
                   <option value="05:00 PM - 09:00 PM">Evening: 05:00 PM - 09:00 PM</option>
-                  <option value="Full Day (09:00 AM - 10:00 PM)">Full Day</option>
+                  <option value="09:00 AM - 10:00 PM">Full Day</option>
                 </select>
               </div>
             </div>
@@ -1490,7 +1442,7 @@
 
             <div class="modal-footer">
               <button type="button" class="secondary-action-btn" (click)="closeBookingModal()">Cancel</button>
-              <button type="submit" class="primary-action-btn">Confirm Reservation</button>
+              <button type="submit" class="primary-action-btn">Submit Booking Request</button>
             </div>
           </form>
         </div>
@@ -1696,14 +1648,14 @@
         </div>
         <div class="modal-body receipt-modal-body">
           <div class="receipt-header-branding">
-            <h4>Greenwood Heights Co-Operative Housing Society Ltd.</h4>
-            <small>Registration No: PNA/HSG/2021/7798 · Pune - 411045</small>
+            <h4>{{ societyName }}</h4>
+            <small>Official Housing Society Management System · Pune</small>
           </div>
 
           <div class="receipt-table-info">
             <div class="r-row"><span>Receipt No:</span><strong>{{ selectedReceipt()?.receiptNumber }}</strong></div>
             <div class="r-row"><span>Date:</span><strong>{{ selectedReceipt()?.paymentDate }}</strong></div>
-            <div class="r-row"><span>Resident:</span><strong>Priya Sharma (Flat A-204)</strong></div>
+            <div class="r-row"><span>Resident:</span><strong>{{ userName }} (Flat {{ userFlat }})</strong></div>
             <div class="r-row"><span>Bill Period:</span><strong>{{ selectedReceipt()?.billMonth }}</strong></div>
             <div class="r-row"><span>Transaction ID:</span><code>{{ selectedReceipt()?.transactionId }}</code></div>
             <div class="r-row"><span>Payment Mode:</span><strong>{{ selectedReceipt()?.paymentMethod }}</strong></div>

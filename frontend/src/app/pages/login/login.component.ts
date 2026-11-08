@@ -14,8 +14,8 @@ import { UserRole } from '../../models/user.model';
 })
 export class LoginComponent implements OnInit {
   selectedRole: UserRole = 'Resident';
-  identity = 'priya.sharma@greenwood.com';
-  password = 'Resident@2026';
+  identity = '';
+  password = '';
   rememberMe = false;
   showPassword = false;
   isLoading = false;
@@ -41,14 +41,45 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      if (params['role']) {
-        const queryRole = (params['role'] as string).toLowerCase();
-        const matched = this.roles.find(
-          r => r.role.toLowerCase() === queryRole || r.label.toLowerCase() === queryRole
-        );
-        if (matched) {
-          this.selectRole(matched.role);
+      const isRegistered = params['registered'] === 'true';
+      let roleParam = params['role'];
+      let emailParam = params['email'];
+
+      if (isRegistered) {
+        if (!emailParam) {
+          try {
+            emailParam = sessionStorage.getItem('last_registered_email') || '';
+          } catch {}
         }
+        if (!roleParam) {
+          try {
+            roleParam = sessionStorage.getItem('last_registered_role') || '';
+          } catch {}
+        }
+        // Clear after one-time consumption so subsequent visits start clean
+        try {
+          sessionStorage.removeItem('last_registered_email');
+          sessionStorage.removeItem('last_registered_role');
+        } catch {}
+      }
+
+      if (emailParam) {
+        this.identity = emailParam;
+      }
+
+      if (roleParam) {
+        const queryRole = (roleParam as string).toLowerCase();
+        if (queryRole.includes('secretary') || queryRole.includes('admin')) {
+          this.selectedRole = 'Secretary Admin';
+        } else if (queryRole.includes('staff') || queryRole.includes('maintenance') || queryRole.includes('crew')) {
+          this.selectedRole = 'Maintenance Staff';
+        } else if (queryRole.includes('resident')) {
+          this.selectedRole = 'Resident';
+        }
+      }
+
+      if (isRegistered && this.identity) {
+        this.successMessage = `Account registered successfully for ${this.identity}! Enter your password to sign in as ${this.selectedRole}.`;
       }
     });
   }
@@ -61,10 +92,14 @@ export class LoginComponent implements OnInit {
     this.selectedRole = role;
     this.errorMessage = '';
     this.successMessage = '';
-    const demo = this.authService.demoProfiles[role];
+  }
+
+  fillDemoAccount(): void {
+    const demo = this.authService.demoProfiles[this.selectedRole];
     if (demo) {
       this.identity = demo.user.email;
       this.password = demo.defaultPass;
+      this.errorMessage = '';
     }
   }
 
@@ -93,19 +128,23 @@ export class LoginComponent implements OnInit {
         rememberMe: this.rememberMe
       });
 
-      this.successMessage = `Sign in successful as ${this.selectedRole}! Redirecting...`;
+      const resolvedRole = this.authService.currentUser()?.role || this.selectedRole;
+      this.successMessage = `Sign in successful as ${resolvedRole}! Redirecting to portal...`;
 
       setTimeout(() => {
-        if (this.selectedRole === 'Resident') {
+        if (resolvedRole === 'Resident') {
           this.router.navigate(['/resident']);
-        } else if (this.selectedRole === 'Maintenance Staff') {
+        } else if (resolvedRole === 'Maintenance Staff') {
           this.router.navigate(['/staff-dashboard']);
+        } else if (resolvedRole === 'Super Admin') {
+          this.router.navigate(['/super-admin']);
         } else {
           this.router.navigate(['/dashboard']);
         }
-      }, 600);
-    } catch {
-      this.errorMessage = 'Invalid credentials. Please verify your details.';
+      }, 300);
+    } catch (err: any) {
+      this.errorMessage = err?.message || 'Invalid credentials. Please verify your email/phone and password.';
+    } finally {
       this.isLoading = false;
     }
   }

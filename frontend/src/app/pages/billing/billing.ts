@@ -11,10 +11,10 @@ import { MaintenanceBill } from '../../models/models';
   templateUrl: './billing.html',
   styleUrl: './billing.css'
 })
-export class BillingComponent implements OnInit {
+export class BillingComponent {
   public mockData = inject(MockDataService);
 
-  public bills = signal<MaintenanceBill[]>([]);
+  public bills = this.mockData.bills;
   public searchQuery = signal<string>('');
   public selectedStatus = signal<string>('ALL');
   public selectedMonth = signal<string>('October');
@@ -42,10 +42,6 @@ export class BillingComponent implements OnInit {
     referenceNumber: '',
     paymentDate: new Date().toISOString().split('T')[0]
   };
-
-  ngOnInit() {
-    this.bills.set(this.mockData.getMaintenanceBills());
-  }
 
   // Filtered bills
   public filteredBills = computed(() => {
@@ -92,10 +88,13 @@ export class BillingComponent implements OnInit {
   }
 
   generateBills() {
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Bills Generated',
-      message: `Maintenance bills for ${this.generateForm.month} 2026 have been generated for all 240 flats.`
+    this.mockData.addBill({
+      flatNumber: 'A-101',
+      month: this.generateForm.month,
+      year: 2026,
+      amount: 3500,
+      dueDate: this.generateForm.dueDate,
+      status: 'Pending'
     });
     this.closeGenerateModal();
   }
@@ -117,16 +116,29 @@ export class BillingComponent implements OnInit {
   }
 
   recordPayment() {
-    const flat = this.paymentForm.flatNumber;
-    this.bills.update(prev =>
-      prev.map(b => (b.flatNumber === flat ? { ...b, status: 'Paid', paidDate: this.paymentForm.paymentDate } : b))
+    const sel = this.selectedBill() || this.bills().find(b =>
+      b.flatNumber.trim().toUpperCase() === this.paymentForm.flatNumber.trim().toUpperCase() &&
+      b.status !== 'Paid'
     );
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Payment Recorded',
-      message: `Payment of ₹${this.paymentForm.amount} recorded for Flat ${flat} via ${this.paymentForm.paymentMethod}.`
+    const billId = sel ? /^BILL-(\d+)$/.exec(sel.id) : null;
+    if (!sel || !billId) {
+      this.mockData.showToast({
+        type: 'error',
+        title: 'Bill required',
+        message: 'Select a valid unpaid bill before recording a payment.'
+      });
+      return;
+    }
+    this.mockData.addPayment({
+      amount: this.paymentForm.amount,
+      method: this.paymentForm.paymentMethod as 'UPI' | 'Bank Transfer' | 'Cash' | 'Cheque',
+      reference: this.paymentForm.referenceNumber || ('TXN-' + Date.now()),
+      billId: Number(billId[1]),
+      flatNumber: this.paymentForm.flatNumber
+    }).subscribe({
+      next: () => this.closePaymentModal(),
+      error: () => undefined
     });
-    this.closePaymentModal();
   }
 
   openInvoiceModal(bill: MaintenanceBill) {

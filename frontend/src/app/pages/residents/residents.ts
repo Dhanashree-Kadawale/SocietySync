@@ -11,10 +11,10 @@ import { Resident } from '../../models/models';
   templateUrl: './residents.html',
   styleUrl: './residents.css'
 })
-export class ResidentsPageComponent implements OnInit {
+export class ResidentsPageComponent {
   public mockData = inject(MockDataService);
 
-  public residents = signal<Resident[]>([]);
+  public residents = this.mockData.residents;
   public searchQuery = signal<string>('');
   public selectedType = signal<string>('ALL');
   public selectedStatus = signal<string>('ALL');
@@ -36,10 +36,6 @@ export class ResidentsPageComponent implements OnInit {
     status: 'Active' as 'Active' | 'Pending' | 'Inactive',
     joinDate: new Date().toISOString().split('T')[0]
   };
-
-  ngOnInit() {
-    this.residents.set(this.mockData.getResidents());
-  }
 
   // Filtered residents
   public filteredResidents = computed(() => {
@@ -90,37 +86,21 @@ export class ResidentsPageComponent implements OnInit {
 
   saveResident() {
     if (!this.residentForm.name || !this.residentForm.phone) return;
-    const newRes: Resident = {
-      id: `R00${this.residents().length + 1}`,
+    this.mockData.addResident({
       name: this.residentForm.name,
       email: this.residentForm.email || `${this.residentForm.name.toLowerCase().replace(' ', '.')}@email.com`,
       phone: this.residentForm.phone,
       flatNumber: this.residentForm.flatNumber,
       building: this.residentForm.building,
       type: this.residentForm.type,
-      status: this.residentForm.status,
-      joinDate: this.residentForm.joinDate
-    };
-
-    this.residents.update(prev => [newRes, ...prev]);
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Resident Onboarded',
-      message: `${newRes.name} registered to Flat ${newRes.flatNumber}.`
+      status: this.residentForm.status
     });
     this.closeAddModal();
   }
 
   approveResident(r: Resident, event?: MouseEvent) {
     if (event) event.stopPropagation();
-    this.residents.update(prev =>
-      prev.map(item => item.id === r.id ? { ...item, status: 'Active' } : item)
-    );
-    this.mockData.showToast({
-      type: 'success',
-      title: 'Residency Approved',
-      message: `${r.name}'s residency for Flat ${r.flatNumber} has been verified and approved.`
-    });
+    this.mockData.approveResident(r.id);
   }
 
   viewDetails(r: Resident) {
@@ -135,13 +115,8 @@ export class ResidentsPageComponent implements OnInit {
   deleteResident(r: Resident, event?: MouseEvent) {
     if (event) event.stopPropagation();
     if (confirm(`Remove ${r.name} from society resident records?`)) {
-      this.residents.update(prev => prev.filter(item => item.id !== r.id));
+      this.mockData.deleteResident(r.id);
       if (this.showDetailDrawer()) this.closeDrawer();
-      this.mockData.showToast({
-        type: 'info',
-        title: 'Resident Removed',
-        message: `${r.name} record archived.`
-      });
     }
   }
 }

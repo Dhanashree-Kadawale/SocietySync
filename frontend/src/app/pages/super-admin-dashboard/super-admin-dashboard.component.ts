@@ -51,6 +51,23 @@ export class SuperAdminDashboardComponent {
     private router: Router
   ) {}
 
+  get userInitials(): string {
+    const name = this.authService.currentUser()?.name || 'Super Admin';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  get userName(): string {
+    return this.authService.currentUser()?.name || 'Super Admin';
+  }
+
+  get userRole(): string {
+    return this.authService.currentUser()?.role || 'Platform Super Admin';
+  }
+
   // Filtered Societies
   filteredSocieties = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
